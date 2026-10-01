@@ -43,7 +43,8 @@
   [`#[deny(lints)]`], [report them as errors],
   [`#[forbid(lints)]`], [as `deny`, and nothing inside may lower it],
   [`#![level(lints)]`], [any lint level, for the whole module],
-  [`#[pipeline(N)]`], [a pipelined function of depth `N` #status("proposal")],
+  [`#[latched(N)]`], [a pipelined function of depth `N` #status("proposal")],
+  [`#[latch]`], [one pipeline stage: a block, or the statement that follows #status("proposal")],
 )
 
 == Lints

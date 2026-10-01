@@ -52,7 +52,8 @@ named `test` declared in another module is ordinary metadata.
 
 - `#[test]` compiles an entity into the test executable.
 - `#[allow(lint, …)]`, `#[warn]`, `#[deny]` and `#[forbid]` set lint levels.
-- `#[pipeline(N)]` will make a function a pipeline (@pipelines)
+- `#[latched]` and `#[latch]` will make a function a pipeline and mark its
+  stages (@pipelines)
   #status("proposal").
 
 Metadata written as `#[...]` is an error whose help gives the `attr` binding

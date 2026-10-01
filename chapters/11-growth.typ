@@ -15,40 +15,50 @@ A function is combinational: one clock cycle, however deep its arithmetic. A
 pipelined datapath today is an entity written by hand, with a register per
 stage per value and the latency known only to its author. siox adopts Spade's
 answer: stage boundaries are part of the source, the compiler carries values
-across them, and latency is checked at every use.
+across them, and latency is checked at every use. It spells them with two
+directives rather than new keywords, because a stage boundary is not new
+computation but an instruction about when results are kept.
 
 ```siox
-#[pipeline(3)]
+#[latched]
 fn mac(clk: Bit, a: signed[16], b: signed[16], acc: signed[32]) -> signed[32] {
-    let product: signed[32] = signed[32](sext(a)) * signed[32](sext(b));
-    reg;                                  // stage boundary: everything above is registered
+    #[latch] {                                  // stage 1
+        let product: signed[32] = signed[32](sext(a)) * signed[32](sext(b));
+    }
+    #[latch]                                    // stage 2
     let sum: signed[32] = product + acc;
-    reg * 2;
     return sum;
 }
 
 impl Filter {
-    #[pipeline(3)]
-    y = mac(clk, x, coefficient, offset);  // y is mac's result three cycles later
+    #[latched(2)]
+    y = mac(clk, x, coefficient, offset);       // mac's result, two cycles later
 }
 ```
 
-- `#[pipeline(N)]` declares the depth, and the number of `reg` boundaries on
-  every path must match it.
-- Every call site states the depth it expects. Changing a pipeline's depth
-  therefore breaks its users at compile time instead of silently shifting
-  their timing by a cycle.
-- Stages take VHDL-style labels (`execute: reg;`), and `stage(execute).x` or
+- `#[latched]` makes a function a pipeline; its first parameter is the clock.
+- `#[latch]` marks one stage: on a block, everything in the block; without
+  braces, the one statement that follows. At the end of a stage every value
+  it computed or carried is registered, and a `let` inside a stage block stays
+  visible after it, one cycle later: a stage is a step in time, not a scope.
+- The depth is the number of stages, stated by `#[latched(N)]` and checked
+  against the body. Every call site states the depth it expects too, so
+  changing a pipeline's depth breaks its users at compile time instead of
+  silently shifting their timing by a cycle.
+- `#[latch(name = fetch)]` names a stage, and `stage(fetch).x` or
   `stage(-1).x` reads a value in another stage, for forwarding. Using a value
   before the stage that computes it is an error that says how many stages
   early it is.
-- `reg[cond];` stalls a stage while `cond` is false, and a stall propagates to
-  every earlier stage. `stage'ready` and `stage'valid` say whether a stage
-  accepts input and whether its contents are real; valid bits start false,
-  because every siox signal starts at its default.
+- `#[latch(enable = cond)]` stalls a stage while `cond` is false, and a stall
+  propagates to every earlier stage. `stage'ready` and `stage'valid` say
+  whether a stage accepts input and whether its contents are real; valid bits
+  start false, because every siox signal starts at its default.
 
 The pipeline registers are ordinary registers in the IR and in the eventual
-RTL; no backend needs to understand the directive.
+RTL; no backend needs to understand the directives. One naming question is
+open: in hardware a *latch* is a level-sensitive element, while these stages
+are edge-triggered registers, so `#[pipelined]`/`#[stage]` are possible
+alternative names.
 
 == Macros
 #status("proposal")

@@ -47,7 +47,7 @@ contexts:
         - match: '\]'
           scope: punctuation.definition.annotation.end.siox
           pop: true
-        - match: '\b(test|allow|warn|deny|forbid|pipeline)\b'
+        - match: '\b(test|allow|warn|deny|forbid|latched|latch)\b'
           scope: keyword.other.directive.siox
         - include: strings
         - include: numbers
