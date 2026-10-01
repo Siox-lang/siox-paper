@@ -110,11 +110,13 @@ contexts:
         2: punctuation.separator.siox
 
   keywords:
-    - match: '\b(fn)\s+({{ident}})'
+    - match: '\$({{ident}})'
+      scope: variable.parameter.siox
+    - match: '\b(fn|macro)\s+({{ident}})'
       captures:
         1: keyword.declaration.siox
         2: entity.name.function.siox
-    - match: '\b(module|use|type|pub|extern|attr|const|let|fn|process)\b'
+    - match: '\b(module|use|type|pub|extern|attr|const|let|fn|process|macro)\b'
       scope: keyword.declaration.siox
     - match: '\b(entity|impl|struct|view|enum|trait)\b'
       scope: keyword.declaration.type.siox
