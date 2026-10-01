@@ -17,7 +17,7 @@
 #show heading.where(level: 1): it => block(above: 1.6em, below: 0.9em, text(size: 14pt, it))
 #show heading.where(level: 2): it => block(above: 1.3em, below: 0.7em, text(size: 11.5pt, it))
 // siox snippets are highlighted with the grammar beside this file.
-#set raw(syntaxes: "siox.sublime-syntax")
+#set raw(syntaxes: "siox.sublime-syntax", theme: "siox.tmTheme")
 #show raw.where(block: true): it => block(
   fill: luma(245),
   inset: (x: 10pt, y: 8pt),

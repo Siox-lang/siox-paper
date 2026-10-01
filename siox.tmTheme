@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  A light colour theme for siox code (scopes from siox.sublime-syntax).
+  Keywords, built-in data types, user types, labels, attributes and literals
+  each get their own colour, so `entity`, `Bit` and `Counter` never look alike.
+-->
+<plist version="1.0">
+<dict>
+  <key>name</key>
+  <string>siox light</string>
+  <key>settings</key>
+  <array>
+    <dict>
+      <key>settings</key>
+      <dict>
+        <key>foreground</key><string>#1f2328</string>
+        <key>background</key><string>#f5f5f5</string>
+      </dict>
+    </dict>
+
+    <dict>
+      <key>name</key><string>Comments</string>
+      <key>scope</key><string>comment</string>
+      <key>settings</key>
+      <dict>
+        <key>foreground</key><string>#6e7781</string>
+        <key>fontStyle</key><string>italic</string>
+      </dict>
+    </dict>
+
+    <dict>
+      <key>name</key><string>Keywords</string>
+      <key>scope</key><string>keyword.declaration, keyword.control, keyword.operator.word, storage.modifier.direction</string>
+      <key>settings</key>
+      <dict>
+        <key>foreground</key><string>#8250df</string>
+        <key>fontStyle</key><string>bold</string>
+      </dict>
+    </dict>
+
+    <dict>
+      <key>name</key><string>Built-in data types</string>
+      <key>scope</key><string>storage.type.builtin</string>
+      <key>settings</key>
+      <dict>
+        <key>foreground</key><string>#0a7f8f</string>
+      </dict>
+    </dict>
+
+    <dict>
+      <key>name</key><string>User types</string>
+      <key>scope</key><string>entity.name.type</string>
+      <key>settings</key>
+      <dict>
+        <key>foreground</key><string>#0550ae</string>
+      </dict>
+    </dict>
+
+    <dict>
+      <key>name</key><string>Functions and methods</string>
+      <key>scope</key><string>entity.name.function, variable.function</string>
+      <key>settings</key>
+      <dict>
+        <key>foreground</key><string>#444d56</string>
+      </dict>
+    </dict>
+
+    <dict>
+      <key>name</key><string>Macros</string>
+      <key>scope</key><string>support.function.macro, punctuation.definition.macro</string>
+      <key>settings</key>
+      <dict>
+        <key>foreground</key><string>#953800</string>
+      </dict>
+    </dict>
+
+    <dict>
+      <key>name</key><string>Labels</string>
+      <key>scope</key><string>entity.name.label</string>
+      <key>settings</key>
+      <dict>
+        <key>foreground</key><string>#bc4c00</string>
+        <key>fontStyle</key><string>italic</string>
+      </dict>
+    </dict>
+
+    <dict>
+      <key>name</key><string>Tick attributes</string>
+      <key>scope</key><string>entity.other.attribute-name, punctuation.accessor.tick</string>
+      <key>settings</key>
+      <dict>
+        <key>foreground</key><string>#1a7f37</string>
+      </dict>
+    </dict>
+
+    <dict>
+      <key>name</key><string>Directives</string>
+      <key>scope</key><string>meta.annotation, keyword.other.directive, variable.annotation</string>
+      <key>settings</key>
+      <dict>
+        <key>foreground</key><string>#9a6700</string>
+      </dict>
+    </dict>
+
+    <dict>
+      <key>name</key><string>Literals</string>
+      <key>scope</key><string>constant.numeric, constant.character, constant.language</string>
+      <key>settings</key>
+      <dict>
+        <key>foreground</key><string>#bf3989</string>
+      </dict>
+    </dict>
+
+    <dict>
+      <key>name</key><string>Literal suffixes and radix prefixes</string>
+      <key>scope</key><string>storage.type.numeric.suffix, storage.modifier.radix</string>
+      <key>settings</key>
+      <dict>
+        <key>foreground</key><string>#0a7f8f</string>
+      </dict>
+    </dict>
+
+    <dict>
+      <key>name</key><string>Strings</string>
+      <key>scope</key><string>string, constant.other.placeholder</string>
+      <key>settings</key>
+      <dict>
+        <key>foreground</key><string>#0a3069</string>
+      </dict>
+    </dict>
+
+    <dict>
+      <key>name</key><string>self</string>
+      <key>scope</key><string>variable.language</string>
+      <key>settings</key>
+      <dict>
+        <key>foreground</key><string>#cf222e</string>
+      </dict>
+    </dict>
+
+    <dict>
+      <key>name</key><string>Operators</string>
+      <key>scope</key><string>keyword.operator, punctuation.accessor.path</string>
+      <key>settings</key>
+      <dict>
+        <key>foreground</key><string>#57606a</string>
+      </dict>
+    </dict>
+  </array>
+</dict>
+</plist>
