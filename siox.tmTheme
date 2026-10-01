@@ -1,21 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <!--
-  A light colour theme for siox code (scopes from siox.sublime-syntax).
+  siox in the One Dark Pro palette (scopes from siox.sublime-syntax).
   Keywords, built-in data types, user types, labels, attributes and literals
-  each get their own colour, so `entity`, `Bit` and `Counter` never look alike.
+  each keep their own colour, so `entity`, `Bit` and `Counter` never look
+  alike, and literal prefixes and suffixes are never red.
+
+    background #282c34   foreground #abb2bf   comment #7f848e
+    purple     #c678dd   blue       #61afef   cyan    #56b6c2
+    yellow     #e5c07b   green      #98c379   orange  #d19a66
+    red        #e06c75
 -->
 <plist version="1.0">
 <dict>
   <key>name</key>
-  <string>siox light</string>
+  <string>siox One Dark Pro</string>
   <key>settings</key>
   <array>
     <dict>
       <key>settings</key>
       <dict>
-        <key>foreground</key><string>#1f2328</string>
-        <key>background</key><string>#f5f5f5</string>
+        <key>background</key><string>#282c34</string>
+        <key>foreground</key><string>#abb2bf</string>
       </dict>
     </dict>
 
@@ -24,7 +30,7 @@
       <key>scope</key><string>comment</string>
       <key>settings</key>
       <dict>
-        <key>foreground</key><string>#6e7781</string>
+        <key>foreground</key><string>#7f848e</string>
         <key>fontStyle</key><string>italic</string>
       </dict>
     </dict>
@@ -34,8 +40,26 @@
       <key>scope</key><string>keyword.declaration, keyword.control, keyword.operator.word, storage.modifier.direction</string>
       <key>settings</key>
       <dict>
-        <key>foreground</key><string>#8250df</string>
-        <key>fontStyle</key><string>bold</string>
+        <key>foreground</key><string>#c678dd</string>
+      </dict>
+    </dict>
+
+    <dict>
+      <key>name</key><string>Directives</string>
+      <key>scope</key><string>keyword.other.directive, variable.annotation</string>
+      <key>settings</key>
+      <dict>
+        <key>foreground</key><string>#c678dd</string>
+        <key>fontStyle</key><string>italic</string>
+      </dict>
+    </dict>
+
+    <dict>
+      <key>name</key><string>Directive brackets</string>
+      <key>scope</key><string>punctuation.definition.annotation</string>
+      <key>settings</key>
+      <dict>
+        <key>foreground</key><string>#abb2bf</string>
       </dict>
     </dict>
 
@@ -44,7 +68,7 @@
       <key>scope</key><string>storage.type.builtin</string>
       <key>settings</key>
       <dict>
-        <key>foreground</key><string>#0a7f8f</string>
+        <key>foreground</key><string>#56b6c2</string>
       </dict>
     </dict>
 
@@ -53,7 +77,7 @@
       <key>scope</key><string>entity.name.type</string>
       <key>settings</key>
       <dict>
-        <key>foreground</key><string>#0550ae</string>
+        <key>foreground</key><string>#e5c07b</string>
       </dict>
     </dict>
 
@@ -62,7 +86,7 @@
       <key>scope</key><string>entity.name.function, variable.function</string>
       <key>settings</key>
       <dict>
-        <key>foreground</key><string>#444d56</string>
+        <key>foreground</key><string>#61afef</string>
       </dict>
     </dict>
 
@@ -71,7 +95,7 @@
       <key>scope</key><string>support.function.macro, punctuation.definition.macro</string>
       <key>settings</key>
       <dict>
-        <key>foreground</key><string>#953800</string>
+        <key>foreground</key><string>#61afef</string>
       </dict>
     </dict>
 
@@ -80,7 +104,7 @@
       <key>scope</key><string>entity.name.label</string>
       <key>settings</key>
       <dict>
-        <key>foreground</key><string>#bc4c00</string>
+        <key>foreground</key><string>#e06c75</string>
         <key>fontStyle</key><string>italic</string>
       </dict>
     </dict>
@@ -90,25 +114,16 @@
       <key>scope</key><string>entity.other.attribute-name, punctuation.accessor.tick</string>
       <key>settings</key>
       <dict>
-        <key>foreground</key><string>#1a7f37</string>
+        <key>foreground</key><string>#e06c75</string>
       </dict>
     </dict>
 
     <dict>
-      <key>name</key><string>Directives</string>
-      <key>scope</key><string>meta.annotation, keyword.other.directive, variable.annotation</string>
+      <key>name</key><string>Numbers and constants</string>
+      <key>scope</key><string>constant.numeric, constant.language</string>
       <key>settings</key>
       <dict>
-        <key>foreground</key><string>#9a6700</string>
-      </dict>
-    </dict>
-
-    <dict>
-      <key>name</key><string>Literals</string>
-      <key>scope</key><string>constant.numeric, constant.character, constant.language</string>
-      <key>settings</key>
-      <dict>
-        <key>foreground</key><string>#bf3989</string>
+        <key>foreground</key><string>#d19a66</string>
       </dict>
     </dict>
 
@@ -117,16 +132,25 @@
       <key>scope</key><string>storage.type.numeric.suffix, storage.modifier.radix</string>
       <key>settings</key>
       <dict>
-        <key>foreground</key><string>#0a7f8f</string>
+        <key>foreground</key><string>#56b6c2</string>
       </dict>
     </dict>
 
     <dict>
-      <key>name</key><string>Strings</string>
-      <key>scope</key><string>string, constant.other.placeholder</string>
+      <key>name</key><string>Characters and strings</string>
+      <key>scope</key><string>constant.character, string</string>
       <key>settings</key>
       <dict>
-        <key>foreground</key><string>#0a3069</string>
+        <key>foreground</key><string>#98c379</string>
+      </dict>
+    </dict>
+
+    <dict>
+      <key>name</key><string>Escapes and placeholders</string>
+      <key>scope</key><string>constant.character.escape, constant.other.placeholder</string>
+      <key>settings</key>
+      <dict>
+        <key>foreground</key><string>#56b6c2</string>
       </dict>
     </dict>
 
@@ -135,16 +159,17 @@
       <key>scope</key><string>variable.language</string>
       <key>settings</key>
       <dict>
-        <key>foreground</key><string>#cf222e</string>
+        <key>foreground</key><string>#e06c75</string>
+        <key>fontStyle</key><string>italic</string>
       </dict>
     </dict>
 
     <dict>
-      <key>name</key><string>Operators</string>
-      <key>scope</key><string>keyword.operator, punctuation.accessor.path</string>
+      <key>name</key><string>Operators and punctuation</string>
+      <key>scope</key><string>keyword.operator, punctuation.accessor.path, punctuation.separator</string>
       <key>settings</key>
       <dict>
-        <key>foreground</key><string>#57606a</string>
+        <key>foreground</key><string>#abb2bf</string>
       </dict>
     </dict>
   </array>

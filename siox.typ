@@ -19,11 +19,11 @@
 // siox snippets are highlighted with the grammar beside this file.
 #set raw(syntaxes: "siox.sublime-syntax", theme: "siox.tmTheme")
 #show raw.where(block: true): it => block(
-  fill: luma(245),
+  fill: rgb("#282c34"),            // One Dark Pro background
   inset: (x: 10pt, y: 8pt),
   radius: 3pt,
   width: 100%,
-  text(size: 8.8pt, it),
+  text(size: 8.8pt, fill: rgb("#abb2bf"), it),
 )
 #show raw.where(block: false): it => text(size: 9.5pt, it)
 
