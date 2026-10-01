@@ -23,7 +23,9 @@ contexts:
     - include: macros
     - include: types
     - include: functions
+    - include: namespaces
     - include: operators
+    - include: variables
 
   comments:
     - match: '//[/!]?.*$'
@@ -145,6 +147,18 @@ contexts:
   functions:
     - match: '\b({{ident}})(?=\s*\()'
       scope: variable.function.siox
+
+  # `std::logic::Bit`: a lower-case segment before `::` names a module.
+  namespaces:
+    - match: '\b([a-z_][A-Za-z0-9_]*)(?=::)'
+      scope: entity.name.namespace.siox
+
+  # Plain names: signals, locals, ports, fields, parameters.
+  variables:
+    - match: '\b[A-Z][A-Z0-9_]+\b'
+      scope: variable.other.constant.siox
+    - match: '{{ident}}'
+      scope: variable.other.siox
 
   operators:
     - match: '::'

@@ -19,13 +19,12 @@ Any Typst 0.12 or later works; the document uses only Typst's bundled fonts.
 [`siox.sublime-syntax`](siox.sublime-syntax) is a siox grammar in Sublime
 Text's format, and [`siox.tmTheme`](siox.tmTheme) colours it. The paper loads
 both with `#set raw(syntaxes: .., theme: ..)`, so ```` ```siox ```` blocks are
-highlighted on a dark background. The theme uses the One Dark Pro palette and
-keeps every category apart: keywords and directives (purple), built-in data
-types such as `Bit` and `unsigned` and literal prefixes/suffixes (cyan), user
-types (yellow), functions and macros (blue), labels and tick attributes (red),
-numbers (orange), characters and strings (green), comments (grey). The same file works anywhere syntect
-does: copy it into Sublime Text's `Packages/User/`, or into `bat`'s syntax
-directory and run `bat cache --build`.
+highlighted on a dark background. The theme colours siox the way One Dark Pro
+colours Rust: keywords purple, types yellow (built-in and user alike, with
+literal prefixes and suffixes in the type colour), functions and macros blue,
+variables and fields red, numbers and constants orange, strings and characters
+green, operators cyan, and labels and tick attributes purple italic like Rust's
+lifetimes.
 
 It covers keywords and directions, word operators (`and`, `xor`, …), types,
 character literals (`'0'`), bit strings (`x"AB"`), numbers with unit suffixes
