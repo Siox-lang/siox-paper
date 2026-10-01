@@ -1,18 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <!--
-  siox in One Dark Pro, coloured the way One Dark Pro colours Rust
-  (scopes from siox.sublime-syntax):
+  siox in the One Dark Pro palette, combining how it colours Rust and VHDL
+  (scopes from siox.sublime-syntax). siox takes its program structure from
+  Rust and its hardware model from VHDL, and each part keeps its colours:
 
-    keywords purple · types yellow (built-in and user, like `u8` and `String`)
-    functions and macros blue · variables and fields red · numbers orange
-    strings and characters green · operators cyan · comments grey italic
-    labels grey · tick attributes purple italic (Rust's lifetimes)
-    literal suffixes and prefixes yellow (Rust's `10u8`), never red
+  from Rust   keywords purple · user types and generics yellow · functions,
+              macros and directives blue · variables red · numbers orange ·
+              strings green · operators cyan · comments grey italic
+  from VHDL   built-in hardware types (Bit, Logic, unsigned, time ...) cyan,
+              as std_logic and unsigned are · unit suffixes and radix prefixes
+              cyan with them · tick attributes ('event, 'old, 'length) orange
+              italic · logic literals ('0', 'Z') green · entity, process and
+              port directions purple
+  labels      grey, so they never read as keywords
 
-    background #282c34  foreground #abb2bf  comment #7f848e  purple #c678dd
-    blue #61afef  cyan #56b6c2  yellow #e5c07b  green #98c379  orange #d19a66
-    red #e06c75
+    background #282c34  foreground #abb2bf  comment #7f848e  label #828997
+    purple #c678dd  blue #61afef  cyan #56b6c2  yellow #e5c07b
+    green #98c379  orange #d19a66  red #e06c75
 -->
 <plist version="1.0">
 <dict>
@@ -36,12 +41,16 @@
       <key>scope</key><string>entity.name.label</string>
       <key>settings</key><dict><key>foreground</key><string>#828997</string></dict></dict>
 
-    <dict><key>name</key><string>Tick attributes (Rust lifetimes)</string>
+    <dict><key>name</key><string>Tick attributes (VHDL attribute names)</string>
       <key>scope</key><string>entity.other.attribute-name, punctuation.accessor.tick, variable.language.stage</string>
-      <key>settings</key><dict><key>foreground</key><string>#c678dd</string><key>fontStyle</key><string>italic</string></dict></dict>
+      <key>settings</key><dict><key>foreground</key><string>#d19a66</string><key>fontStyle</key><string>italic</string></dict></dict>
 
-    <dict><key>name</key><string>Types, built-in and user</string>
-      <key>scope</key><string>storage.type.builtin, entity.name.type, storage.type.numeric.suffix, storage.modifier.radix</string>
+    <dict><key>name</key><string>Built-in hardware types, unit suffixes, radix prefixes (VHDL std types)</string>
+      <key>scope</key><string>storage.type.builtin, storage.type.numeric.suffix, storage.modifier.radix</string>
+      <key>settings</key><dict><key>foreground</key><string>#56b6c2</string></dict></dict>
+
+    <dict><key>name</key><string>User types and generic parameters (Rust types)</string>
+      <key>scope</key><string>entity.name.type</string>
       <key>settings</key><dict><key>foreground</key><string>#e5c07b</string></dict></dict>
 
     <dict><key>name</key><string>Modules in paths</string>

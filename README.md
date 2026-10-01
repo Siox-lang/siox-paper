@@ -37,12 +37,15 @@ Any Typst 0.12 or later works; the document uses only Typst's bundled fonts.
 [`siox.sublime-syntax`](siox.sublime-syntax) is a siox grammar in Sublime
 Text's format, and [`siox.tmTheme`](siox.tmTheme) colours it. The paper loads
 both with `#set raw(syntaxes: .., theme: ..)`, so ```` ```siox ```` blocks are
-highlighted on a dark background. The theme colours siox the way One Dark Pro
-colours Rust: keywords purple, types yellow (built-in and user alike, with
-literal prefixes and suffixes in the type colour), functions and macros blue,
-variables and fields red, numbers and constants orange, strings and characters
-green, operators cyan, tick attributes purple italic like Rust's lifetimes,
-and labels grey so they never read as keywords.
+highlighted on a dark background. siox takes its program structure from Rust
+and its hardware model from VHDL, and the theme (One Dark Pro's palette) keeps
+each part in its usual colours. From Rust: keywords purple, user types and
+generics yellow, functions, macros and directives blue, variables red, numbers
+orange, strings green, operators cyan. From VHDL: built-in hardware types
+(`Bit`, `Logic`, `unsigned`, `time`) cyan like `std_logic`, with unit suffixes
+and radix prefixes, tick attributes (`'event`, `'length`) orange italic, logic
+literals (`'0'`, `'Z'`) green. Labels are grey, so they never read as
+keywords.
 
 It covers keywords and directions, word operators (`and`, `xor`, …), types,
 character literals (`'0'`), bit strings (`x"AB"`), numbers with unit suffixes
