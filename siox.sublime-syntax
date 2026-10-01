@@ -1,0 +1,155 @@
+%YAML 1.2
+---
+# Syntax highlighting for siox (https://github.com/Siox-lang/sioxc).
+# Sublime Text syntax format, also read by Typst (`#set raw(syntaxes: ..)`),
+# bat, and anything else built on syntect.
+name: siox
+file_extensions: [siox]
+scope: source.siox
+
+variables:
+  ident: '[A-Za-z_][A-Za-z0-9_]*'
+
+contexts:
+  main:
+    - include: comments
+    - include: directives
+    - include: strings
+    - include: chars
+    - include: numbers
+    - include: attributes
+    - include: labels
+    - include: keywords
+    - include: macros
+    - include: types
+    - include: functions
+    - include: operators
+
+  comments:
+    - match: '//[/!]?.*$'
+      scope: comment.line.double-slash.siox
+    - match: '/\*'
+      scope: punctuation.definition.comment.begin.siox
+      push:
+        - meta_scope: comment.block.siox
+        - match: '\*/'
+          scope: punctuation.definition.comment.end.siox
+          pop: true
+
+  # `#[test]`, `#[allow(unused_signal)]`, and the module-wide `#![deny(..)]`.
+  directives:
+    - match: '#!?\['
+      scope: punctuation.definition.annotation.begin.siox
+      push:
+        - meta_scope: meta.annotation.siox
+        - match: '\]'
+          scope: punctuation.definition.annotation.end.siox
+          pop: true
+        - match: '\b(test|allow|warn|deny|forbid|pipeline)\b'
+          scope: keyword.other.directive.siox
+        - include: strings
+        - include: numbers
+        - match: '{{ident}}'
+          scope: variable.annotation.siox
+
+  strings:
+    # Bit-string literals: `x"AB_CD"`, `o"17"`, `b"1010"`.
+    - match: '\b([A-Za-z])(")'
+      captures:
+        1: storage.modifier.radix.siox
+        2: punctuation.definition.string.begin.siox
+      push: string-body
+    - match: '"'
+      scope: punctuation.definition.string.begin.siox
+      push: string-body
+
+  string-body:
+    - meta_scope: string.quoted.double.siox
+    - match: '\\.'
+      scope: constant.character.escape.siox
+    - match: '\{\}'
+      scope: constant.other.placeholder.siox
+    - match: '"'
+      scope: punctuation.definition.string.end.siox
+      pop: true
+
+  # A character literal is one symbol between ticks: `'0'`, `'Z'`, `'é'`,
+  # `'\n'`. It is matched before attributes so `'0'` is never `'0`.
+  chars:
+    - match: "'(?:\\\\.|[^'\\\\])'"
+      scope: constant.character.siox
+
+  numbers:
+    # Reals and integers, `_` separators, and literal suffixes (`10ns`, `5i`).
+    - match: '\b[0-9][0-9_]*\.[0-9][0-9_]*({{ident}})?'
+      scope: constant.numeric.float.siox
+      captures:
+        1: storage.type.numeric.suffix.siox
+    - match: '\b0[xob][0-9A-Fa-f_]+\b'
+      scope: constant.numeric.integer.siox
+    - match: '\b[0-9][0-9_]*({{ident}})?'
+      scope: constant.numeric.integer.siox
+      captures:
+        1: storage.type.numeric.suffix.siox
+
+  # `clk'event`, `x'old`, `data'length`, `probe'keep`.
+  attributes:
+    - match: "(')({{ident}})"
+      captures:
+        1: punctuation.accessor.tick.siox
+        2: entity.other.attribute-name.siox
+
+  # VHDL-style labels: `update: process`, `stages: for`, `sum: y = ..`.
+  # A label is an identifier and a single `:` at the start of a statement.
+  labels:
+    - match: '^\s*({{ident}})(:)(?!:)(?=\s*(?:(?:process|for|if|reg)\b|{{ident}}(?:\[[^\]]*\]|\.{{ident}})*\s*(?:[-+*]?=)(?!=)))'
+      captures:
+        1: entity.name.label.siox
+        2: punctuation.separator.siox
+
+  keywords:
+    - match: '\b(fn)\s+({{ident}})'
+      captures:
+        1: keyword.declaration.siox
+        2: entity.name.function.siox
+    - match: '\b(module|use|type|pub|extern|attr|const|let|fn|process)\b'
+      scope: keyword.declaration.siox
+    - match: '\b(entity|impl|struct|view|enum|trait)\b'
+      scope: keyword.declaration.type.siox
+    - match: '\b(if|else|match|for|in|return|await|after|where|reg)\b'
+      scope: keyword.control.siox
+    - match: '\b(in|out|inout)\b'
+      scope: storage.modifier.direction.siox
+    - match: '\b(and|or|not|xor|nand|nor|xnor)\b'
+      scope: keyword.operator.word.siox
+    - match: '\b(true|false)\b'
+      scope: constant.language.boolean.siox
+    - match: '\b(self|Self)\b'
+      scope: variable.language.self.siox
+    - match: '\b(stage)\b(?=\s*[(\x27])'
+      scope: variable.language.stage.siox
+
+  # `assert!(..)`, `print!(..)`, `warn!(..)`, `error!(..)`.
+  macros:
+    - match: '\b({{ident}})(!)(?=\s*\()'
+      captures:
+        1: support.function.macro.siox
+        2: punctuation.definition.macro.siox
+
+  types:
+    - match: '\b(integer|real|Char|string|Bit|Logic|ULogic|Bool|unsigned|signed|time|frequency|Range|Ordering)\b'
+      scope: storage.type.builtin.siox
+    - match: '\b[A-Z][A-Za-z0-9_]*\b'
+      scope: entity.name.type.siox
+
+  functions:
+    - match: '\b({{ident}})(?=\s*\()'
+      scope: variable.function.siox
+
+  operators:
+    - match: '::'
+      scope: punctuation.accessor.path.siox
+    - match: '<=>|==|!=|<=|>=|<<|>>|\+=|-=|\*=|=>|->|\.\.|[-+*/<>=]'
+      scope: keyword.operator.siox
+    - match: '[.,;:]'
+      scope: punctuation.separator.siox

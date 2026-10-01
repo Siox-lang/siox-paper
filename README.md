@@ -13,3 +13,16 @@ typst watch siox.typ            # rebuilds on every save
 ```
 
 Any Typst 0.12 or later works; the document uses only Typst's bundled fonts.
+
+## Syntax highlighting
+
+[`siox.sublime-syntax`](siox.sublime-syntax) is a siox grammar in Sublime
+Text's format. The paper loads it with `#set raw(syntaxes: ..)`, so
+```` ```siox ```` blocks are highlighted. The same file works anywhere syntect
+does: copy it into Sublime Text's `Packages/User/`, or into `bat`'s syntax
+directory and run `bat cache --build`.
+
+It covers keywords and directions, word operators (`and`, `xor`, …), types,
+character literals (`'0'`), bit strings (`x"AB"`), numbers with unit suffixes
+(`10ns`), tick attributes (`clk'event`), `#[...]` directives, VHDL-style
+labels (`update: process`), macros (`assert!`), and comments.
