@@ -14,10 +14,15 @@ module bus::uart;
 use std::logic::Logic;                 // one item
 use std::bits::{unsigned, sext};       // several from one module
 use Master = bus::axi::Master;         // renamed import (Rust: `as Master`)
+use std::{math::{self, PI}, numeric::{Word8 = Byte}}; // nested groups
+use bus::axi::*;                       // glob: every public name
+use self::State::{Idle, Busy};         // enum variants, from this module
+use super::spi::Clock;                 // from the parent module
 pub use std::logic::{Bit, Logic};      // re-export
 
 type Word = unsigned[32];              // transparent type alias
 pub type Byte = integer<0..255>;
+type Pair<T> = Packet<T>;              // generic alias
 ```
 
 A `use` of a project module loads the file it names (`use bus::spi::Master;`
@@ -30,10 +35,14 @@ Items are private to their module by default and exported with `pub`. Visibility
 follows the owning container, as in Rust: a struct field or an inherent method
 is private unless marked `pub`, and nothing can be more visible than its owner.
 
-The remaining Rust import forms are designed and come next
-#status("proposal"): nested groups and `self` in a group, glob imports
-(`use bus::axi::*;`), `self::` and `super::` paths, imports inside blocks,
-generic type aliases, and separate namespaces for types, values and macros.
+The rest of Rust's import model works the same way. Importing a module binds
+its name as a prefix (`use std::math;`, then `math::max(a, b)`). A glob is
+weaker than any explicit name, and two globs that bring the same name are an
+error only where the name is used. A `use` may open any block, and its names
+shadow the module's until the block ends. Importing a variant does not import
+its enum, and an import cannot pass through a type alias. One import binds a
+name in every namespace it lives in, so the module `std::assert` and the
+macro `assert!` never collide.
 
 == Entities and implementations
 #status("done")

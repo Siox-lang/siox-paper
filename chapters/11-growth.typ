@@ -163,12 +163,9 @@ result; nothing is hidden, and the generated ports cost exactly what
 hand-written ones do. Associated functions without `self` are implemented;
 pure accessors and action methods with arguments come next.
 
-== Imports, `derive` and the rest of the type system
+== `derive` and the rest of the type system
 #status("proposal")
 
-- The remaining Rust import forms: nested groups, `self` in groups, glob
-  imports, `self::`/`super::` paths, block-scoped imports, generic `type`
-  aliases, and separate namespaces for types, values and macros.
 - `#[derive(Ord)]` and `#[derive(Resolve)]` generating the routine
   implementations, once a second real use exists.
 - Compile-time selection stays a *value*, `std::target`, never `#[cfg]`: both
