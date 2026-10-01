@@ -1,11 +1,29 @@
-# siox — goal and purpose
+# siox — purpose and design
 
-A short paper explaining what the [siox](https://github.com/Siox-lang/sioxc)
-hardware description language is for: why it exists, the principles behind
-it, a first example, how the compiler works, and the three-phase roadmap.
+A document explaining what the [siox](https://github.com/Siox-lang/sioxc)
+hardware description language is for and what it will do. Read it as
+[`siox.pdf`](siox.pdf).
 
-Read it as [`siox.pdf`](siox.pdf). The source is [`siox.typ`](siox.typ), written
-in [Typst](https://typst.app); rebuild the PDF and commit both together.
+- **Part I · Purpose** — why another HDL, the principles behind siox, and a
+  first example.
+- **Part II · The digital language** — what siox does today: program
+  structure, behaviour, types, abstraction, metadata and directives,
+  verification, and the compiler.
+- **Part III · Where siox is going** — the designed features (pipelined
+  functions, macros, `core`/`std`, entity methods, the standard library, the
+  compiler foundations), Phase 2 analogue and mixed signal, Phase 3 design and
+  synthesis, and the tools around the compiler.
+- **Appendix** — keywords, system attributes, directives, lints, glossary.
+
+Every feature carries its status: implemented, partly implemented, proposal,
+planned, Phase 2 or Phase 3.
+
+## Building
+
+The source is [`siox.typ`](siox.typ), with shared layout in
+[`style.typ`](style.typ) and one file per chapter in [`chapters/`](chapters),
+written in [Typst](https://typst.app). Rebuild the PDF and commit both
+together:
 
 ```bash
 typst compile siox.typ          # writes siox.pdf
