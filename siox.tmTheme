@@ -7,7 +7,7 @@
     keywords purple · types yellow (built-in and user, like `u8` and `String`)
     functions and macros blue · variables and fields red · numbers orange
     strings and characters green · operators cyan · comments grey italic
-    labels and tick attributes purple italic (Rust's lifetimes and loop labels)
+    labels grey · tick attributes purple italic (Rust's lifetimes)
     literal suffixes and prefixes yellow (Rust's `10u8`), never red
 
     background #282c34  foreground #abb2bf  comment #7f848e  purple #c678dd
@@ -32,8 +32,12 @@
       <key>scope</key><string>keyword.declaration, keyword.control, keyword.operator.word, storage.modifier.direction</string>
       <key>settings</key><dict><key>foreground</key><string>#c678dd</string></dict></dict>
 
-    <dict><key>name</key><string>Labels and tick attributes (Rust lifetimes)</string>
-      <key>scope</key><string>entity.name.label, entity.other.attribute-name, punctuation.accessor.tick, variable.language.stage</string>
+    <dict><key>name</key><string>Labels: grey, so they never read as keywords</string>
+      <key>scope</key><string>entity.name.label</string>
+      <key>settings</key><dict><key>foreground</key><string>#828997</string></dict></dict>
+
+    <dict><key>name</key><string>Tick attributes (Rust lifetimes)</string>
+      <key>scope</key><string>entity.other.attribute-name, punctuation.accessor.tick, variable.language.stage</string>
       <key>settings</key><dict><key>foreground</key><string>#c678dd</string><key>fontStyle</key><string>italic</string></dict></dict>
 
     <dict><key>name</key><string>Types, built-in and user</string>

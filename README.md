@@ -41,8 +41,8 @@ highlighted on a dark background. The theme colours siox the way One Dark Pro
 colours Rust: keywords purple, types yellow (built-in and user alike, with
 literal prefixes and suffixes in the type colour), functions and macros blue,
 variables and fields red, numbers and constants orange, strings and characters
-green, operators cyan, and labels and tick attributes purple italic like Rust's
-lifetimes.
+green, operators cyan, tick attributes purple italic like Rust's lifetimes,
+and labels grey so they never read as keywords.
 
 It covers keywords and directions, word operators (`and`, `xor`, …), types,
 character literals (`'0'`), bit strings (`x"AB"`), numbers with unit suffixes
