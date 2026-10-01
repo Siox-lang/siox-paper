@@ -7,7 +7,7 @@
 #table(
   columns: (auto, 1fr),
   table.hline(stroke: 0.5pt),
-  [Items], [`module` `use` `type` `pub` `extern` `entity` `impl` `struct` `view` `enum` `trait` `attr` `const` `let` `fn` `process`],
+  [Items], [`module` `use` `type` `pub` `extern` `entity` `impl` `struct` `view` `enum` `trait` `attr` `const` `let` `fn` `process` `macro`],
   [Control], [`if` `else` `match` `for` `in` `return`],
   [Directions], [`in` `out` `inout`],
   [Contextual], [`await` `after` `where` `self` `true` `false` `not` `_`],

@@ -61,7 +61,7 @@ are edge-triggered registers, so `#[pipelined]`/`#[stage]` are possible
 alternative names.
 
 == Macros
-#status("proposal")
+#status("partial")
 
 Some abstractions generate structure rather than compute values. Macros give
 siox a hygienic, declarative way to write them, invoked with `!` so they stay
@@ -78,18 +78,25 @@ impl Cpu {
 }
 ```
 
-- Parameters bind syntax fragments (`expr`, `ident`, `type`, `stmt`, `item`,
-  `path`), not values.
+Implemented, following Rust's declarative macros 2.0:
+
+- Parameters bind syntax fragments (`expr`, `ident`, `type`, `path`, `stmt`,
+  `item`, `tokens`), not values, and a macro may have several forms, chosen
+  by the arguments.
+- A call expands to an expression, statements, implementation members or
+  module items, depending on where it stands.
 - Expansion happens before name resolution, so generated code is checked
   exactly as if it had been written by hand.
-- Hygiene: names a macro introduces cannot capture the caller's names.
-- Errors point at both the generated code and the invocation; an
-  expanded-source output shows what hardware a macro produced.
-- Not proposed: procedural token-stream macros, user-defined `#[...]`
-  attribute macros, and arbitrary code execution at compile time.
+- Hygiene: names a macro declares cannot capture the caller's names, and the
+  body's other names mean what they mean where the macro is declared.
+- Macros are items, imported with `use`; `--emit expanded` shows what
+  hardware a macro produced.
 
-The built-in `assert!`, `print!` and `warn!` become ordinary macros declared
-in the language core, backed by compiler builtins.
+Still to come: repetition over lists of arguments; the built-in `assert!`,
+`print!` and `warn!` becoming ordinary macros declared in the language core,
+backed by compiler builtins; and assertion failures inside a macro reporting
+the call site. Not proposed: procedural token-stream macros, user-defined
+`#[...]` attribute macros, and arbitrary code execution at compile time.
 
 == `core` and `std` <core-std>
 #status("proposal")
