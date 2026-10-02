@@ -19,6 +19,7 @@ contexts:
     - include: numbers
     - include: attributes
     - include: labels
+    - include: views
     - include: keywords
     - include: macros
     - include: types
@@ -132,6 +133,31 @@ contexts:
       scope: variable.language.self.siox
     - match: '\b(stage)\b(?=\s*[(\x27])'
       scope: variable.language.stage.siox
+
+  # Views are directional roles, so a view's name takes the colour of `in` and
+  # `out`: where it is declared (`view Source<T> for …`) and where it is
+  # applied, after the backing struct (`bus: Stream<T> Source`,
+  # `impl Stream<T> Source`).
+  views:
+    - match: '\b(view)\s+({{ident}})'
+      captures:
+        1: keyword.declaration.type.siox
+        2: storage.modifier.direction.view.siox
+    # After a generic struct's closing `>` (but not a `->` return arrow).
+    - match: '(?<=[^-]>)\s*\b([A-Z][A-Za-z0-9_]*)\b(?=\s*[,;{})]|\s*$)'
+      captures:
+        1: storage.modifier.direction.view.siox
+    # After a plain struct in a port or `impl`: `bus: Packet Source`.
+    - match: '(:)\s*([A-Z][A-Za-z0-9_]*)\s+([A-Z][A-Za-z0-9_]*)\b'
+      captures:
+        1: punctuation.separator.siox
+        2: entity.name.type.siox
+        3: storage.modifier.direction.view.siox
+    - match: '\b(impl)\s+([A-Z][A-Za-z0-9_]*)\s+([A-Z][A-Za-z0-9_]*)\b'
+      captures:
+        1: keyword.declaration.type.siox
+        2: entity.name.type.siox
+        3: storage.modifier.direction.view.siox
 
   # `assert!(..)`, `print!(..)`, `warn!(..)`, `error!(..)`.
   macros:
