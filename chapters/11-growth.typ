@@ -91,11 +91,13 @@ Implemented, following Rust's declarative macros 2.0:
   body's other names mean what they mean where the macro is declared.
 - Macros are items, imported with `use`; `--emit expanded` shows what
   hardware a macro produced.
+- Repetition unrolls at expansion time: a `$xs: expr...` parameter takes the
+  remaining arguments, and `for macro $x in $xs join and { $x }` repeats over
+  them.
+- An assertion that fails inside a macro reports the line of the call.
 
-Still to come: repetition over lists of arguments; the built-in `assert!`,
-`print!` and `warn!` becoming ordinary macros declared in the language core,
-backed by compiler builtins; and assertion failures inside a macro reporting
-the call site. Not proposed: procedural token-stream macros, user-defined
+Still to come: the built-in `assert!`, `print!` and `warn!` becoming ordinary
+macros declared in the language core, backed by compiler builtins. Not proposed: procedural token-stream macros, user-defined
 `#[...]` attribute macros, and arbitrary code execution at compile time.
 
 == `core` and `std` <core-std>
