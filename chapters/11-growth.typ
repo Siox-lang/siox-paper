@@ -101,10 +101,10 @@ macros declared in the language core, backed by compiler builtins. Not proposed:
 `#[...]` attribute macros, and arbitrary code execution at compile time.
 
 == `core` and `std` <core-std>
-#status("proposal")
+#status("partial")
 
-Today one standard library holds two kinds of declaration. The proposal splits
-them along one question: *could an external library have written this?*
+The library is split along one question: *could an external library have
+written this?*
 
 #table(
   columns: (auto, 1fr),
@@ -122,6 +122,20 @@ them along one question: *could an external library have written this?*
     `Complex` and math, text encodings, time and frequency, and, to come,
     vectors and matrices, fixed-point families and reusable hardware.],
 )
+
+Implemented: `core` is compiled into `sioxc` and holds `Bool`, `Range`,
+`Ordering`, `string`, the hook traits, the directives and `Severity`; `std`
+re-exports them from their old paths. Each `core` declaration tells the
+compiler its role with a lang item, as rustc's `#[lang = "add"]` does:
+
+```siox
+attr lang for Operator = "operator";
+```
+
+The compiler finds its hooks by role and never by path, and only `core` and
+`std` may bind `lang`, so a user trait named `Boolean` stays an ordinary
+trait. Still to come: the built-in macros declared in `core`, the fatal
+`error!`, and the new `std` content.
 
 `std` also gains vendor-neutral spellings for the metadata every synthesis
 flow wants, mapped by each backend to its vendor's name: `keep`, `async_reg`,
