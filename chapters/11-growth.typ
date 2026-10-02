@@ -125,8 +125,8 @@ written this?*
     Compiled into `sioxc`, so it always matches the compiler.],
   [`std`], [Everything a user programs with: `Bit`, `ULogic`, `Logic` and
     their truth tables, `unsigned`/`signed` and conversions, ranged integers,
-    `Complex` and math, text encodings, time and frequency, and, to come,
-    vectors and matrices, fixed-point families and reusable hardware.],
+    `Complex` and math, text encodings, time and frequency, fixed point, and,
+    to come, floating point, vectors and matrices.],
 )
 
 Implemented: `core` is compiled into `sioxc` and laid out like rustc's:
@@ -154,20 +154,20 @@ frequencies, I/O standards and pin assignments.
 == The standard library
 #status("partial")
 
-The standard library will grow, in this order, each piece with documentation
-and a runnable example:
+std is the mandatory, vendor-independent base: data types, conversions and
+small helpers every technology has. Memories, FIFOs, stream adapters and
+verification components are IP, and belong to vendor packages and libraries.
+Each piece comes with documentation and a runnable example:
 
-+ *Synchronizers and reset helpers*: two-flop synchronizers, reset
-  synchronizers, edge and pulse helpers with explicit clock domains.
-+ *Memories*: synchronous single- and dual-port RAM shapes, initialised from
-  arrays or files, with defined collision behaviour.
-+ *Streams and FIFOs*: canonical ready/valid structs and views, skid buffers,
-  pipeline registers, width adapters, synchronous then asynchronous FIFOs.
-+ *Numeric families*: fixed-point `ufixed`/`sfixed` with explicit saturation
-  and rounding, and conversions to integers and reals.
++ *Synchronizers and reset helpers* #status("done"): `std::sync`'s two-flop
+  synchronizer, reset synchronizer, edge detector and pulse synchronizer.
++ *Fixed point* #status("done"): `std::fixed`, after VHDL's `fixed_pkg`, with
+  the binary point in the index range. `ufixed[3..-4]` has four integer and
+  four fraction bits; arithmetic keeps the format, and conversions from `real`
+  round and saturate.
++ *Floating point*: `float[8..-23]` is IEEE-754 binary32, after VHDL's
+  `float_pkg`, written in siox so it synthesizes.
 + *Linear algebra*: vectors and matrices over any numeric element.
-+ *Verification helpers*: scoreboards and monitors, once the simulator's
-  external interface is stable.
 
 == Entity methods
 #status("partial")
