@@ -44,11 +44,10 @@ constraint tools to export.
 == Directives
 #status("done")
 
-`#[...]` is reserved for directives. The compiler implements them, and like
-rustc's built-in attributes they are declared in the standard library and
-reach every module through the prelude, so they resolve like any other name.
-`#[test]` is recognised by its declaration, not its spelling: an attribute
-named `test` declared in another module is ordinary metadata.
+`#[...]` is reserved for directives. Like rustc's built-in attributes they
+are part of the compiler and declared nowhere: they cannot be imported,
+renamed or shadowed, and take no value. A module's own `attr test` is
+metadata, bound with `attr test for X = …;`, and never makes a test.
 
 - `#[test]` compiles an entity into the test executable.
 - `#[allow(lint, …)]`, `#[warn]`, `#[deny]` and `#[forbid]` set lint levels.

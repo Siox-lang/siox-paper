@@ -120,7 +120,7 @@ written this?*
     the kernel types (`integer`, `real`, `Char`, `Bool`, `string`, `Range`);
     the hook traits the compiler calls (`Operator`, `Ordering`, `Prefix`,
     `Suffix`, `Index`, `Boolean`, `Resolve`, `New`, `From`, `LogicEncoding`);
-    the directives; the macros, including a new fatal `error!`; and the
+    the macros, including a new fatal `error!`; and the
     simulator services (`await`, `stop`, `finish`, files, randomness).
     Compiled into `sioxc`, so it always matches the compiler.],
   [`std`], [Everything a user programs with: `Bit`, `ULogic`, `Logic` and
@@ -129,10 +129,13 @@ written this?*
     vectors and matrices, fixed-point families and reusable hardware.],
 )
 
-Implemented: `core` is compiled into `sioxc` and holds `Bool`, `Range`,
-`Ordering`, `string`, the hook traits, the directives and `Severity`; `std`
-re-exports them from their old paths. Each `core` declaration tells the
-compiler its role with a lang item, as rustc's `#[lang = "add"]` does:
+Implemented: `core` is compiled into `sioxc` and laid out like rustc's:
+`core::primitive` (`Bool`, `string`), `core::ops`, `core::cmp`
+(`Ordering`), `core::convert` (`From`), `core::default` (`New`) and
+`core::macros`; `std` re-exports each module under the same name. The
+directives are not declared at all: like rustc's, they are built into the
+compiler. Each `core` declaration tells the compiler its role with a lang
+item, as rustc's `#[lang = "add"]` does:
 
 ```siox
 attr lang for Operator = "operator";
