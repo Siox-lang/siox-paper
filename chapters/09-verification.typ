@@ -63,9 +63,10 @@ it. The executable:
 - A value that leaves a ranged type, or a file read that fails, is reported
   with the signal's path or the source location.
 
-The three macros capture their source location, which is why they are
-macros. A fatal `error!("message")` is designed to join them (@core-std)
-#status("proposal").
+The macros capture their source location, which is why they are macros: a
+failure names the line of the call, even when the call is inside another
+macro. `error!("message")` fails unconditionally, like Rust's `panic!`. All
+four are declared in `core` (@macros).
 
 == Stimulus services
 #status("done")

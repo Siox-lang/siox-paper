@@ -60,7 +60,7 @@ open: in hardware a *latch* is a level-sensitive element, while these stages
 are edge-triggered registers, so `#[pipelined]`/`#[stage]` are possible
 alternative names.
 
-== Macros
+== Macros <macros>
 #status("partial")
 
 Some abstractions generate structure rather than compute values. Macros give
@@ -96,8 +96,14 @@ Implemented, following Rust's declarative macros 2.0:
   them.
 - An assertion that fails inside a macro reports the line of the call.
 
-Still to come: the built-in `assert!`, `print!` and `warn!` becoming ordinary
-macros declared in the language core, backed by compiler builtins. Not proposed: procedural token-stream macros, user-defined
+- The built-in `assert!`, `warn!`, `print!` and the new fatal `error!` are
+  ordinary macros declared in `core`, each over a compiler primitive that
+  only `core` may use:
+
+```siox
+pub macro assert($cond: expr, $rest: expr...) { builtin # assert($cond, $rest) }
+pub macro error($rest: expr...) { builtin # assert(false, $rest) }
+``` Not proposed: procedural token-stream macros, user-defined
 `#[...]` attribute macros, and arbitrary code execution at compile time.
 
 == `core` and `std` <core-std>
@@ -134,8 +140,8 @@ attr lang for Operator = "operator";
 
 The compiler finds its hooks by role and never by path, and only `core` and
 `std` may bind `lang`, so a user trait named `Boolean` stays an ordinary
-trait. Still to come: the built-in macros declared in `core`, the fatal
-`error!`, and the new `std` content.
+trait. The built-in macros are `core` declarations too (@macros). Still to
+come: the new `std` content.
 
 `std` also gains vendor-neutral spellings for the metadata every synthesis
 flow wants, mapped by each backend to its vendor's name: `keep`, `async_reg`,
