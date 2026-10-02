@@ -121,7 +121,14 @@ contexts:
       scope: keyword.declaration.siox
     - match: '\b(entity|impl|struct|view|enum|trait)\b'
       scope: keyword.declaration.type.siox
-    - match: '\b(if|else|match|for|in|return|await|after|where|reg)\b'
+    # `in` is control flow only in `for x in …`; anywhere else it is a port
+    # direction.
+    - match: '\b(for)\s+({{ident}})\s+(in)\b'
+      captures:
+        1: keyword.control.siox
+        2: variable.other.siox
+        3: keyword.control.siox
+    - match: '\b(if|else|match|for|return|await|after|where|reg)\b'
       scope: keyword.control.siox
     - match: '\b(in|out|inout)\b'
       scope: storage.modifier.direction.siox

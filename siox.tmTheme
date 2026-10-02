@@ -11,13 +11,13 @@
   from VHDL   built-in hardware types (Bit, Logic, unsigned, time ...) cyan,
               as std_logic and unsigned are · unit suffixes and radix prefixes
               cyan with them · tick attributes ('event, 'old, 'length) orange
-              italic · logic literals ('0', 'Z') green · entity, process and
-              port directions purple
+              italic · logic literals ('0', 'Z') green · entity and process
+              purple · port directions and views pink
   labels      grey, so they never read as keywords
 
     background #282c34  foreground #abb2bf  comment #7f848e  label #828997
     purple #c678dd  blue #61afef  cyan #56b6c2  yellow #e5c07b
-    green #98c379  orange #d19a66  red #e06c75
+    green #98c379  orange #d19a66  red #e06c75  pink #e5a0c6
 -->
 <plist version="1.0">
 <dict>
@@ -34,8 +34,11 @@
       <key>settings</key><dict><key>foreground</key><string>#7f848e</string><key>fontStyle</key><string>italic</string></dict></dict>
 
     <dict><key>name</key><string>Keywords</string>
-      <key>scope</key><string>keyword.declaration, keyword.control, keyword.operator.word, storage.modifier.direction</string>
+      <key>scope</key><string>keyword.declaration, keyword.control, keyword.operator.word</string>
       <key>settings</key><dict><key>foreground</key><string>#c678dd</string></dict></dict>
+    <dict><key>name</key><string>directions and views</string>
+      <key>scope</key><string>storage.modifier.direction</string>
+      <key>settings</key><dict><key>foreground</key><string>#e5a0c6</string></dict></dict>
 
     <dict><key>name</key><string>Labels: grey, so they never read as keywords</string>
       <key>scope</key><string>entity.name.label</string>
