@@ -118,7 +118,7 @@ written this?*
   table.hline(stroke: 0.5pt),
   [`core`], [What only the compiler can provide, reached through the language:
     the kernel types (`integer`, `real`, `Char`, `Bool`, `string`, `Range`);
-    the hook traits the compiler calls (`Operator`, `Eq`, `Ord`, `Prefix`,
+    the hook traits the compiler calls (`Add` and the other operators, `CustomOperator`, `Eq`, `Ord`, `Prefix`,
     `Suffix`, `Index`, `Boolean`, `Resolve`, `New`, `From`, `LogicEncoding`);
     the macros, including a new fatal `error!`; and the
     simulator services (`await`, `stop`, `finish`, files, randomness).
@@ -138,7 +138,7 @@ compiler. Each `core` declaration tells the compiler its role with a lang
 item, as rustc's `#[lang = "add"]` does:
 
 ```siox
-attr lang for Operator = "operator";
+attr lang for Add = "add";
 ```
 
 The compiler finds its hooks by role and never by path, and only `core` and

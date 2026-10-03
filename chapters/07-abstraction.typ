@@ -42,16 +42,21 @@ impl<T: Resolve> Resolve for T[] {
 == Operators
 #status("done")
 
-Every operator goes through one trait, parameterized by its symbol:
-`Operator<"+", In, Out>`. A type gets `+` by implementing it:
+Operators are traits, as in Rust. Each standard operator has its own:
+`Add`, `Sub`, `Mul`, `Div`, `Shl`, `Shr`, `And`, `Or` and `Not`, with a
+method named after it. A type gets `+` by implementing `Add`, and the method
+can also be called directly, `a.add(b)`:
 
 ```siox
-impl Operator<"+", Complex, Complex> for Complex {
-    fn apply(self, rhs: Complex) -> Complex {
+impl Add<Complex, Complex> for Complex {
+    fn add(self, rhs: Complex) -> Complex {
         return Complex { .re = self.re + rhs.re, .im = self.im + rhs.im };
     }
 }
 ```
+
+The traits double as bounds: a generic function over any type that can be
+added says `T: Add<T, T>`.
 
 Comparisons are two traits, as rustc's `PartialEq` and `PartialOrd`: `Eq`
 gives `==` and `!=`, `Ord` gives `<`, `<=`, `>` and `>=`, and every method
@@ -76,12 +81,13 @@ impl Ord<Version> for Version {
 `abs`, `rem` and `mod` are functions, as in mathematics: `x.abs()`,
 `x.rem(m)` (the dividend's sign) and `x.mod(m)` (the divisor's).
 
-The same trait defines *new* operators. Any symbol or word that is not
-reserved by the grammar can be an operator, and its binding power is bound
-inside its implementation:
+*New* operators are `CustomOperator`, parameterized by their symbol. Any
+symbol or word that is not reserved by the grammar can be an operator, and its
+binding power is bound inside its implementation; the standard operators'
+binding powers are the grammar's and cannot change:
 
 ```siox
-impl Operator<"xor", Logic, Logic> for Logic {
+impl CustomOperator<"xor", Logic, Logic> for Logic {
     attr precedence = 35;
     fn apply(self, rhs: Logic) -> Logic { … }
 }
