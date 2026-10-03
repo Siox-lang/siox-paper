@@ -43,8 +43,7 @@ impl<T: Resolve> Resolve for T[] {
 #status("done")
 
 Every operator goes through one trait, parameterized by its symbol:
-`Operator<"+", In, Out>`. A type gets `+` by implementing it, and the
-three-way comparison `<=>` returning `Ordering` derives all six comparisons:
+`Operator<"+", In, Out>`. A type gets `+` by implementing it:
 
 ```siox
 impl Operator<"+", Complex, Complex> for Complex {
@@ -53,6 +52,29 @@ impl Operator<"+", Complex, Complex> for Complex {
     }
 }
 ```
+
+Comparisons are two traits, as rustc's `PartialEq` and `PartialOrd`: `Eq`
+gives `==` and `!=`, `Ord` gives `<`, `<=`, `>` and `>=`, and every method
+returns `Bool`. A type with equality but no order implements `Eq` alone, and
+an order may leave values unordered, as IEEE floating point does for NaN:
+
+```siox
+impl Eq<Version> for Version {
+    fn eq(self, rhs: Version) -> Bool {
+        return self.major == rhs.major and self.minor == rhs.minor;
+    }
+}
+
+impl Ord<Version> for Version {
+    fn lt(self, rhs: Version) -> Bool {
+        return self.major < rhs.major or (self.major == rhs.major and self.minor < rhs.minor);
+    }
+    fn le(self, rhs: Version) -> Bool { return not rhs.lt(self); }
+}
+```
+
+`abs`, `rem` and `mod` are functions, as in mathematics: `x.abs()`,
+`x.rem(m)` (the dividend's sign) and `x.mod(m)` (the divisor's).
 
 The same trait defines *new* operators. Any symbol or word that is not
 reserved by the grammar can be an operator, and its binding power is bound

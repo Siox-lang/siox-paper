@@ -118,7 +118,7 @@ written this?*
   table.hline(stroke: 0.5pt),
   [`core`], [What only the compiler can provide, reached through the language:
     the kernel types (`integer`, `real`, `Char`, `Bool`, `string`, `Range`);
-    the hook traits the compiler calls (`Operator`, `Ordering`, `Prefix`,
+    the hook traits the compiler calls (`Operator`, `Eq`, `Ord`, `Prefix`,
     `Suffix`, `Index`, `Boolean`, `Resolve`, `New`, `From`, `LogicEncoding`);
     the macros, including a new fatal `error!`; and the
     simulator services (`await`, `stop`, `finish`, files, randomness).
@@ -130,8 +130,8 @@ written this?*
 )
 
 Implemented: `core` is compiled into `sioxc` and laid out like rustc's:
-`core::primitive` (`Bool`, `string`), `core::ops`, `core::cmp`
-(`Ordering`), `core::convert` (`From`), `core::default` (`New`) and
+`core::primitive` (`Bool`, `string`, and `integer`'s methods), `core::ops`,
+`core::cmp` (`Eq`, `Ord`, `Ordering`), `core::convert` (`From`), `core::default` (`New`) and
 `core::macros`; `std` re-exports each module under the same name. The
 directives are not declared at all: like rustc's, they are built into the
 compiler. Each `core` declaration tells the compiler its role with a lang
@@ -167,8 +167,8 @@ Each piece comes with documentation and a runnable example:
   round and saturate.
 + *Floating point* #status("partial"): `std::float`, after VHDL's
   `float_pkg`: `float[8..-23]` is IEEE-754 binary32, with addition,
-  subtraction, multiplication, comparison and conversions, rounding to nearest
-  even. It runs in simulation today; hardware use waits for the compiler to
+  subtraction, multiplication, IEEE comparison (a NaN is unordered) and
+  conversions, rounding to nearest even. It runs in simulation today; hardware use waits for the compiler to
   share repeated values when it lowers hardware.
 + *Linear algebra*: vectors and matrices over any numeric element.
 

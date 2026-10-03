@@ -44,7 +44,7 @@ them as `x` and `z`.
 `unsigned[N]` and `signed[N]` are vectors of `Logic` with a numeric meaning,
 like `ieee.numeric_std`. They are library types: nothing in the compiler
 tracks signedness, and `signed` differs from `unsigned` only by its operator
-implementations (a sign-aware `<=>`, an arithmetic `>>`, a signed `/`).
+implementations (a sign-aware `Ord`, an arithmetic `>>`, a signed `/`).
 
 - *Widths are strict.* An assignment or connection must match widths exactly.
   Arithmetic does not widen: `unsigned[8] + unsigned[8]` is `unsigned[8]` and
