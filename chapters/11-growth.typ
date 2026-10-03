@@ -162,14 +162,14 @@ Each piece comes with documentation and a runnable example:
 + *Synchronizers and reset helpers* #status("done"): `std::sync`'s two-flop
   synchronizer, reset synchronizer, edge detector and pulse synchronizer.
 + *Fixed point* #status("done"): `std::fixed`, after VHDL's `fixed_pkg`, with
-  the binary point in the index range. `ufixed[3..-4]` has four integer and
-  four fraction bits; arithmetic keeps the format, and the format's own
-  constructor converts a number, `ufixed[3..-4](2.5)`, rounding and
-  saturating.
+  the format as type parameters: `ufixed<8, 4>` has eight bits, four of them
+  fraction; arithmetic keeps the format, and the format's own constructor
+  converts a number, `ufixed<8, 4>(2.5)`, rounding and saturating.
 + *Floating point* #status("partial"): `std::float`, after VHDL's
-  `float_pkg`: `float[8..-23]` is IEEE-754 binary32, with addition,
+  `float_pkg`: `float<32, 23>` is IEEE-754 binary32 (32 bits, 23 of them
+  mantissa), with addition,
   subtraction, multiplication, IEEE comparison (a NaN is unordered) and the
-  constructor `float[8..-23](1.5)`, rounding to nearest even. It runs in simulation today; hardware use waits for the compiler to
+  constructor `float<32, 23>(1.5)`, rounding to nearest even. It runs in simulation today; hardware use waits for the compiler to
   share repeated values when it lowers hardware.
 + *Linear algebra*: vectors and matrices over any numeric element.
 
