@@ -43,7 +43,8 @@ impl<T: Resolve> Resolve for T[] {
 #status("done")
 
 Operators are traits, as in Rust. Each standard operator has its own:
-`Add`, `Sub`, `Mul`, `Div`, `Shl`, `Shr`, `And`, `Or` and `Not`, with a
+`Add`, `Sub`, `Mul`, `Div`, `Shl`, `Shr`, `And`, `Or`, `Not` and `Neg` (unary
+`-`), with a
 method named after it. A type gets `+` by implementing `Add`, and the method
 can also be called directly, `a.add(b)`:
 
@@ -78,8 +79,10 @@ impl Ord<Version> for Version {
 }
 ```
 
-`abs`, `rem` and `mod` are functions, as in mathematics: `x.abs()`,
-`x.rem(m)` (the dividend's sign) and `x.mod(m)` (the divisor's).
+`abs`, `rem` and `mod` are functions, as in mathematics, and live in
+`std::math` with `min`, `max` and the constants: `abs(x)`, `rem(a, m)` (the
+dividend's sign) and `mod(a, m)` (the divisor's). They are generic, so one
+`abs` serves `integer`, `signed`, the fixed formats and `float` alike.
 
 *New* operators are `CustomOperator`, parameterized by their symbol. Any
 symbol or word that is not reserved by the grammar can be an operator, and its
