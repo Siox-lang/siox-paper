@@ -253,6 +253,76 @@ the test executable (`--threads N`), not of the compiler, and the same Process
 IR, native entries and runtime serve both modes. No new language construct is
 needed.
 
+The unit of work is an *epoch*: the processes ready at one simulation time
+and publication boundary. On one thread they run one after another in a fixed
+reference order, process by process. With workers, the coordinator splits that
+ordered list into batches that may run side by side, and anything with an
+effect it cannot isolate (a file read, a random draw, a print, a write another
+process reads straight away) runs alone in its place in the order
+(@fig-epoch). Speed comes only from the batches; the order of the results
+never changes.
+
+#diagram(caption: [One epoch on one thread and on three lanes. P4 reads a
+file, so it runs alone, between the batches before and after it. The
+coordinator merges every slice's effects in process order before publishing,
+so both runs end in the same state.])[
+  #text(size: 8pt, weight: "bold")[One thread]
+  #lanes(
+    slots: 14,
+    ([lane 1], (
+      (0, 2, [P1], c-back), (2, 2, [P2], c-back), (4, 2, [P3], c-back),
+      (6, 2, [P4 · file], c-run), (8, 2, [P5], c-back), (10, 2, [P6], c-back),
+      (12, 2, [publish], c-muted),
+    )),
+  )
+  #v(6pt)
+  #text(size: 8pt, weight: "bold")[Three lanes (#mono("--threads 3"))]
+  #lanes(
+    slots: 14,
+    marks: (2, 4, 6),
+    axis: ((0, [batch 1]), (2, [alone]), (4, [batch 2]), (6, [merge])),
+    ([coordinator], (
+      (0, 2, [P1], c-back), (2, 2, [P4 · file], c-run), (4, 2, [P5], c-back),
+      (6, 3, [merge · publish], c-muted),
+    )),
+    ([worker], ((0, 2, [P2], c-back), (4, 2, [P6], c-back))),
+    ([worker], ((0, 2, [P3], c-back),)),
+  )
+  #v(2pt)
+  #text(size: 7.6pt, fill: luma(80))[Host time runs left to right; simulation
+  time does not move during an epoch.]
+] <fig-epoch>
+
+Whether two slices may share a batch is decided before they run, from effect
+summaries the compiler derives from each process's control-flow graph: which
+signals it reads, which storage it writes, what it schedules, and whether it
+touches the host (@fig-dispatch). Anything unknown counts as a conflict.
+
+#diagram(caption: [How the proposed runtime dispatches an epoch. Only slices
+proven independent reach the workers; everything else keeps its serial place.
+The merge and publication steps are the ones a single thread already
+performs.])[
+  #align(center, grid(
+    columns: 2,
+    align: center + horizon,
+    column-gutter: 28pt,
+    row-gutter: 5pt,
+    grid.cell(colspan: 2, step(colour: c-run)[the ready slices of this epoch, in process order]),
+    grid.cell(colspan: 2, arrow("down")),
+    grid.cell(colspan: 2, step(colour: c-ir)[compare effect summaries: reads, writes,\ schedules, host services]),
+    arrow("down-left", label: [proven independent]),
+    arrow("down-right", label: [dependent, unknown or host effects]),
+    step(colour: c-back)[run as one batch on the lanes;\ each slice buffers its own effects],
+    step(colour: c-run)[run alone on the coordinator,\ in its place in the order],
+    arrow("down-right"), arrow("down-left"),
+    grid.cell(colspan: 2, step(colour: c-run)[merge effects in order: epoch, process, effect number]),
+    grid.cell(colspan: 2, arrow("down")),
+    grid.cell(colspan: 2, step(colour: c-run)[publish writes and events, settle: as on one thread]),
+    grid.cell(colspan: 2, arrow("down")),
+    grid.cell(colspan: 2, step(colour: c-muted)[the next epoch, or advance time]),
+  ))
+] <fig-dispatch>
+
 == The simulator interface
 #status("planned")
 

@@ -36,7 +36,27 @@ impl AdderTest {
 A testbench may have several processes, each waiting on time or on signals
 by itself; the scheduler interleaves them by simulation time and delta cycle,
 so a monitor and a stimulus process run side by side, and none runs to
-completion before the others start.
+completion before the others start (@fig-interleave).
+
+#diagram(caption: [Three processes of one testbench on one host thread. Each
+runs until its next `await` and then suspends (the gaps); at every time the
+scheduler resumes whichever processes are due, in a fixed order, so a run
+always reproduces.])[
+  #lanes(
+    slots: 12,
+    axis: ((0, [0]), (2, [5 ns]), (4, [10 ns]), (6, [15 ns]), (8, [20 ns]), (10, [25 ns])),
+    ([clock], ((0, 1, [start], c-muted), (2, 1, [toggle], c-run), (4, 1, [toggle], c-run),
+               (6, 1, [toggle], c-run), (8, 1, [toggle], c-run), (10, 1, [toggle], c-run))),
+    ([stimulus], ((0, 1, [drive], c-back), (4, 1, [drive], c-back), (8, 1, [drive], c-back))),
+    ([monitor], ((0, 1, [start], c-muted), (2, 1, [check], c-ir), (6, 1, [check], c-ir),
+                 (10, 1, [check], c-ir))),
+  )
+  #v(2pt)
+  #text(size: 7.6pt, fill: luma(80))[Every process starts at 0. The clock waits
+  5 ns and toggles, so it rises at 5, 15 and 25 ns; the stimulus does
+  #mono[await 10ns] between drives, and the monitor does
+  #mono[await clk.rising()] before each check.]
+] <fig-interleave>
 
 Several testbenches may live in one file. Each is named by its qualified path
 (`adder::AdderTest`) and runs independently.

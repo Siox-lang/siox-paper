@@ -131,6 +131,23 @@ unit suffixes (`10ns`, `2us`), and `frequency` a nominal real (`100MHz`).
   semantics. It is testbench stimulus, not hardware; in a design it is an
   error.
 
-The scheduler runs delta cycles: within one simulation time, every process
-whose inputs changed runs, their writes are applied together, and the cycle
-repeats until nothing changes; then time advances to the next scheduled event.
+The scheduler runs delta cycles (@fig-delta): within one simulation time,
+every process whose inputs changed runs, their writes are applied together,
+and the cycle repeats until nothing changes; then time advances to the next
+scheduled event.
+
+#diagram(caption: [One simulation time. Delta cycles repeat until no signal
+changes; only then does time advance.])[
+  #grid(
+    columns: 5,
+    align: center + horizon,
+    column-gutter: 4pt,
+    row-gutter: 5pt,
+    step(colour: c-run)[run every process\ whose inputs changed], arrow("right"),
+    step(colour: c-run)[apply all their\ writes together], [], [],
+    arrow("up"), [], arrow("down"), [], [],
+    step(colour: c-run)[wake the processes\ that read them], arrow("left", label: [yes]),
+    step(colour: c-muted)[did any\ signal change?], arrow("right", label: [no]),
+    step(colour: c-run)[advance time to\ the next event],
+  )
+] <fig-delta>

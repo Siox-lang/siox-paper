@@ -88,6 +88,97 @@
   Illustrative sketch: the syntax below is not designed yet.
 ]
 
+// Diagrams, drawn with Typst's own shapes so the document needs no package.
+// Colours name the part of the system a box belongs to.
+#let c-front = rgb("#2b6cb0")    // compiler front end
+#let c-ir = rgb("#6b46c1")       // the IR
+#let c-back = rgb("#2f855a")     // code generation and output
+#let c-run = rgb("#c05621")      // the runtime
+#let c-muted = luma(120)
+
+// One box of a flowchart.
+#let step(body, colour: c-muted, width: auto) = box(
+  width: width,
+  inset: (x: 7pt, y: 5pt),
+  radius: 3pt,
+  fill: colour.lighten(85%),
+  stroke: 0.6pt + colour,
+  align(center, text(size: 8.4pt, body)),
+)
+
+// An arrow between boxes, optionally labelled.
+#let arrow(dir, label: none) = {
+  let glyph = (
+    right: sym.arrow.r, left: sym.arrow.l, up: sym.arrow.t, down: sym.arrow.b,
+    down-right: sym.arrow.br, down-left: sym.arrow.bl,
+  ).at(dir)
+  let mark = text(size: 13pt, fill: luma(70), glyph)
+  if label == none { return align(center + horizon, mark) }
+  let note = text(size: 7.4pt, fill: luma(80), style: "italic", label)
+  align(center + horizon, if dir in ("right", "left") {
+    stack(dir: ttb, spacing: 1pt, note, mark)
+  } else {
+    stack(dir: ltr, spacing: 3pt, mark, note)
+  })
+}
+
+// Boxes joined left to right by arrows.
+#let flow(..steps) = {
+  let items = steps.pos()
+  grid(
+    columns: items.len() * 2 - 1,
+    align: center + horizon,
+    column-gutter: 3pt,
+    ..items.intersperse(arrow("right")),
+  )
+}
+
+// A timeline: one row per lane, `(label, blocks)`, each block
+// `(start, length, body, colour)` in slots of the axis. `marks` draws a
+// dashed boundary before the given slots; `axis` labels slots underneath.
+#let lanes(slots: 12, marks: (), axis: (), label-width: 1.9cm, ..rows) = {
+  let cells = ()
+  for (label, blocks) in rows.pos() {
+    cells.push(align(right + horizon, text(size: 8pt, label)))
+    let at = 0
+    for (start, length, body, colour) in blocks.sorted(key: b => b.at(0)) {
+      for _ in range(at, start) { cells.push([]) }
+      cells.push(grid.cell(colspan: length, box(
+        width: 100%, height: 15pt, radius: 2pt,
+        fill: colour.lighten(80%), stroke: 0.6pt + colour,
+        align(center + horizon, text(size: 7.6pt, body)),
+      )))
+      at = start + length
+    }
+    for _ in range(at, slots) { cells.push([]) }
+  }
+  if axis.len() > 0 {
+    cells.push([])
+    let labels = (:)
+    for (slot, body) in axis { labels.insert(str(slot), body) }
+    for slot in range(slots) {
+      cells.push(align(left, text(size: 7pt, fill: luma(90), labels.at(str(slot), default: []))))
+    }
+  }
+  grid(
+    columns: (label-width,) + (1fr,) * slots,
+    column-gutter: 1.5pt,
+    row-gutter: 4pt,
+    ..marks.map(slot => grid.vline(x: slot + 1, stroke: (paint: luma(120), thickness: 0.6pt, dash: "dashed"))),
+    ..cells,
+  )
+}
+
+// Code inside a diagram, at the diagram's own size.
+#let mono(body) = text(font: "DejaVu Sans Mono", size: 0.92em, body)
+
+// A diagram as a numbered figure that never splits across pages.
+#let diagram(body, caption: none) = figure(
+  block(breakable: false, width: 100%, inset: (y: 4pt), body),
+  kind: image,
+  caption: caption,
+)
+
 #let title-page() = {
   set page(numbering: none)
   align(center)[

@@ -22,6 +22,26 @@ going after an error so a single run reports as much as it can.
   [codegen], [LLVM, then a native object or test executable linked with a fixed runtime.],
 )
 
+#diagram(caption: [The pipeline. The front end produces one checked instance
+tree; hardware and testbench processes alike become Process IR; the native
+code links with a runtime that is the same for every design.])[
+  #flow(
+    step(colour: c-front)[parse],
+    step(colour: c-front)[attributes],
+    step(colour: c-front)[resolve],
+    step(colour: c-front)[type-check],
+    step(colour: c-front)[elaborate],
+  )
+  #arrow("down")
+  #flow(
+    step(colour: c-ir)[lower to\ Process IR],
+    step(colour: c-back)[LLVM\ codegen],
+    step(colour: c-back)[design\ object],
+    step(colour: c-run)[link with the\ fixed runtime],
+    step(colour: c-back)[test executable:\ results, VCD, FST],
+  )
+] <fig-pipeline>
+
 The digital IR keeps one distinction from VHDL's model at its centre: a
 *driver* (a wire: `target = expr` under a condition) and an *event block*
 (`on condition: next(target) = expr`) are different things, and `'event` and
