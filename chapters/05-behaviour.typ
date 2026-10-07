@@ -119,6 +119,26 @@ the drivers' values. `Logic` implements the IEEE `resolved` function, so a
 tristate bus of `Logic` works; `Bit` and `ULogic` do not, so two drivers of
 either are an error that names each source.
 
+```siox
+impl Shared {
+    line = a;     // two drivers of one Logic line,
+    line = b;     // folded by Logic's Resolve implementation
+}
+```
+
+#diagram(caption: [Two drivers of one `Logic` line, from the simulator's VCD.
+A released driver (`'Z'`) yields to the other; when both drive, `'1'`
+against `'0'` resolves to the unknown `'X'`, and the line floats at `'Z'`
+when neither does.])[
+  #wave(
+    cells: 14,
+    axis: ((0, [0]), (2, [10 ns]), (4, [20 ns]), (6, [30 ns]), (8, [40 ns]), (10, [50 ns]), (12, [60 ns])),
+    ([a], "z.1.z...1.z..."),
+    ([b], "z.....0.....z."),
+    ([line], "z.1.z.0.x.0.z."),
+  )
+] <fig-resolve>
+
 == Time
 #status("done")
 
@@ -131,23 +151,45 @@ unit suffixes (`10ns`, `2us`), and `frequency` a nominal real (`100MHz`).
   semantics. It is testbench stimulus, not hardware; in a design it is an
   error.
 
-The scheduler runs delta cycles (@fig-delta): within one simulation time,
-every process whose inputs changed runs, their writes are applied together,
-and the cycle repeats until nothing changes; then time advances to the next
-scheduled event.
+The scheduler runs delta cycles (@fig-delta). Within one simulation time,
+wires are first settled to a fixed point; then every clocked block whose
+trigger changed runs, reading the values from before the edge; then all their
+writes are committed together. If a commit changed anything, another delta
+cycle follows; when nothing changes, time advances to the next scheduled
+event.
 
-#diagram(caption: [One simulation time. Delta cycles repeat until no signal
-changes; only then does time advance.])[
+#diagram(caption: [One delta cycle, repeated until a commit changes nothing;
+only then does time advance.])[
   #grid(
-    columns: 5,
+    columns: 3,
     align: center + horizon,
-    column-gutter: 4pt,
+    column-gutter: 6pt,
     row-gutter: 5pt,
-    step(colour: c-run)[run every process\ whose inputs changed], arrow("right"),
-    step(colour: c-run)[apply all their\ writes together], [], [],
-    arrow("up"), [], arrow("down"), [], [],
-    step(colour: c-run)[wake the processes\ that read them], arrow("left", label: [yes]),
-    step(colour: c-muted)[did any\ signal change?], arrow("right", label: [no]),
-    step(colour: c-run)[advance time to\ the next event],
+    step(colour: c-run)[settle the wires\ to a fixed point], arrow("right"),
+    step(colour: c-run)[run the clocked blocks\ whose trigger changed],
+    arrow("up", label: [yes: another delta]), [], arrow("down"),
+    step(colour: c-muted)[did the commit\ change anything?], arrow("left"),
+    step(colour: c-run)[commit all their\ writes together],
+    arrow("down", label: [no]), [], [],
+    step(colour: c-run)[advance time to\ the next event], [], [],
   )
 ] <fig-delta>
+
+Because wires settle inside each delta, a wire never lags the register it
+reads. @fig-zoom stretches the instant of one clock edge of the counter in
+@fig-counter: the edge is delta 0, and the register `value` and the wire
+`count = value` both change in delta 1. (A VHDL concurrent assignment would
+follow one delta later.)
+
+#diagram(caption: [The clock edge at 15 ns in `Counter`, one column per delta
+cycle. The simulator confirms it: a process woken by `value` changing already
+sees the new `count`.])[
+  #wave(
+    cells: 8,
+    marks: (2, 4, 6),
+    axis: ((0, [before]), (2, [15 ns, δ0]), (4, [δ1]), (6, [after])),
+    ([clk], "0.1....."),
+    ([value], "=...=...", ("0", "1")),
+    ([count], "=...=...", ("0", "1")),
+  )
+] <fig-zoom>

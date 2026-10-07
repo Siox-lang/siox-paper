@@ -27,6 +27,14 @@ testing, interoperability, the compiler architecture, the Phase 1 audit and
 the roadmap. Design proposals stay with the compiler, in
 [sioxc's `docs/proposals/`](https://github.com/Siox-lang/sioxc/tree/main/docs/proposals).
 
+## Waveforms
+
+The timing diagrams that say they come from the simulator were drawn from the
+VCD of the programs in [`waves/`](waves): build each with
+`sioxc --test <file>.siox -o t`, run `./t -o <file>.vcd`, and sample it with
+`python3 waves/vcd2wave.py <file>.vcd <cell-ns> <cells> <signal>...`, which
+prints the strings the paper's `wave` helper draws.
+
 ## Building
 
 The source is [`siox.typ`](siox.typ), with shared layout in

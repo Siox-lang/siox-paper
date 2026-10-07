@@ -1,0 +1,32 @@
+module delta;
+
+entity Reg {
+    clk: Bit in,
+    value: unsigned[8] out,
+    count: unsigned[8] out
+}
+
+impl Reg {
+    update: process {
+        if clk.rising() { value = value + 1; }
+    }
+    count = value;
+}
+
+#[test]
+entity DeltaTest {}
+
+impl DeltaTest {
+    let clk: Bit = '0';
+    let value: unsigned[8];
+    let count: unsigned[8];
+    let dut: Reg = { .clk = clk, .value = value, .count = count };
+
+    clock: process { clk = not clk after 5ns; }
+
+    watch: process {
+        await value == 1;
+        print!("when value became {}, count was {}", value, count);
+        await 30ns;
+    }
+}

@@ -169,6 +169,86 @@
   )
 }
 
+// A timing diagram. Each signal is `(name, spec)` or `(name, spec, labels)`;
+// `spec` has one character per cell: `0`/`1` a level, `z` high impedance,
+// `x` an unknown or conflicting value, `=` a new bus value (its text taken in
+// turn from `labels`), and `.` the previous cell continued. `marks` draws a
+// dashed line at the start of the given cells; `axis` labels cells underneath.
+#let wave(cells: 16, marks: (), axis: (), label-width: 1.9cm, ..signals) = layout(size => {
+  let width = size.width - label-width
+  let w = width / cells
+  let h = 17pt
+  let (hi, lo, mid) = (3.5pt, h - 3.5pt, h / 2)
+  let slant = calc.min(2.5pt, w / 4)
+  let ink = 0.75pt + luma(35)
+  let level-y(kind) = if kind == "1" { hi } else if kind == "0" { lo } else { mid }
+  let rows = ()
+  for signal in signals.pos() {
+    let (name, spec) = (signal.at(0), signal.at(1))
+    let labels = signal.at(2, default: ())
+    // Runs of one state: (kind, label, first cell, end cell).
+    let runs = ()
+    let next-label = 0
+    for (i, ch) in spec.clusters().enumerate() {
+      if ch == "." and runs.len() > 0 {
+        runs.at(-1).at(3) = i + 1
+      } else {
+        let label = none
+        if ch == "=" {
+          label = labels.at(next-label, default: none)
+          next-label += 1
+        }
+        runs.push((ch, label, i, i + 1))
+      }
+    }
+    let shapes = ()
+    for m in marks {
+      shapes.push(place(top + left, line(start: (m * w, 0pt), end: (m * w, h),
+        stroke: (paint: luma(150), thickness: 0.5pt, dash: "dashed"))))
+    }
+    let previous = none
+    for (kind, label, first, end) in runs {
+      let (x0, x1) = (first * w, end * w)
+      if kind in ("0", "1") {
+        let y = level-y(kind)
+        if previous in ("0", "1") and previous != kind {
+          shapes.push(place(top + left, line(start: (x0, hi), end: (x0, lo), stroke: ink)))
+        } else if previous in ("z", "x", "=") {
+          shapes.push(place(top + left, line(start: (x0, mid), end: (x0 + slant, y), stroke: ink)))
+          x0 = x0 + slant
+        }
+        shapes.push(place(top + left, line(start: (x0, y), end: (x1, y), stroke: ink)))
+      } else if kind == "z" {
+        let start = x0
+        if previous in ("0", "1") {
+          shapes.push(place(top + left, line(start: (x0, level-y(previous)), end: (x0 + slant, mid), stroke: ink)))
+          start = x0 + slant
+        }
+        shapes.push(place(top + left, line(start: (start, mid), end: (x1, mid),
+          stroke: 0.75pt + rgb("#2b6cb0"))))
+      } else if kind in ("=", "x") {
+        let fill = if kind == "x" { rgb("#e53e3e").lighten(78%) } else { rgb("#2b6cb0").lighten(88%) }
+        shapes.push(place(top + left, polygon(fill: fill, stroke: ink,
+          (x0, mid), (x0 + slant, hi), (x1 - slant, hi), (x1, mid), (x1 - slant, lo), (x0 + slant, lo))))
+        let text-label = if kind == "x" and label == none { [X] } else { label }
+        if text-label != none {
+          shapes.push(place(top + left, dx: x0, box(width: x1 - x0, height: h,
+            align(center + horizon, text(size: 7.4pt, text-label)))))
+        }
+      }
+      previous = kind
+    }
+    rows.push(align(right + horizon, text(size: 8pt, name)))
+    rows.push(box(width: width, height: h, shapes.join()))
+  }
+  if axis.len() > 0 {
+    rows.push([])
+    rows.push(box(width: width, height: 9pt, axis.map(((cell, body)) =>
+      place(top + left, dx: cell * w - 1pt, text(size: 7pt, fill: luma(90), body))).join()))
+  }
+  grid(columns: (label-width, width), column-gutter: 4pt, row-gutter: 2pt, ..rows)
+})
+
 // Code inside a diagram, at the diagram's own size.
 #let mono(body) = text(font: "DejaVu Sans Mono", size: 0.92em, body)
 

@@ -1,0 +1,41 @@
+module counter;
+
+entity Counter {
+    clk: Bit in,
+    rst: Logic in,
+    count: unsigned[8] out,
+}
+
+impl Counter {
+    let value: unsigned[8] = 0;
+
+    update: process {
+        if clk.rising() {            // runs only on a rising clock edge
+            if rst == '1' { value = 0; }
+            else { value = value + 1; }
+        }
+    }
+
+    count = value;                   // a wire: always equal to `value`
+}
+
+#[test]
+entity CounterTest {}
+
+impl CounterTest {
+    let clk: Bit = '0';
+    let rst: Logic = '1';
+    let count: unsigned[8];
+    let dut: Counter = { .clk = clk, .rst = rst, .count = count };
+
+    clock: process {
+        clk = not clk after 5ns;     // free-running clock, 10 ns period
+    }
+
+    stimulus: process {
+        await 10ns;                  // hold reset for one edge
+        rst = '0';
+        for i in 0..9 { await clk.rising(); }
+        assert!(count == 10, "counter should reach 10");
+    }
+}

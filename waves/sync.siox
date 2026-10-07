@@ -1,0 +1,22 @@
+module sync;
+use std::sync::Sync2;
+
+#[test]
+entity SyncTest {}
+
+impl SyncTest {
+    let clk: Bit = '0';
+    let d: Bit = '0';
+    let q: Bit;
+    let s: Sync2 = { .clk = clk, .d = d, .q = q };
+
+    clock: process {
+        clk = not clk after 5ns;
+    }
+
+    input: process {
+        await 13ns; d = '1';
+        await 40ns; d = '0';
+        await 30ns;
+    }
+}

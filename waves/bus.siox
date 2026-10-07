@@ -1,0 +1,37 @@
+module bus;
+
+// Two tristate drivers on one resolved `Logic` line.
+entity Shared {
+    a: Logic in,
+    b: Logic in,
+    line: Logic out
+}
+
+impl Shared {
+    line = a;
+    line = b;
+}
+
+#[test]
+entity BusTest {}
+
+impl BusTest {
+    let a: Logic = 'Z';
+    let b: Logic = 'Z';
+    let line: Logic;
+    let dut: Shared = { .a = a, .b = b, .line = line };
+
+    drive_a: process {
+        await 10ns; a = '1';
+        await 10ns; a = 'Z';
+        await 20ns; a = '1';
+        await 10ns; a = 'Z';
+        await 20ns;
+    }
+
+    drive_b: process {
+        await 30ns; b = '0';
+        await 30ns; b = 'Z';
+        await 10ns;
+    }
+}

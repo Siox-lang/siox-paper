@@ -58,6 +58,23 @@ impl Filter {
   whether a stage accepts input and whether its contents are real; valid bits
   start false, because every siox signal starts at its default.
 
+@fig-latency shows what the call site's `#[latched(2)]` promises: each input
+reaches `y` two clock edges after it is presented, and one new input enters
+every cycle.
+
+#diagram(caption: [The intended timing of `y = mac(…)` with `#[latched(2)]`
+(a proposal; not simulated). Before the first result arrives, `y` holds its
+type's default.])[
+  #wave(
+    cells: 16,
+    marks: (2, 4),
+    axis: ((2, [edge 1]), (4, [edge 2])),
+    ([clk], "1010101010101010"),
+    ([x], "=.=.=.=.=.=.=.=.", ("x0", "x1", "x2", "x3", "x4", "x5", "x6", "x7")),
+    ([y], "=...=.=.=.=.=.=.", ("0", "mac(x0)", "mac(x1)", "mac(x2)", "mac(x3)", "mac(x4)", "mac(x5)")),
+  )
+] <fig-latency>
+
 The pipeline registers are ordinary registers in the IR and in the eventual
 RTL; no backend needs to understand the directives. One naming question is
 open: in hardware a *latch* is a level-sensitive element, while these stages
@@ -185,6 +202,20 @@ Each piece comes with documentation and a runnable example:
   and in hardware entities alike. Still to come: division, square root,
   subnormals, other rounding modes, and conversion to and from fixed point.
 + *Linear algebra*: vectors and matrices over any numeric element.
+
+#diagram(caption: [`std::sync::Sync2` in simulation: an input that changes
+between clock edges (13 ns) is taken by the first flop on the next edge and
+reaches `q` one edge later, so `q` only ever changes on an edge of `clk`.])[
+  #wave(
+    cells: 70,
+    marks: (5, 15, 25, 35, 45, 55, 65),
+    axis: ((0, [0]), (10, [10 ns]), (20, [20 ns]), (30, [30 ns]), (40, [40 ns]), (50, [50 ns]), (60, [60 ns])),
+    ([clk], "0....1....0....1....0....1....0....1....0....1....0....1....0....1...."),
+    ([d], "0............1.......................................0................"),
+    ([first flop], "0..............1.......................................0.............."),
+    ([q], "0........................1.......................................0...."),
+  )
+] <fig-sync>
 
 == Entity methods
 #status("partial")
