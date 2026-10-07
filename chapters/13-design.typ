@@ -29,7 +29,8 @@ table if no existing compiled format can supply what is needed.
 == Constraints and physical intent
 
 Clocks and their frequencies, I/O standards, pin assignments, placement and
-the vendor attributes of @core-std are declared in the language, attached
+the base and vendor-namespaced attributes of @core-std are declared in the
+language, attached
 with `attr` bindings to the ports and instances they describe, checked
 against their declarations, and exported to each tool in its own format.
 

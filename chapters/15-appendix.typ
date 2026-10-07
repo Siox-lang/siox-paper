@@ -92,8 +92,10 @@
 
 == Further reading
 
-- The siox compiler and its documentation, including the language
-  specification and the proposals: #link("https://github.com/Siox-lang/sioxc")
+- The reference documents (the language specification, the standard-library
+  reference, simulation, testing, architecture and the Phase 1 audit), kept
+  beside this paper: #link("https://github.com/Siox-lang/siox-paper/tree/main/docs")
+- The siox compiler and its proposals: #link("https://github.com/Siox-lang/sioxc")
 - The siox test corpus: #link("https://github.com/Siox-lang/siox-tests")
 - IEEE 1076-2019, the VHDL standard, for the nine-value logic system.
 - Spade, an expression-based HDL with pipelines: #link("https://spade-lang.org/")

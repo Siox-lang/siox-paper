@@ -2,11 +2,15 @@
 
 = The digital language, growing
 
-Phase 1 is a working baseline, not a finished language. This chapter describes
-what is designed and written down as proposals, in roughly the order it is
-expected to land. Each proposal lives in the compiler repository under
-`docs/proposals/` until it is built, and is then folded into the language
-specification.
+Phase 1 is complete: an audit in October 2026 traced every requirement,
+deliverable and example to the compiler, the standard library and the test
+corpus (`docs/phase1-audit.md` in this paper's repository). It is a
+baseline, not a finished language. This chapter describes what is designed and
+written down as proposals, in roughly the order it is expected to land. Each
+proposal lives in the compiler repository under `docs/proposals/` until it is
+built; its substance then moves into the reference documents beside this
+paper (`docs/`, starting with the language specification) and the proposal is
+deleted.
 
 == Pipelined functions <pipelines>
 #status("proposal")
@@ -61,7 +65,7 @@ are edge-triggered registers, so `#[pipelined]`/`#[stage]` are possible
 alternative names.
 
 == Macros <macros>
-#status("partial")
+#status("done")
 
 Some abstractions generate structure rather than compute values. Macros give
 siox a hygienic, declarative way to write them, invoked with `!` so they stay
@@ -103,11 +107,16 @@ Implemented, following Rust's declarative macros 2.0:
 ```siox
 pub macro assert($cond: expr, $rest: expr...) { builtin # assert($cond, $rest) }
 pub macro error($rest: expr...) { builtin # assert(false, $rest) }
-``` Not proposed: procedural token-stream macros, user-defined
-`#[...]` attribute macros, and arbitrary code execution at compile time.
+```
+
+Still to come is tooling rather than language: a diagnostic inside a nested
+expansion should name every invocation that produced it, and editors should be
+able to show generated declarations next to the call that made them. Not
+proposed: procedural token-stream macros, user-defined `#[...]` attribute
+macros, and arbitrary code execution at compile time.
 
 == `core` and `std` <core-std>
-#status("partial")
+#status("done")
 
 The library is split along one question: *could an external library have
 written this?*
@@ -125,8 +134,8 @@ written this?*
     Compiled into `sioxc`, so it always matches the compiler.],
   [`std`], [Everything a user programs with: `Bit`, `ULogic`, `Logic` and
     their truth tables, `unsigned`/`signed` and conversions, ranged integers,
-    `Complex` and math, text encodings, time and frequency, fixed point, and,
-    to come, floating point, vectors and matrices.],
+    `Complex` and math, text encodings, time and frequency, fixed and
+    floating point, and, to come, vectors and matrices.],
 )
 
 Implemented: `core` is compiled into `sioxc` and laid out like rustc's:
@@ -143,13 +152,15 @@ attr lang for Add = "add";
 
 The compiler finds its hooks by role and never by path, and only `core` and
 `std` may bind `lang`, so a user trait named `Boolean` stays an ordinary
-trait. The built-in macros are `core` declarations too (@macros). Still to
-come: the new `std` content.
+trait. The built-in macros are `core` declarations too (@macros). The `std`
+content still to come is listed in the next section.
 
-`std` also gains vendor-neutral spellings for the metadata every synthesis
-flow wants, mapped by each backend to its vendor's name: `keep`, `async_reg`,
-`ram_style`, `rom_style`, `fsm_encoding`, `max_fanout`, `mark_debug`, clock
-frequencies, I/O standards and pin assignments.
+Metadata follows the same question. `std::attrs` declares only what nearly
+every flow needs to know: `keep`, `top`, `clock`, and a foreign entity's
+`library` and `name`. Vendor settings (RAM styles, FSM encodings, pin
+assignments, I/O standards) belong to vendor packages, namespaced as
+`attr vivado::ram_style for …`, so the language never grows a vendor's
+vocabulary.
 
 == The standard library
 #status("partial")
@@ -170,8 +181,9 @@ Each piece comes with documentation and a runnable example:
   `float_pkg`: `float<32, 23>` is IEEE-754 binary32 (32 bits, 23 of them
   mantissa), with addition,
   subtraction, multiplication, IEEE comparison (a NaN is unordered) and the
-  constructor `float<32, 23>(1.5)`, rounding to nearest even. It runs in simulation today; hardware use waits for the compiler to
-  share repeated values when it lowers hardware.
+  constructor `float<32, 23>(1.5)`, rounding to nearest even, in processes
+  and in hardware entities alike. Still to come: division, square root,
+  subnormals, other rounding modes, and conversion to and from fixed point.
 + *Linear algebra*: vectors and matrices over any numeric element.
 
 == Entity methods
@@ -209,9 +221,11 @@ pure accessors and action methods with arguments come next.
   branches are always type-checked, and there is one IR.
 
 == Compiler foundations
-#status("proposal")
+#status("partial")
 
-Five changes borrowed from rustc's architecture, each independent:
+Changes borrowed from rustc's architecture, each independent. Lang items
+(@core-std) have landed: `core` marks the declarations the compiler hooks
+into, and the compiler finds them by role. The rest remain:
 
 + *UI tests*: every diagnostic pinned by a snapshot test, with inline
   `//~ ERROR` annotations and a `--bless` mode.
@@ -221,9 +235,23 @@ Five changes borrowed from rustc's architecture, each independent:
 + *One constant evaluator* shared by every stage, replacing several that grew
   separately.
 + *No name lookups after resolution*: later stages work only with resolved
-  declaration identities, never with spellings.
-+ *Lang items*: the standard library marks the declarations the compiler
-  hooks into, instead of the compiler finding them by path.
+  declaration identities, never with spellings, including the last few hooks
+  still found by name.
+
+== Parallel simulation <parallel>
+#status("proposal")
+
+A design has many processes, and today one host thread runs them all: the
+fixed runtime acts like a small cooperative scheduler, running a process until
+it suspends, settles or finishes, then the next. The proposal keeps that model
+and adds a bounded pool of worker threads that run, within one delta cycle,
+only process slices proven independent of each other. Effects are isolated
+and merged in a fixed order, so a run with any number of threads produces the
+same results, diagnostics and waveforms as a run with one; anything not proven
+independent falls back to serial execution. The thread count is an option of
+the test executable (`--threads N`), not of the compiler, and the same Process
+IR, native entries and runtime serve both modes. No new language construct is
+needed.
 
 == The simulator interface
 #status("planned")

@@ -60,12 +60,14 @@
   [Declared attributes, directives, lint levels], [#status("done")],
   [Testbenches, test executables, VCD/FST waveforms], [#status("done")],
   [`extern "C"`, compiler API, language server], [#status("done")],
+  [User macros], [#status("done")],
+  [`core`/`std` split, lang items], [#status("done")],
+  [Fixed point; floating-point add, subtract, multiply, compare], [#status("done")],
   [Entity methods], [#status("partial")],
   [Standard-library build-out], [#status("partial")],
-  [User macros], [#status("partial")],
-  [`core`/`std` split, lang items], [#status("partial")],
+  [Compiler foundations (UI tests, JSON, one constant evaluator)], [#status("partial")],
   [Pipelined functions, `derive`], [#status("proposal")],
-  [Compiler foundations (UI tests, JSON, lang items)], [#status("proposal")],
+  [Parallel simulation], [#status("proposal")],
   [Simulator interface and cocotb], [#status("planned")],
   [Analogue and mixed signal], [#status("phase2")],
   [Projects, foreign HDL, constraints, vendor-neutral RTL, synthesis], [#status("phase3")],
@@ -76,5 +78,5 @@
 siox is a bet that hardware deserves a language with VHDL's precision and
 Rust's structure, compiled by a toolchain as dependable as a modern software
 compiler, and that the same language can grow from digital logic to the whole
-circuit. The digital foundation exists and runs today. The analogue and
+circuit. The digital foundation, Phase 1, is complete and runs today. The analogue and
 design phases build on it without changing what the digital language means.

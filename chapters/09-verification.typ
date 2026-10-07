@@ -33,6 +33,11 @@ impl AdderTest {
 }
 ```
 
+A testbench may have several processes, each waiting on time or on signals
+by itself; the scheduler interleaves them by simulation time and delta cycle,
+so a monitor and a stimulus process run side by side, and none runs to
+completion before the others start.
+
 Several testbenches may live in one file. Each is named by its qualified path
 (`adder::AdderTest`) and runs independently.
 
