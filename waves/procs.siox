@@ -1,0 +1,48 @@
+module procs;
+
+entity Counter {
+    clk: Bit in,
+    rst: Logic in,
+    count: unsigned[8] out,
+}
+
+impl Counter {
+    let value: unsigned[8] = 0;
+
+    update: process {
+        if clk.rising() {
+            if rst == '1' { value = 0; }
+            else { value = value + 1; }
+        }
+    }
+
+    count = value;
+}
+
+#[test]
+entity CounterTest {}
+
+impl CounterTest {
+    let clk: Bit = '0';
+    let rst: Logic = '1';
+    let count: unsigned[8];
+    let dut: Counter = { .clk = clk, .rst = rst, .count = count };
+
+    clock: process {
+        clk = not clk after 5ns;            // runs each time clk changes
+    }
+
+    stimulus: process {
+        await 10ns; rst = '0';              // release reset
+        await 30ns; rst = '1';              // reset again for one edge
+        await 10ns; rst = '0';
+        await 20ns;
+    }
+
+    monitor: process {
+        for i in 0..7 {
+            await clk.rising();
+            print!("count = {}", count);    // after this edge has settled
+        }
+    }
+}

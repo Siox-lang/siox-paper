@@ -172,8 +172,11 @@
 // A timing diagram. Each signal is `(name, spec)` or `(name, spec, labels)`;
 // `spec` has one character per cell: `0`/`1` a level, `z` high impedance,
 // `x` an unknown or conflicting value, `=` a new bus value (its text taken in
-// turn from `labels`), and `.` the previous cell continued. `marks` draws a
-// dashed line at the start of the given cells; `axis` labels cells underneath.
+// turn from `labels`), and `.` the previous cell continued. A row of `!` and
+// `_` is a process's activity instead: `!` a cell in which it runs (labelled
+// in turn from `labels`), `_` a cell in which it is suspended; an optional
+// fourth element colours it. `marks` draws a dashed line at the start of the
+// given cells; `axis` labels cells underneath.
 #let wave(cells: 16, marks: (), axis: (), label-width: 1.9cm, ..signals) = layout(size => {
   let width = size.width - label-width
   let w = width / cells
@@ -186,6 +189,29 @@
   for signal in signals.pos() {
     let (name, spec) = (signal.at(0), signal.at(1))
     let labels = signal.at(2, default: ())
+    let colour = signal.at(3, default: c-ir)
+    if spec.contains("!") {
+      let shapes = ()
+      for m in marks {
+        shapes.push(place(top + left, line(start: (m * w, 0pt), end: (m * w, h),
+          stroke: (paint: luma(150), thickness: 0.5pt, dash: "dashed"))))
+      }
+      shapes.push(place(top + left, line(start: (0pt, mid), end: (width, mid),
+        stroke: 0.5pt + luma(190))))
+      let next-label = 0
+      for (i, ch) in spec.clusters().enumerate() {
+        if ch != "!" { continue }
+        let label = labels.at(next-label, default: none)
+        next-label += 1
+        shapes.push(place(top + left, dx: i * w + 0.6pt, dy: hi - 0.5pt,
+          box(width: w - 1.2pt, height: lo - hi + 1pt, radius: 1.5pt,
+            fill: colour.lighten(75%), stroke: 0.6pt + colour,
+            align(center + horizon, text(size: 6.8pt, if label == none { [] } else { label })))))
+      }
+      rows.push(align(right + horizon, text(size: 8pt, name)))
+      rows.push(box(width: width, height: h, shapes.join()))
+      continue
+    }
     // Runs of one state: (kind, label, first cell, end cell).
     let runs = ()
     let next-label = 0

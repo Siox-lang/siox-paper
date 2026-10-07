@@ -36,26 +36,56 @@ impl AdderTest {
 A testbench may have several processes, each waiting on time or on signals
 by itself; the scheduler interleaves them by simulation time and delta cycle,
 so a monitor and a stimulus process run side by side, and none runs to
-completion before the others start (@fig-interleave).
+completion before the others start. Here the counter of the first example
+gets a stimulus that resets it twice and a monitor that reports every edge:
 
-#diagram(caption: [Three processes of one testbench on one host thread. Each
-runs until its next `await` and then suspends (the gaps); at every time the
-scheduler resumes whichever processes are due, in a fixed order, so a run
-always reproduces.])[
-  #lanes(
-    slots: 12,
-    axis: ((0, [0]), (2, [5 ns]), (4, [10 ns]), (6, [15 ns]), (8, [20 ns]), (10, [25 ns])),
-    ([clock], ((0, 1, [start], c-muted), (2, 1, [toggle], c-run), (4, 1, [toggle], c-run),
-               (6, 1, [toggle], c-run), (8, 1, [toggle], c-run), (10, 1, [toggle], c-run))),
-    ([stimulus], ((0, 1, [drive], c-back), (4, 1, [drive], c-back), (8, 1, [drive], c-back))),
-    ([monitor], ((0, 1, [start], c-muted), (2, 1, [check], c-ir), (6, 1, [check], c-ir),
-                 (10, 1, [check], c-ir))),
+```siox
+impl CounterTest {
+    // clk, rst, count and dut as in the first example
+
+    clock: process {
+        clk = not clk after 5ns;            // runs each time clk changes
+    }
+
+    stimulus: process {
+        await 10ns; rst = '0';              // release reset
+        await 30ns; rst = '1';              // reset again for one edge
+        await 10ns; rst = '0';
+        await 20ns;
+    }
+
+    monitor: process {
+        for i in 0..7 {
+            await clk.rising();
+            print!("count = {}", count);    // after this edge has settled
+        }
+    }
+}
+```
+
+@fig-interleave shows the run: the signals from its VCD, and beneath them
+when each process ran. Every process starts at 0. The clock process runs at
+each change of `clk`; the stimulus runs only when its `await 10ns` or
+`await 30ns` expires; the monitor runs at each rising edge, and an `await` in
+a testbench resumes only after the edge's consequences have settled, so it
+prints the new count (0, 1, 2, 3, then 0 after the second reset).
+
+#diagram(caption: [`CounterTest` with three processes, simulated. The upper
+rows are the VCD; each lower row marks the moments a process ran, between
+which it was suspended in an `await`. The monitor's marks carry the count it
+printed. All three share one host thread; at a shared time they run in a
+fixed order, so a run always reproduces.])[
+  #wave(
+    cells: 32,
+    marks: (2, 6, 10, 14, 18, 22, 26, 30),
+    axis: ((0, [0]), (4, [10 ns]), (8, [20 ns]), (12, [30 ns]), (16, [40 ns]), (20, [50 ns]), (24, [60 ns]), (28, [70 ns])),
+    ([clk], "0.1.0.1.0.1.0.1.0.1.0.1.0.1.0.1."),
+    ([rst], "1...0...........1...0..........."),
+    ([count], "=.....=...=...=...=...=...=...=.", ("0", "1", "2", "3", "0", "1", "2", "3")),
+    ([clock], "!_!_!_!_!_!_!_!_!_!_!_!_!_!_!_!_", (), c-run),
+    ([stimulus], "!___!___________!___!_______!___", (), c-back),
+    ([monitor], "!_!___!___!___!___!___!___!___!_", ("", "0", "1", "2", "3", "0", "1", "2", "3"), c-ir),
   )
-  #v(2pt)
-  #text(size: 7.6pt, fill: luma(80))[Every process starts at 0. The clock waits
-  5 ns and toggles, so it rises at 5, 15 and 25 ns; the stimulus does
-  #mono[await 10ns] between drives, and the monitor does
-  #mono[await clk.rising()] before each check.]
 ] <fig-interleave>
 
 Several testbenches may live in one file. Each is named by its qualified path
