@@ -23,8 +23,8 @@ planned, Phase 2 or Phase 3.
 [`docs/`](docs/README.md) holds the compiler's reference set, moved here from
 sioxc: the language specification ([`language.md`](docs/language.md), the
 authority for syntax and semantics), the standard library, simulation,
-testing, interoperability, the compiler architecture and the roadmap. Design
-proposals stay with the compiler, in
+testing, interoperability, the compiler architecture, the Phase 1 audit and
+the roadmap. Design proposals stay with the compiler, in
 [sioxc's `docs/proposals/`](https://github.com/Siox-lang/sioxc/tree/main/docs/proposals).
 
 ## Building
