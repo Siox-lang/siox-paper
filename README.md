@@ -18,6 +18,15 @@ hardware description language is for and what it will do. Read it as
 Every feature carries its status: implemented, partly implemented, proposal,
 planned, Phase 2 or Phase 3.
 
+## Reference documentation
+
+[`docs/`](docs/README.md) holds the compiler's reference set, moved here from
+sioxc: the language specification ([`language.md`](docs/language.md), the
+authority for syntax and semantics), the standard library, simulation,
+testing, interoperability, the compiler architecture and the roadmap. Design
+proposals stay with the compiler, in
+[sioxc's `docs/proposals/`](https://github.com/Siox-lang/sioxc/tree/main/docs/proposals).
+
 ## Building
 
 The source is [`siox.typ`](siox.typ), with shared layout in
