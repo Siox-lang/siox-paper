@@ -163,8 +163,9 @@ Each piece comes with documentation and a runnable example:
   synchronizer, reset synchronizer, edge detector and pulse synchronizer.
 + *Fixed point* #status("done"): `std::fixed`, after VHDL's `fixed_pkg`, with
   the format as type parameters: `ufixed<8, 4>` has eight bits, four of them
-  fraction; arithmetic keeps the format, and the format's own constructor
-  converts a number, `ufixed<8, 4>(2.5)`, rounding and saturating.
+  fraction; arithmetic and division keep the format, and the format's own
+  constructor converts a number, `ufixed<8, 4>(2.5)`, or resizes another
+  format, `ufixed<12, 6>(x)`, rounding and saturating.
 + *Floating point* #status("partial"): `std::float`, after VHDL's
   `float_pkg`: `float<32, 23>` is IEEE-754 binary32 (32 bits, 23 of them
   mantissa), with addition,
