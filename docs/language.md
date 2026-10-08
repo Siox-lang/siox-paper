@@ -719,6 +719,32 @@ a test.
 - `#[test]` compiles an entity into the `sioxc --test` executable.
 - `#[allow(lint, …)]`, `#[warn(…)]`, `#[deny(…)]` and `#[forbid(…)]` set lint
   levels, as in rustc (below).
+- `#[inline]`, `#[inline(always)]` and `#[inline(never)]` on a function choose
+  how the simulation runs its calls (below). Anywhere but on a `fn` they are
+  an error, as is any other mode.
+
+**Inlining is a simulation choice.** A call means the same whatever the
+compiler does with it. In the native simulation each call is either expanded
+in place or made to one shared copy of the function, compiled once per
+distinct set of argument types. Without a directive the compiler expands small
+functions and shares larger ones (more than about 32 IR values). `#[inline(always)]`
+always expands, `#[inline(never)]` asks for the shared copy, and `#[inline]`
+is a hint to expand. A directive never changes what a function means in
+hardware.
+
+A call is shared only where the two are interchangeable, so the shared copy
+is used:
+
+- in process and testbench code; hardware drivers expand every call;
+- for a pure value function: no signal, storage or local reads, no foreign or
+  host calls, no run-time checks;
+- when every argument has a definite width (a kernel `integer` or `real`, or a
+  packed value);
+- when no metavalue (`'X'`, `'U'`, …) can reach a part of the body that reads
+  it; a body that leaves the logic domain first (`integer(x)`) is shared
+  whatever its arguments carry.
+
+Otherwise the call is expanded, with the same result.
 
 ### 3.5a Lint levels
 

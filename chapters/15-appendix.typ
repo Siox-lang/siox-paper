@@ -43,6 +43,9 @@
   [`#[deny(lints)]`], [report them as errors],
   [`#[forbid(lints)]`], [as `deny`, and nothing inside may lower it],
   [`#![level(lints)]`], [any lint level, for the whole module],
+  [`#[inline(always)]`], [expand this function's calls in the simulation],
+  [`#[inline(never)]`], [call one shared copy of this function in the simulation],
+  [`#[inline]`], [a hint to expand],
   [`#[latched(N)]`], [a pipelined function of depth `N` #status("proposal")],
   [`#[latch]`], [one pipeline stage: a block, or the statement that follows #status("proposal")],
 )

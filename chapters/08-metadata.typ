@@ -51,6 +51,11 @@ metadata, bound with `attr test for X = …;`, and never makes a test.
 
 - `#[test]` compiles an entity into the test executable.
 - `#[allow(lint, …)]`, `#[warn]`, `#[deny]` and `#[forbid]` set lint levels.
+- `#[inline(always)]` and `#[inline(never)]` choose whether the simulation
+  expands a function's calls in place or calls one shared copy; `#[inline]` is
+  a hint to expand. Without one, small functions are expanded and larger ones
+  shared. It is a choice about the simulation only: a function means the same
+  in hardware either way.
 - `#[latched]` and `#[latch]` will make a function a pipeline and mark its
   stages (@pipelines)
   #status("proposal").
