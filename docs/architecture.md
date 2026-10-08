@@ -312,8 +312,52 @@ Phase 1 acceptance evidence is recorded in the
 [exit audit](phase1-audit.md), including the five pipeline invariants, eleven
 language deliverables, twelve named examples and historical stage/CLI criteria.
 Native recursion, non-packed conversions, general runtime-sized arrays/computed
-file paths and direct DWARF remain separate extensions rather than fallback
-execution paths. The multithreading proposal extends these same CFGs and LLVM
+file paths remain separate extensions rather than fallback execution paths.
+`--debug` emits direct DWARF from these same Process entries, preserves lexical
+local extents and disables LLVM optimization. Debug-only byte-aligned buffers
+make packed aggregate fields inspectable at source boundaries without changing
+simulation storage. See [debugger conventions and limits](testing.md#native-debugger-smoke-test).
+Source calls expanded into CFGs also carry a parent/call-site identity and
+block/local allocation ranges in `ProcessCfg::inline_calls`. LLVM uses this
+metadata for distinct inline frames and lexical scopes, even when repeated
+calls share the same callee definition span; it does not reconstruct a stack
+from source text. Call normalization and failed-inline rollback preserve this
+metadata alongside the executable blocks and locals.
+Signature-ordered `ProcessInlineParameter` records refer to the actual captured
+operands, and a value-producing call records its caller-owned return frame.
+LLVM uses these for source parameter/return types and formal argument locations;
+it does not reevaluate call arguments or turn language aliases into copies.
+Debug-only reference slots point at existing persistent storage or its read-only
+inspection view, so parameters remain inspectable after writes and suspension.
+Expression-call bindings also retain their smallest owning lexical extent.
+Pure function-body `if`/`match` selections carry the selected return-expression
+spans separately from value IDs: returning an existing local or argument does
+not reuse its initializer's source line. These records are inspection metadata,
+remapped or pruned with existing nodes, never additional executable roots.
+Debug emission uses taken-arm blocks and finishes local inspection writes
+before later source statements; ordinary emission keeps its existing SSA path.
+Hardware source lowering retains the same expression-call identity and scalar
+bindings in `ProcessValueInline`. Inspection layouts belong to declarations,
+not executable operands: debugger type recovery must not override canonical
+arithmetic formats. Metadata is available before hardware bodies are emitted,
+and the common native call emitter handles their frames. Bounded helpers keep
+distinct owning source-process scopes; generated scheduler code uses line-zero
+locations, while event writes retain their own process/call-site attribution.
+Packed state accesses explicitly declare byte alignment, independently of the
+integer ABI width. Hardware aggregate binding/return fidelity remains under
+audit; per-leaf expression expansions are not a complete aggregate call frame.
+The emitter discovers expression-call argument formats while building the
+callee body. Temporary SSA placeholders are replaced with typed native formal
+arguments before verification, so the caller uses the ordinary emitter for each
+actual consumer width/sign/layout. Inspection types never decide the executable
+ABI, and no runtime argument buffer or simulation copy is introduced.
+Shared Process functions attach this same source-body metadata directly to
+`sx.fn.*` bodies and bind their canonical `Parameter` nodes to the native SSA
+arguments. They do not add a second wrapper or another compiler pipeline.
+Source formal/local/result layouts are inspection-only declaration metadata;
+concrete declarations override narrower caller layouts, while instantiated
+generic/unsized shapes retain their actual operand layout.
+The multithreading proposal extends these same CFGs and LLVM
 entries; it does not introduce a new compiler track.
 
 `lower/source_values.rs` owns canonical bindings while hardware source is

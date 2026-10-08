@@ -120,10 +120,10 @@ test result: ok. 1 passed; 0 failed
 
 - **Filter by qualified name:** `./counter-tests counter::CounterTest` runs the
   matching subset. Partial names also work as filters.
-- **Debugging:** direct Siox DWARF and a stable debugger-facing signal lookup
-  are not implemented yet. `sioxc --test -g` therefore fails explicitly rather
-  than emitting a binary whose stepping or source variables would be
-  misleading. Ordinary runtime failures still carry Siox source locations.
+- **Debugging:** `sioxc --test -g` emits direct LLVM DWARF with optimization
+  disabled. Use GDB source-line breakpoints, `next`, and source variable names;
+  see the debugger checks and inspection conventions below. Ordinary runtime
+  failures still carry Siox source locations without `-g`.
 - **Failures name their source.** A failing `assert!`, a ranged signal leaving
   its domain, and a failing `read<T>` all print `--> file:line:col` beside the
   message, followed by the source line and a caret, so a CI log points at the
@@ -150,6 +150,190 @@ test result: ok. 1 passed; 0 failed
   executable that exits 0 on pass.
 
 A file with no `#[test]` entity reports zero tests rather than erroring.
+
+## Native debugger smoke test
+
+GDB can debug the native runtime, or step Siox source and inspect named state
+when compiled with `--debug`. The reproducible check uses the existing FIFO and
+128-bit corpus designs in both ordinary and debug builds:
+
+```bash
+bash scripts/guarded-run.sh bash scripts/test-gdb.sh /home/max/siox-tests
+```
+
+It verifies timed-wait and process-entry breakpoints, scheduler backtraces,
+instruction stepping, signal reads through the waveform metadata and
+`sx_read_word`, and byte-identical VCD output versus normal execution. The wide
+case checks both 64-bit words of a 128-bit carry, source breakpoints/stepping,
+and named wide structs/arrays. Ordinary builds still omit source metadata.
+This requires GDB with Python support and permission to launch a traced child;
+it adds no DAP or editor integration. Waveform tables are not a stable
+source-debugger API.
+
+```bash
+sioxc --std std --test --debug /home/max/siox-tests/fifo_test.siox -o fifo-tests
+gdb ./fifo-tests
+# (gdb) break fifo_test.siox:26
+# (gdb) run
+# (gdb) print FifoTest::d::count
+# (gdb) next
+```
+
+DWARF namespaces follow elaborated instance paths: `FifoTest::d::head` names
+internal FIFO state, while `FifoTest::dout` names persistent test storage.
+Process locals use their lexical names; shadowed locals regain their outer
+binding after the inner block exits, including across `await`. Select the Siox
+caller frame (`up`) if stopped inside an unannotated native runtime helper.
+Debug artifacts advertise the C++ debugger expression grammar because Siox has
+no native debugger language integration; code generation remains direct LLVM.
+
+Integers, reals, std/user enum discriminants, multiword vectors, structs and
+fixed arrays retain their source types. Packed aggregates that cannot be read
+faithfully as native bitfields use debug-only byte-aligned inspection buffers,
+refreshed at Siox source boundaries. Do not write these buffers to mutate the
+simulation or expect them to update while stopped inside runtime helpers.
+Ascending arrays preserve their lower bound (`words[-1]`); descending arrays
+are labelled records rather than silently reversed C++ arrays. GDB Python can
+inspect their labels with `gdb.parse_and_eval('T::rows')['[3]']`. Flattened
+hardware leaves containing brackets need quoted symbol names, for example
+`print 'FifoTest::d::mem[0]'`.
+
+Packed vectors retain their numeric view and additionally expose a read-only
+`$logic` snapshot (`print T::bus$logic` or `print local_bus$logic`). Its elements
+are the source enum variants, not raw metadata nibbles: X/Z, weak values and
+user enum symbols come from elaborated type metadata. For structs and arrays
+containing packed vectors, the companion preserves the recursive shape and
+ordinary scalar fields. Apply the same ascending-array/descending-record
+indexing conventions described above. These views refresh at source boundaries
+alongside the other inspection buffers; they do not change simulation storage.
+Process frames and function breakpoints are instance-qualified, for example
+`break T::stimulus`.
+
+Procedures and value-returning functions expanded into CFGs retain source
+inline frames and call sites. Use `up`/`down` to select the caller or callee;
+equal-spelled locals remain distinct at repeated calls (even on one source
+line), in nested calls and after `await`. Lexical shadowing stays within its
+own call instance rather than merging scopes with identical definition spans.
+`info args` shows formal parameters under their signature names (including
+`self`). Captured place arguments retain their language aliasing: after a
+callee writes through an argument, inspection reports its current value, not
+an entry-time copy. Structs, indexed places, wide/real projections and runtime
+strings use the same read-only inspection conventions as locals. Return types
+are also retained in the source subroutine metadata.
+Literal string arguments use that same `length`/`data`/`byte_length`/`utf8`
+view, backed by immutable character/byte arrays rather than runtime handles.
+Empty literals remain visible formal arguments: both lengths are zero and
+both content pointers are null, even though the language value has no storage.
+
+Expression-shaped calls in procedural processes retain distinct source
+frames for repeated, same-line and nested calls. Shared Process functions retain source metadata directly on their existing
+native body. Inline-only calls compile once per consumer format as a native
+function: conditional consumers reuse that body instead of recursively
+duplicating it. These are
+direct LLVM functions over the same Process IR, not generated C or a separate
+frontend pipeline. Their scalar/aggregate parameters and
+local aliases use read-only debug views populated from values the program
+already evaluates, not by reevaluating expressions. Debug-only return views
+keep return-line breakpoints observable when LLVM combines nested arithmetic
+even at `-O0`; ordinary builds introduce no simulation storage/copies for these
+boundaries. Unselected expression calls must not acquire runtime source stops.
+Pure function-body `if`/`match` branches retain lexical local scopes, including
+nested shadowing. Return breakpoints follow the selected return expression,
+even when both arms return the same existing argument. Debug-only control-flow
+boundaries finish a local's inspection view before a later source statement can
+stop; LLVM instruction scheduling must not expose an uninitialized snapshot.
+Metadata-only arguments do not enter the native call ABI: only the callee's
+executable source operands may be evaluated, even if an unused binding remains
+retained elsewhere in the IR.
+Native argument formats come from the common emitter's actual width, signedness
+and layout requests, not from debugger inspection types. A shared argument may
+need more than one native format; evaluating it at its minimum width before
+widening would change signed/contextual arithmetic. Entry inspection reuses
+those native inputs for formals and same-value aliases without reevaluation.
+Expression string formals and aliases use the same borrowed or immutable
+content views as CFG parameters. Returning a runtime string preserves its
+handle; downstream length, indexing and literal comparisons retain runtime
+semantics. CFG-hoisted host operations are labelled with the caller's call
+site, not the callee's return line, so return breakpoints stop in its frame.
+
+Scalar hardware expression calls use this same native-frame emitter. Source
+bindings retain declaration-owned inspection layouts separately from executable
+operand formats, so negative integer locals, wide signed/unsigned formals and
+real values have faithful debugger types without introducing simulation casts.
+Each source hardware process keeps its own frame inside bounded shared helpers;
+generated scheduler instructions use line-zero native locations rather than a
+borrowed source statement. Clocked calls retain their owning event process.
+Hardware conditional returns carry selected-arm source spans and lexical scopes.
+
+Runtime-owned `string`/`Char[]` values expose a read-only view under their source
+name: `text.length` counts Unicode code points, `text.data[i]` reads one code
+point, `text.byte_length` counts UTF-8 bytes and `text.utf8[i]` reads a byte.
+For example, `print *text.data@text.length` displays the entire character array.
+Use the explicit byte length for embedded NULs; normal C-string printing stops
+at the first NUL. Content pointers borrow runtime storage until test cleanup;
+do not mutate either the view or its pointed-to content. Uninitialized/invalid
+handles and views from inactive tests are empty, without raising runtime errors.
+Snapshots refresh only at Siox source boundaries, as described above.
+
+Remaining inspection work includes aggregate hardware expression bindings and
+faithful aggregate-return call boundaries,
+actual call counts for shared aliases under different predicates and
+literal/empty-string return frames when a length consumer folds their value,
+packed unknown-state expression companions, and debugger `finish` return-ABI
+checks for real/string expression results.
+Formal-type audits also remain for hardware operators/suffixes/conversions
+and constrained/generic signatures; the tested scalar function cases do not
+prove every signature specialization.
+Runtime-sized native values currently support Char[]
+handles only; general dynamic arrays are a separate host-service extension,
+not an already-supported representation missing debugger metadata. Debug mode
+is deliberately unoptimized; it is not a simulation performance mode. The
+same option applies to native objects and `--emit llvm-ir`.
+
+`tests/debug_info.rs` verifies metadata/object output, native execution,
+source/function breakpoints and steps, persistent/shadowed locals, loop indices,
+3-bit signed and 65/81/127/129-bit signed/unsigned storage/ports/locals,
+all nine std logic states across waits, recursive companion views, nonstandard
+enums, real/wide packed structs, labelled arrays, dynamic Unicode/UTF-8 strings
+(including empty/embedded-NUL values, updates and cleanup between two tests),
+and runtime string locals through inlined length/index/equality expressions in default and
+`bitpack` builds. A second regression checks repeated/same-line/nested CFG call
+frames, call-site lines, shadowed locals and suspension for procedures and
+value-returning functions, plus formal arguments, mutable/indexed aliases,
+struct receivers, wide/real fields and Unicode/embedded-NUL string arguments.
+The argument checks cover both runtime strings and literals, including empty
+literals; ordinary/debug executables must agree on character-count attributes.
+A third regression checks procedural expression calls, scalar/aggregate bindings, nested
+return-line breakpoints and selected versus unselected calls, with ordinary/debug
+native execution and byte-identical VCDs in both packing modes. It also checks
+direct packed-element locals and function arguments: a logic element keeps its
+source discriminant instead of being read as a physical one-bit array slice.
+Expression string coverage includes runtime/literal/empty formals and aliases,
+borrowed-handle returns and caller locations, Unicode/embedded-NUL contents,
+length/index/equality semantics, plus aggregate integer/real/wide field values.
+The backend's inline-call regression checks that differently selected
+consumers emit one function body per width format, without merging formats.
+Native symbol counts also require repeated shared branch/alias calls to use
+one body; GDB checks their selected return lines and lexical shadowing. Narrow
+integer actuals retain 64-bit declared formal/local inspection types without
+changing their executable consumer formats.
+A fourth native/GDB regression checks nested shadowing, alias returns (including
+identical operands in both branches), aggregate returns and function-body match
+arms. It requires exact selected-return/caller lines with no extra untaken-arm
+stops, verifies DWARF and compares ordinary/debug VCDs in both packing modes.
+A fifth regression exercises nested scalar hardware calls, shared helpers and
+multiple instances, selected returns with shadowed signed locals, 81-bit
+signed/unsigned and real bindings, declared return types, and clocked calls.
+It checks each observed binding against its captured input, including transient
+initial-delta defaults, and requires the settled values and both event inputs.
+GDB callback failures are collected explicitly; a successful GDB exit alone is
+not a pass. The native fixtures also cover packed wide-state access alignment:
+loads/stores must not assume integer ABI alignment for packed members.
+To run the existing native corpus with DWARF enabled:
+
+```bash
+bash scripts/guarded-run.sh env SIOXC_DEBUG=1 bash scripts/test-corpus.sh /home/max/siox-tests
+```
 
 ## How the compiler is tested
 
