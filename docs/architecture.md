@@ -412,6 +412,24 @@ independent field conditions and
 aliased aggregate values, with exact selected-return/caller lines and lexical
 shadowing. This does not establish the return ABI for mixed real/wide or
 partially demanded aggregates; those remain open.
+Wide source-call parameter/local inspection is checked at 81 and 129 bits,
+including negative values, zeros, inferred generic signed/unsigned signatures,
+8-bit return consumers and 193-bit widening. These are declaration-owned views
+over the existing emitted bits, not a reason to change native evaluation
+formats. Both inline hint settings preserve source frames; the packed-return
+cases do not establish shared Process-function eligibility.
+Generic procedural bindings also recover an unstored constructor's already
+checked target type when no declaration/projection layout exists. This reuses
+the normal type-to-layout helper only for inspection metadata; it neither
+changes the executable operand layout nor requests another consumer format.
+GDB 18.1's AMD64 basic-integer return classifier does not support arbitrary
+byte widths: `finish` reports zero for an 11-byte integer and asserts for a
+17-byte integer, even with return printing disabled. Keep this debugger
+limitation separate from compiler return-ABI validation; changing a source
+integer into another debug type would obscure its declared representation.
+The native regression returns to a temporary breakpoint at the caller's real
+return PC and verifies the result through executable assertions instead. This
+is step-out and value-inspection coverage, not successful wide `finish` decoding.
 The multithreading proposal extends these same CFGs and LLVM
 entries; it does not introduce a new compiler track.
 

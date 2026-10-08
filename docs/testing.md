@@ -305,6 +305,29 @@ their formatted string calls. Empty zero-storage specializations return void;
 GDB `finish` returns to the caller without adding a value to its history.
 This is distinct from a runtime string handle whose content happens to be empty.
 
+Wide source-call views are checked at 81 and 129 bits for signed/unsigned
+parameters and copied locals, including inferred generic declarations. Their
+sizes remain 11/17 bytes when a caller narrows to 8 bits or widens to 193 bits,
+and a callee returning just the low byte still exposes the original parameter.
+Ordinary and debug executables verify the returned values and waveform parity;
+the low-byte return also passes native GDB `finish`.
+
+On AMD64, **do not use GDB 18.1 `finish` on an arbitrary-width basic integer
+return**: it can report a false zero at 81 bits and hit an internal assertion at
+129 bits. `set print finish off` does not avoid the assertion. The upstream
+[AMD64 classifier](https://gnu.googlesource.com/binutils-gdb/+/refs/heads/master/gdb/amd64-tdep.c)
+assigns integer classes only to 1/2/4/8-byte basic types. To step out without
+asking GDB to decode that return ABI, run this while stopped inside the callee:
+
+```text
+python gdb.execute('tbreak *%#x' % gdb.newest_frame().older().pc())
+continue
+```
+
+This keeps the true source types and values; it does not establish automatic
+wide return-value decoding. That debugger limitation and general native
+return-ABI validation remain separate open work.
+
 Remaining inspection work includes demand-preserving whole aggregate-return
 boundaries for effectful/checked/nested-call and partially retained results,
 packed unknown-state expression companions, and debugger `finish` return-ABI
@@ -379,6 +402,13 @@ inline and shared bodies return positive and negative values and preserve the
 sign of negative zero in both packing modes, with DWARF verification and
 ordinary/debug native result and waveform parity. These native boundaries
 return double; bitcasts retain the internal integer-bit value contract.
+A seventh regression verifies wide call views at 81/129 bits with both inline
+hint settings and both packing modes, including large positive/negative values,
+zero, narrow/wider consumers and signed/unsigned generic specializations. It
+checks source frames, complete declared argument/local values, byte sizes,
+return to the actual caller, native results and VCD parity. These packed calls
+do not prove shared Process-body eligibility. Automatic wide `finish` decoding
+is deliberately not claimed, as explained above.
 To run the existing native corpus with DWARF enabled:
 
 ```bash
