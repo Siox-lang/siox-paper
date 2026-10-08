@@ -363,6 +363,10 @@ only when that format is unavailable on the current path; it evaluates neither
 arguments nor callees for a cache hit. Width/sign/layout demands remain separate,
 and state invalidation clears the saved results. Inspection metadata never adds
 execution roots, and no runtime memoization buffer is introduced.
+Real source-call native boundaries return LLVM double when the executable
+result is 64 bits, matching the source DWARF return ABI. Shared and expression
+bodies use the same boundary bitcasts; the internal value emitter still
+exchanges integer bits, preserving its consumer formats and simulation storage.
 The multithreading proposal extends these same CFGs and LLVM
 entries; it does not introduce a new compiler track.
 

@@ -279,7 +279,7 @@ Remaining inspection work includes aggregate hardware expression bindings and
 faithful aggregate-return call boundaries,
 literal/empty-string return frames when a length consumer folds their value,
 packed unknown-state expression companions, and debugger `finish` return-ABI
-checks for real/string expression results.
+checks for string and normalized wide/aggregate expression results.
 Formal-type audits also remain for hardware operators/suffixes/conversions
 and constrained/generic signatures; the tested scalar function cases do not
 prove every signature specialization.
@@ -335,6 +335,12 @@ initial-delta defaults, and requires the settled values and both event inputs.
 GDB callback failures are collected explicitly; a successful GDB exit alone is
 not a pass. The native fixtures also cover packed wide-state access alignment:
 loads/stores must not assume integer ABI alignment for packed members.
+A sixth regression checks actual GDB `finish` values for real-returning
+identity functions, rather than merely reading their formal arguments. Both
+inline and shared bodies return positive and negative values and preserve the
+sign of negative zero in both packing modes, with DWARF verification and
+ordinary/debug native result and waveform parity. These native boundaries
+return double; bitcasts retain the internal integer-bit value contract.
 To run the existing native corpus with DWARF enabled:
 
 ```bash
