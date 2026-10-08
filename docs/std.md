@@ -53,7 +53,8 @@ is a documented shim, and the declaration here is canonical.
 | `core::cmp`   |                                    | `Eq`, `Ord` (the comparisons, returning `Bool`), `Ordering` |
 | `core::convert` |                                  | `From` |
 | `core::default` |                                  | `New` |
-| `core::macros` | `assert ... severity`             | `assert!`, `warn!`, `print!`, `error!`, `Severity` |
+| `core::macros` | `assert ... severity`             | `assert!`, `warn!`, `print!`, `write!`, `error!`, `Severity` |
+| `core::fmt`   | `'image`, `to_string`              | `Display`, `Formatter`: how a type prints (re-exported by `std::fmt` and both preludes) |
 | `core::attrs` | (attributes; VHDL has none)        | `precedence`, `lang`: the attributes the compiler reads |
 | `std::prelude`| (implicit `std.standard`)          | auto-loaded `Bit`/`Logic`, `unsigned`/`signed`/`sext`, `time`/`frequency` |
 | `std::primitive`, `std::cmp`, `std::convert`, `std::default` | | re-export the `core` modules of the same name |
@@ -375,6 +376,18 @@ assertions grow a severity argument:
 ```siox
 pub enum Severity { Note, Warning, Error, Failure }
 ```
+
+## `core::fmt` (re-exported by `std::fmt`)
+
+`Display` says how a type prints; `write!(f, "fmt", args)` appends to its
+output inside `fn fmt(self, f: Formatter)`. Format strings take Rust's specs
+(`{:.3}`, `{:e}`, `{:#x}`, `{:>8}`; language §3 "Format strings"). Types
+without an impl print in a built-in form: structs and views as
+`Name { field: value }`, arrays as `[a, b]`, logic vectors as `01XZ`.
+
+`std::float::float`, `std::fixed::ufixed`/`sfixed` and `std::math::Complex`
+implement it: the formats print their value, `Complex` prints `re + imi`, and
+a precision applies to the numbers inside.
 
 ## Current boundaries
 

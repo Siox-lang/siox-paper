@@ -3181,6 +3181,60 @@ decimal. Decimal formatting preserves the complete declared width, including
 values wider than the target ABI word. Range violations on ranged numerics
 report automatically — no syntax.
 
+#### Format strings
+
+`print!`, `assert!`/`warn!` messages and `write!` take Rust's format strings.
+`{}` takes the next argument; `{{` and `}}` are literal braces; arguments are
+taken in order (`{0}` and named arguments are errors). A placeholder may carry
+a spec, `{:[[fill]align][+][#][0][width][.precision][type]}`:
+
+| spec | meaning | example |
+| --- | --- | --- |
+| `.3` | three digits after the point (reals; `float`/fixed through `Display`) | `{:.3}` of `1.25` → `1.250` |
+| `e`, `E` | scientific, Rust's form (`1.23e4`, `1.23E-4`); with `.n`, `n` digits | `{:.2e}` of `12345.678` → `1.23e4` |
+| `x`, `X`, `b`, `o` | hex, binary, octal of an integer or vector; a negative kernel integer prints its two's complement | `{:x}` of `31` → `1f` |
+| `#` | a radix prefix: `0x`, `0b`, `0o` | `{:#x}` → `0x1f` |
+| `+` | always write a number's sign | `{:+}` → `+42` |
+| width | pad to this many characters; numbers sit right, everything else left | `{:6}` → `    42` |
+| `<` `^` `>` | align left, centre (odd padding goes right) or right, with an optional fill character before | `{:*^7}` → `**42***` |
+| `0` | pad a number with zeros after its sign and prefix | `{:#06x}` → `0x001f` |
+
+A malformed spec is an error, as is a radix form on a `real` or a precision or
+notation on text or an enum. A width pads a placeholder's whole output, so a
+struct or a `Display` impl's text aligns as one piece; the precision and
+notation reach every number inside it.
+
+Values without a `Display` impl print in a built-in form, after Rust's
+`Debug`:
+
+- numbers, `Char`, strings and enum variants as above;
+- a struct (or a value declared through a view) as `Name { field: value, .. }`,
+  recursively; a view prints its own name and fields;
+- an array as `[a, b, c]`;
+- a vector of character-literal enums (`Bit`, `Logic`) as its symbols in
+  declared order, `10XZ`, as VHDL's `to_string` writes it; `unsigned` and
+  `signed` stay numbers.
+
+A type prints its own way by implementing `core::fmt::Display` (in every
+prelude, with `Formatter` and `write!`):
+
+```siox
+impl Display for Complex {
+    fn fmt(self, f: Formatter) {
+        write!(f, "{} + {}i", self.re, self.im);
+    }
+}
+
+print!("z = {:.3}", z);   // z = 1.000 + 2.500i
+```
+
+A `fmt` body is a sequence of `write!` calls and `let`s, expanded where the
+value is printed, so the runtime only ever writes text and numbers. A plain
+`{}` inside it takes its caller's precision and notation, which is how
+`{:.3}` reaches the parts above. `std::float`'s `float` and `std::fixed`'s
+`ufixed`/`sfixed` implement `Display` as their value, so `{:.2}` of a
+`ufixed<8, 4>` prints its two-decimal value.
+
 `warn!(cond, "msg")` is the **non-fatal** sibling of `assert!`: a false
 condition reports to stderr and counts toward the test's warning total, but
 the test still passes. It is the recoverable tier of error handling.

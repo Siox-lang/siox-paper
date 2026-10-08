@@ -113,7 +113,13 @@ it. The executable:
 - `warn!(cond, "message")` reports and counts, and the test still passes.
 - `print!("x = {}", x)` formats a line. Enum and logic values print
   symbolically (`Idle`, `'Z'`), characters and strings as text, and numbers in
-  full, however wide.
+  full, however wide. Placeholders take Rust's specs: `{:.3}` rounds to three
+  decimals, `{:.2e}` is scientific, `{:#x}` hexadecimal, `{:>8}` pads and
+  aligns.
+- Structs print as `Packet { kind: Data, len: 12 }`, arrays as `[1, 2, 3]`
+  and logic vectors as `10XZ`. A type prints its own way by implementing
+  `Display`, whose `fmt` body uses `write!`; `float`, the fixed-point formats
+  and `Complex` do.
 - `stop()` ends the test as passed so far; `finish()` ends the simulation.
 - A value that leaves a ranged type, or a file read that fails, is reported
   with the signal's path or the source location.
