@@ -403,9 +403,12 @@ read/file-probe paths still require literals; no computed-path feature is added.
 Shared Process functions attach this same source-body metadata directly to
 `sx.fn.*` bodies and bind their canonical `Parameter` nodes to the native SSA
 arguments. They do not add a second wrapper or another compiler pipeline.
-Source formal/local/result layouts are inspection-only declaration metadata;
+Source formal/local layouts provide declaration-owned inspection metadata;
 concrete declarations override narrower caller layouts, while instantiated
-generic/unsized shapes retain their actual operand layout.
+generic/unsized shapes retain their actual operand layout. A supported complete result
+declaration also selects the native return register classes, independently of
+the already-demanded canonical bits; inspection storage is never an executable
+operand.
 Multiply-consumed scalar source calls keep their result and an SSA readiness
 predicate through selected-arm joins. The common inline/shared emitter calls
 only when that format is unavailable on the current path; it evaluates neither
@@ -420,8 +423,17 @@ Native GDB `finish` also checks the whole two-integer hardware aggregate return
 for positive, negative and zero inputs. Coverage includes nested/match returns,
 independent field conditions and
 aliased aggregate values, with exact selected-return/caller lines and lexical
-shadowing. This does not establish the return ABI for mixed real/wide or
-partially demanded aggregates; those remain open.
+shadowing. On the native x86-64
+[SysV host](https://gitlab.com/x86-psABIs/x86-64-ABI/-/blob/master/x86-64-ABI/low-level-sys-info.tex),
+complete aggregates of one or two
+64-bit scalar leaves now use integer/double return slots in declaration order,
+including nested structs and arrays. The shared return encoder/decoder packs
+and unpacks the same canonical integer bits; it does not derive operands from
+inspection buffers or retain discarded fields. Actual GDB `finish` covers
+both real/integer field orders, nested wrappers, two-real arrays and one-real
+wrappers, including signed zero. This does not establish larger, subword,
+unaligned, normalized-wide or partially demanded aggregate return ABIs; those
+remain open and require further ABI transport work.
 Wide source-call parameter/local inspection is checked at 81 and 129 bits,
 including negative values, zeros, inferred generic signed/unsigned signatures,
 8-bit return consumers and 193-bit widening. These are declaration-owned views

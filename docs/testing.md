@@ -425,6 +425,18 @@ that an unconsumed plane and pruned hardware members stay optimized out, with
 native assertions, DWARF verification and ordinary/debug VCD parity in both
 packing modes. The existing wide-return regression additionally guards native
 formal availability before a narrow callee's source return stop.
+A ninth regression checks the actual native GDB `finish` return value for
+complete small SysV real/integer aggregates in both field orders, a nested
+struct, a two-real array with distinct values and a one-real wrapper. It runs
+with both inline hint settings and both packing modes, comparing ordinary/debug
+native results and VCD bytes and verifying DWARF. Every hardware invocation is checked against
+its captured formals, including intermediate delta-cycle inputs; all settled
+positive, negative and signed-zero cases must also occur. These checks cover
+only complete one/two-64-bit-leaf aggregate return transport, not general
+shared Process-body eligibility or larger/partial/normalized return ABIs.
+A canonical-IR unit test separately checks the same boundary in actual shared
+Process functions: mixed/reversed/all-real native signatures, canonical i128
+call results, module verification and no additional source-call wrapper.
 To run the existing native corpus with DWARF enabled:
 
 ```bash
