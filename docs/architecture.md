@@ -353,8 +353,21 @@ wide leaves retain their
 source width/name (81 bits occupy 11 inspection bytes); native ABI padding is
 not an inspection layout. Nested structs and ascending/descending arrays retain
 their declared labels. Pruned fields remain unavailable, not fabricated zeros
-or additional execution roots. Whole aggregate-return boundary fidelity remains
-under audit; per-leaf result expansions are not a single aggregate call frame.
+or additional execution roots. Hardware aggregate-return leaves also retain a
+shared expansion identity and their flattened result paths. This identity is
+not a value-arena index and survives reconstruction and pruning. Fully retained
+straight-line pure leaves with their declared widths use one native source-call
+boundary,
+packing through the existing exact-layout emitter and extracting the requested
+fields from its shared SSA result. Readiness survives selected-consumer joins
+and hardware root emission within the same state epoch; invalidation clears it.
+Metadata adds no executable dependencies, and ordinary builds keep their
+existing leaf emission. Branch-return, checked, effectful, nested-call and
+partial returns
+remain leaf-backed pending demand-preserving grouping. Packing a missing field
+as zero would falsely advertise it as available; eagerly packing an inactive
+field could introduce effects or extra source stops. Whole aggregate-return
+fidelity therefore remains under audit, not completed by the pure case.
 The emitter discovers expression-call argument formats while building the
 callee body. Temporary SSA placeholders are replaced with typed native formal
 arguments before verification, so the caller uses the ordinary emitter for each
@@ -376,6 +389,9 @@ Real source-call native boundaries return LLVM double when the executable
 result is 64 bits, matching the source DWARF return ABI. Shared and expression
 bodies use the same boundary bitcasts; the internal value emitter still
 exchanges integer bits, preserving its consumer formats and simulation storage.
+Native GDB `finish` also checks the whole two-integer hardware aggregate return
+for positive, negative and zero inputs. This does not establish the return ABI
+for mixed real/wide or partially demanded aggregates; those remain open.
 The multithreading proposal extends these same CFGs and LLVM
 entries; it does not introduce a new compiler track.
 

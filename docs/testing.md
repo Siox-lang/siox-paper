@@ -271,6 +271,13 @@ retain their declared shape. Inspection storage rounds leaves to whole bytes,
 not ABI words: an 81-bit member occupies 11 bytes. Pruned members are unavailable
 (`gdb.Value.is_optimized_out`), even when neighboring members can be inspected;
 metadata must not evaluate an unused foreign-call field to fill a debug view.
+Fully retained straight-line pure hardware aggregate returns share one native
+call and exact-layout SSA result across selected field consumers. Tests require one
+source stop when both fields, only the first, or only the second are consumed,
+and none when neither is selected. Whole two-integer returns are also checked
+with actual GDB `finish`, rather than inferred from parameter/local inspection.
+Inactive effectful fields retain the ordinary demand behavior; debugger
+grouping must not evaluate them to construct a complete packed return.
 
 Runtime-owned `string`/`Char[]` values expose a read-only view under their source
 name: `text.length` counts Unicode code points, `text.data[i]` reads one code
@@ -282,10 +289,12 @@ do not mutate either the view or its pointed-to content. Uninitialized/invalid
 handles and views from inactive tests are empty, without raising runtime errors.
 Snapshots refresh only at Siox source boundaries, as described above.
 
-Remaining inspection work includes faithful whole aggregate-return call boundaries,
+Remaining inspection work includes demand-preserving whole aggregate-return
+boundaries for branch-return, effectful/checked/nested and partially retained
+results,
 literal/empty-string return frames when a length consumer folds their value,
 packed unknown-state expression companions, and debugger `finish` return-ABI
-checks for string and normalized wide/aggregate expression results.
+checks for string, normalized wide and mixed-layout/partial aggregate results.
 Formal-type audits also remain for hardware operators/suffixes/conversions
 and constrained/generic signatures; the tested scalar function cases do not
 prove every signature specialization.
@@ -340,6 +349,10 @@ Its aggregate parameter/local probe includes one-field wrappers, nested structs,
 sub-byte and signed wide leaves, arrays in both directions and negative labels. It checks field
 values, inspection sizes and unavailable pruned members; IR/native unit checks
 also prove that debug field metadata cannot retain or execute foreign effects.
+The hardware aggregate-return probe counts actual source-call stops across
+both/first-only/second-only/untaken consumers and checks both integer fields
+after GDB `finish` for positive, negative and zero inputs. An aggregate field
+containing `abort()` remains runtime-untaken in both ordinary and debug builds.
 It checks each observed binding against its captured input, including transient
 initial-delta defaults, and requires the settled values and both event inputs.
 GDB callback failures are collected explicitly; a successful GDB exit alone is
