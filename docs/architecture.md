@@ -357,6 +357,12 @@ arguments. They do not add a second wrapper or another compiler pipeline.
 Source formal/local/result layouts are inspection-only declaration metadata;
 concrete declarations override narrower caller layouts, while instantiated
 generic/unsized shapes retain their actual operand layout.
+Multiply-consumed scalar source calls keep their result and an SSA readiness
+predicate through selected-arm joins. The common inline/shared emitter calls
+only when that format is unavailable on the current path; it evaluates neither
+arguments nor callees for a cache hit. Width/sign/layout demands remain separate,
+and state invalidation clears the saved results. Inspection metadata never adds
+execution roots, and no runtime memoization buffer is introduced.
 The multithreading proposal extends these same CFGs and LLVM
 entries; it does not introduce a new compiler track.
 

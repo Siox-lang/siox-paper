@@ -277,7 +277,6 @@ Snapshots refresh only at Siox source boundaries, as described above.
 
 Remaining inspection work includes aggregate hardware expression bindings and
 faithful aggregate-return call boundaries,
-actual call counts for shared aliases under different predicates and
 literal/empty-string return frames when a length consumer folds their value,
 packed unknown-state expression companions, and debugger `finish` return-ABI
 checks for real/string expression results.
@@ -321,6 +320,13 @@ A fourth native/GDB regression checks nested shadowing, alias returns (including
 identical operands in both branches), aggregate returns and function-body match
 arms. It requires exact selected-return/caller lines with no extra untaken-arm
 stops, verifies DWARF and compares ordinary/debug VCDs in both packing modes.
+It counts actual callee breakpoints for a scalar local reused under distinct
+predicates: both consumers select it, only the first selects it, or only the
+second selects it. The call must execute once in each case; an outer untaken
+call must not execute. All four inline/shared caller/callee combinations run in
+both packing modes, and breakpoint callback failures are collected explicitly.
+The cache regression also rejects branch-only readiness flags, keeps separate
+width keys, and checks state invalidation rather than restoring stale results.
 A fifth regression exercises nested scalar hardware calls, shared helpers and
 multiple instances, selected returns with shadowed signed locals, 81-bit
 signed/unsigned and real bindings, declared return types, and clocked calls.
