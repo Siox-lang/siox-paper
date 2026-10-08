@@ -206,6 +206,14 @@ containing packed vectors, the companion preserves the recursive shape and
 ordinary scalar fields. Apply the same ascending-array/descending-record
 indexing conventions described above. These views refresh at source boundaries
 alongside the other inspection buffers; they do not change simulation storage.
+Expression-call formals and copied locals also expose `$logic` in their owning
+frame. For example, GDB Python can read `gdb.selected_frame().read_var('value$logic')`.
+These snapshots become available only when ordinary emission has produced both
+planes, or proven the value metadata-free. Inspection never evaluates a missing
+plane or repeats a source call. Unconsumed planes are optimized out, not shown
+as known binary values; source branches may leave a companion unavailable even
+when its numeric view exists. Partial hardware aggregate companions preserve
+available scalar fields while pruned packed members remain optimized out.
 Process frames and function breakpoints are instance-qualified, for example
 `break T::stimulus`.
 
@@ -330,7 +338,8 @@ return-ABI validation remain separate open work.
 
 Remaining inspection work includes demand-preserving whole aggregate-return
 boundaries for effectful/checked/nested-call and partially retained results,
-packed unknown-state expression companions, and debugger `finish` return-ABI
+further companion argument/return-plane transport audits, and debugger `finish`
+return-ABI
 checks for runtime/nonempty-literal string, normalized wide and mixed-layout/
 partial aggregate results.
 Formal-type audits also remain for hardware operators/suffixes/conversions
@@ -409,6 +418,13 @@ checks source frames, complete declared argument/local values, byte sizes,
 return to the actual caller, native results and VCD parity. These packed calls
 do not prove shared Process-body eligibility. Automatic wide `finish` decoding
 is deliberately not claimed, as explained above.
+An eighth regression checks expression `$logic` snapshots for all nine std
+states at 9 and 81 bits, known binary values, recursive struct fields, descending
+arrays with negative labels and selected/untaken return branches. It also checks
+that an unconsumed plane and pruned hardware members stay optimized out, with
+native assertions, DWARF verification and ordinary/debug VCD parity in both
+packing modes. The existing wide-return regression additionally guards native
+formal availability before a narrow callee's source return stop.
 To run the existing native corpus with DWARF enabled:
 
 ```bash

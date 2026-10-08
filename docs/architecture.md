@@ -336,6 +336,16 @@ not reuse its initializer's source line. These records are inspection metadata,
 remapped or pruned with existing nodes, never additional executable roots.
 Debug emission uses taken-arm blocks and finishes local inspection writes
 before later source statements; ordinary emission keeps its existing SSA path.
+Expression parameter/local `$logic` views reuse the same recursive source-enum
+inspection layout and copying as stored values. Capture hooks observe only
+already-emitted numeric and companion planes, or the existing proof that a
+value has no metavalues. They do not request new operands, formats or argument
+payloads. Missing planes remain unavailable; a narrow numeric consumer cannot
+establish omitted bits in a wider declaration. Partial aggregate views use
+fragments at the companion view's byte-aligned offsets, so unretained fields
+are unavailable rather than zero-filled. Native-input inspection has its own
+block before body emission: this prevents -O0 instruction scheduling from
+placing a later packed extraction/source stop before formal references are ready.
 Hardware source lowering retains the same expression-call identity and
 bindings in `ProcessValueInline`. Inspection layouts belong to declarations,
 not executable operands: debugger type recovery must not override canonical
