@@ -336,7 +336,7 @@ not reuse its initializer's source line. These records are inspection metadata,
 remapped or pruned with existing nodes, never additional executable roots.
 Debug emission uses taken-arm blocks and finishes local inspection writes
 before later source statements; ordinary emission keeps its existing SSA path.
-Hardware source lowering retains the same expression-call identity and scalar
+Hardware source lowering retains the same expression-call identity and
 bindings in `ProcessValueInline`. Inspection layouts belong to declarations,
 not executable operands: debugger type recovery must not override canonical
 arithmetic formats. Metadata is available before hardware bodies are emitted,
@@ -344,8 +344,17 @@ and the common native call emitter handles their frames. Bounded helpers keep
 distinct owning source-process scopes; generated scheduler code uses line-zero
 locations, while event writes retain their own process/call-site attribution.
 Packed state accesses explicitly declare byte alignment, independently of the
-integer ABI width. Hardware aggregate binding/return fidelity remains under
-audit; per-leaf expression expansions are not a complete aggregate call frame.
+integer ABI width. Field-backed hardware aggregate parameters and locals retain
+source paths and existing leaf value IDs. LLVM variable fragments combine their
+read-only captures under one declared source variable, using inspection offsets
+rather than executable packed offsets. A one-leaf wrapper uses a whole-variable
+location instead: LLVM fragments must cover a proper subregion. Byte-rounded
+wide leaves retain their
+source width/name (81 bits occupy 11 inspection bytes); native ABI padding is
+not an inspection layout. Nested structs and ascending/descending arrays retain
+their declared labels. Pruned fields remain unavailable, not fabricated zeros
+or additional execution roots. Whole aggregate-return boundary fidelity remains
+under audit; per-leaf result expansions are not a single aggregate call frame.
 The emitter discovers expression-call argument formats while building the
 callee body. Temporary SSA placeholders are replaced with typed native formal
 arguments before verification, so the caller uses the ordinary emitter for each

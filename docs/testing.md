@@ -256,7 +256,7 @@ handle; downstream length, indexing and literal comparisons retain runtime
 semantics. CFG-hoisted host operations are labelled with the caller's call
 site, not the callee's return line, so return breakpoints stop in its frame.
 
-Scalar hardware expression calls use this same native-frame emitter. Source
+Hardware expression calls use this same native-frame emitter. Source
 bindings retain declaration-owned inspection layouts separately from executable
 operand formats, so negative integer locals, wide signed/unsigned formals and
 real values have faithful debugger types without introducing simulation casts.
@@ -264,6 +264,13 @@ Each source hardware process keeps its own frame inside bounded shared helpers;
 generated scheduler instructions use line-zero native locations rather than a
 borrowed source statement. Clocked calls retain their owning event process.
 Hardware conditional returns carry selected-arm source spans and lexical scopes.
+Field-backed aggregate parameters and local aliases use LLVM fragments of
+already-evaluated leaf values. Nested structs, ascending arrays with negative
+labels, descending arrays and non-byte-aligned wide signed/unsigned members
+retain their declared shape. Inspection storage rounds leaves to whole bytes,
+not ABI words: an 81-bit member occupies 11 bytes. Pruned members are unavailable
+(`gdb.Value.is_optimized_out`), even when neighboring members can be inspected;
+metadata must not evaluate an unused foreign-call field to fill a debug view.
 
 Runtime-owned `string`/`Char[]` values expose a read-only view under their source
 name: `text.length` counts Unicode code points, `text.data[i]` reads one code
@@ -275,8 +282,7 @@ do not mutate either the view or its pointed-to content. Uninitialized/invalid
 handles and views from inactive tests are empty, without raising runtime errors.
 Snapshots refresh only at Siox source boundaries, as described above.
 
-Remaining inspection work includes aggregate hardware expression bindings and
-faithful aggregate-return call boundaries,
+Remaining inspection work includes faithful whole aggregate-return call boundaries,
 literal/empty-string return frames when a length consumer folds their value,
 packed unknown-state expression companions, and debugger `finish` return-ABI
 checks for string and normalized wide/aggregate expression results.
@@ -330,6 +336,10 @@ width keys, and checks state invalidation rather than restoring stale results.
 A fifth regression exercises nested scalar hardware calls, shared helpers and
 multiple instances, selected returns with shadowed signed locals, 81-bit
 signed/unsigned and real bindings, declared return types, and clocked calls.
+Its aggregate parameter/local probe includes one-field wrappers, nested structs,
+sub-byte and signed wide leaves, arrays in both directions and negative labels. It checks field
+values, inspection sizes and unavailable pruned members; IR/native unit checks
+also prove that debug field metadata cannot retain or execute foreign effects.
 It checks each observed binding against its captured input, including transient
 initial-delta defaults, and requires the settled values and both event inputs.
 GDB callback failures are collected explicitly; a successful GDB exit alone is
