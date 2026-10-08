@@ -356,15 +356,20 @@ their declared labels. Pruned fields remain unavailable, not fabricated zeros
 or additional execution roots. Hardware aggregate-return leaves also retain a
 shared expansion identity and their flattened result paths. This identity is
 not a value-arena index and survives reconstruction and pruning. Fully retained
-straight-line pure leaves with their declared widths use one native source-call
-boundary,
+pure leaves with their declared widths use one native source-call boundary,
 packing through the existing exact-layout emitter and extracting the requested
 fields from its shared SSA result. Readiness survives selected-consumer joins
 and hardware root emission within the same state epoch; invalidation clears it.
 Metadata adds no executable dependencies, and ordinary builds keep their
-existing leaf emission. Branch-return, checked, effectful, nested-call and
-partial returns
-remain leaf-backed pending demand-preserving grouping. Packing a missing field
+existing leaf emission. Matching field selections reuse the common selected-
+value SSA join for the whole return, including nested if/match branches. The
+selected arm index is retained independently of its value ID, so aliases may
+share an operand without selecting the wrong fields. Return inspection uses
+the whole packed result layout at the selected source span; formal/local
+inspection and lexical shadowing still follow existing SSA captures. Independent
+field conditions keep their ordinary emitter paths inside the same native frame.
+Checked, effectful, nested-call and partial returns remain leaf-backed pending
+demand-preserving grouping. Packing a missing field
 as zero would falsely advertise it as available; eagerly packing an inactive
 field could introduce effects or extra source stops. Whole aggregate-return
 fidelity therefore remains under audit, not completed by the pure case.
@@ -390,8 +395,11 @@ result is 64 bits, matching the source DWARF return ABI. Shared and expression
 bodies use the same boundary bitcasts; the internal value emitter still
 exchanges integer bits, preserving its consumer formats and simulation storage.
 Native GDB `finish` also checks the whole two-integer hardware aggregate return
-for positive, negative and zero inputs. This does not establish the return ABI
-for mixed real/wide or partially demanded aggregates; those remain open.
+for positive, negative and zero inputs. Coverage includes nested/match returns,
+independent field conditions and
+aliased aggregate values, with exact selected-return/caller lines and lexical
+shadowing. This does not establish the return ABI for mixed real/wide or
+partially demanded aggregates; those remain open.
 The multithreading proposal extends these same CFGs and LLVM
 entries; it does not introduce a new compiler track.
 

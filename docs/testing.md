@@ -271,13 +271,19 @@ retain their declared shape. Inspection storage rounds leaves to whole bytes,
 not ABI words: an 81-bit member occupies 11 bytes. Pruned members are unavailable
 (`gdb.Value.is_optimized_out`), even when neighboring members can be inspected;
 metadata must not evaluate an unused foreign-call field to fill a debug view.
-Fully retained straight-line pure hardware aggregate returns share one native
+Fully retained pure hardware aggregate returns share one native
 call and exact-layout SSA result across selected field consumers. Tests require one
 source stop when both fields, only the first, or only the second are consumed,
 and none when neither is selected. Whole two-integer returns are also checked
 with actual GDB `finish`, rather than inferred from parameter/local inspection.
 Inactive effectful fields retain the ordinary demand behavior; debugger
 grouping must not evaluate them to construct a complete packed return.
+Nested if/match return branches also require one selected stop per input,
+exact return/caller lines and the correct shadowed local. A branch-private
+local must have no visible symbol on the fallback path. Independent field
+conditions on one source line and aliased aggregate locals retain native
+results and one source frame. GDB `finish` checks both returned integer fields
+for every branch/input in ordinary, nested/match, independent and alias cases.
 
 Runtime-owned `string`/`Char[]` values expose a read-only view under their source
 name: `text.length` counts Unicode code points, `text.data[i]` reads one code
@@ -290,8 +296,7 @@ handles and views from inactive tests are empty, without raising runtime errors.
 Snapshots refresh only at Siox source boundaries, as described above.
 
 Remaining inspection work includes demand-preserving whole aggregate-return
-boundaries for branch-return, effectful/checked/nested and partially retained
-results,
+boundaries for effectful/checked/nested-call and partially retained results,
 literal/empty-string return frames when a length consumer folds their value,
 packed unknown-state expression companions, and debugger `finish` return-ABI
 checks for string, normalized wide and mixed-layout/partial aggregate results.
