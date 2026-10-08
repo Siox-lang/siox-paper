@@ -378,6 +378,18 @@ callee body. Temporary SSA placeholders are replaced with typed native formal
 arguments before verification, so the caller uses the ordinary emitter for each
 actual consumer width/sign/layout. Inspection types never decide the executable
 ABI, and no runtime argument buffer or simulation copy is introduced.
+Consumed compile-time string arguments are recorded when the ordinary body
+emitter requests them, independently of native argument formats. Their source
+calls execute at the caller while the callee consumes the existing constant;
+parameter/local metadata never requests an unused operand. Folded length,
+formatted text and literal host-service operands use this same source-call
+entry. Empty literals have no packed payload: a void specialization reuses the
+inline body and its string inspection views. Its SSA execution marker is only
+readiness bookkeeping, not an integer string representation. Selected joins
+retain one such call when either or both consumers need it, and no call on an
+untaken path. GDB `finish` on this specialization does not invent a returned
+value. Nonempty literal/runtime-string return ABIs remain under audit. Source
+read/file-probe paths still require literals; no computed-path feature is added.
 Shared Process functions attach this same source-body metadata directly to
 `sx.fn.*` bodies and bind their canonical `Parameter` nodes to the native SSA
 arguments. They do not add a second wrapper or another compiler pipeline.

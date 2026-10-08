@@ -294,12 +294,22 @@ at the first NUL. Content pointers borrow runtime storage until test cleanup;
 do not mutate either the view or its pointed-to content. Uninitialized/invalid
 handles and views from inactive tests are empty, without raising runtime errors.
 Snapshots refresh only at Siox source boundaries, as described above.
+Literal/empty string return calls also retain source stops when a length
+consumer folds the value, including nested argument calls. Tests require the
+actual caller/assignment line, constant parameter/local views and correct
+argument order. A shared return stops once for both/first-only/second-only
+consumers and not at all when neither is selected. Direct folded lengths in
+untaken branches must not create a stop. Formatted print/warning operands use
+the same path; successful assertions and suppressed warnings do not execute
+their formatted string calls. Empty zero-storage specializations return void;
+GDB `finish` returns to the caller without adding a value to its history.
+This is distinct from a runtime string handle whose content happens to be empty.
 
 Remaining inspection work includes demand-preserving whole aggregate-return
 boundaries for effectful/checked/nested-call and partially retained results,
-literal/empty-string return frames when a length consumer folds their value,
 packed unknown-state expression companions, and debugger `finish` return-ABI
-checks for string, normalized wide and mixed-layout/partial aggregate results.
+checks for runtime/nonempty-literal string, normalized wide and mixed-layout/
+partial aggregate results.
 Formal-type audits also remain for hardware operators/suffixes/conversions
 and constrained/generic signatures; the tested scalar function cases do not
 prove every signature specialization.
