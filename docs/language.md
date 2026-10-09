@@ -2231,10 +2231,16 @@ types (`integer`, `real`, `Char`), enums by discriminant, and `Logic`-element
 vectors. `core::cmp::Ordering` (`Less`/`Equal`/`Greater`) remains an ordinary
 enum for code that wants a three-way answer; the compiler gives it no meaning.
 
-**`abs`, `rem` and `mod` are functions**, as in mathematics, not operators
-(VHDL makes them operators). They live in `std::math` with `min`, `max` and
-the constants (`PI`, `E`), generic over the numeric types: `abs(x)`;
-`rem(a, m)`, with the dividend's sign (VHDL `rem`, Rust `%`); `mod(a, m)`,
+**`%` is the remainder**, the core operator `Rem<Rhs, Out>` (`fn rem`),
+binding like `*` and `/`. It takes the dividend's sign: `-7 % 2` is `-1`, as
+Rust's and Verilog's `%` and VHDL's `rem`, which is what synthesis builds.
+Kernel `integer` and `real` have it built in (C's `fmod` on reals),
+`unsigned` and `signed` implement it in `std::bits`, and `%=` desugars like
+`/=`. A zero divisor yields 0, as for `/`.
+
+**`abs`, `rem` and `mod` are functions**, as in mathematics. They live in
+`std::math` with `min`, `max` and the constants (`PI`, `E`), generic over the
+numeric types: `abs(x)`; `rem(a, m)`, the same remainder as `%`; `mod(a, m)`,
 with the divisor's sign (VHDL `mod`). `rem(0 - 7, 2)` is `-1` and
 `mod(0 - 7, 2)` is `1`. A call inlines, so the body uses the argument type's
 own operators: `abs` on a `signed` compares signed and on a `float` negates
@@ -3239,6 +3245,10 @@ value is printed, so the runtime only ever writes text and numbers. A plain
 `warn!(cond, "msg")` is the **non-fatal** sibling of `assert!`: a false
 condition reports to stderr and counts toward the test's warning total, but
 the test still passes. It is the recoverable tier of error handling.
+
+A function may return an unsized vector (`-> Logic[]`, `-> unsigned`): the
+size is set in its body, by the sized `let` it returns
+(`let r: Logic[5..0] = ..; return r;`) or by the argument it returns.
 
 In hardware, a function call becomes combinational logic, so its body is
 evaluated as values. It may contain `let`s, reassignment of its own locals,

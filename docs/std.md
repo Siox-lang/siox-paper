@@ -27,8 +27,8 @@ Directives — `#[test]`, `#[allow(..)]`, `#[warn(..)]`, `#[deny(..)]`,
 the compiler.
 
 Every standard operator is a named `core::ops` trait (`impl Add<Rhs, Out>
-for T` with `fn add`; `Sub`, `Mul`, `Div`, `Shl`, `Shr`, `And`, `Or`, `Not`,
-`Neg`),
+for T` with `fn add`; `Sub`, `Mul`, `Div`, `Rem` (`%`), `Shl`, `Shr`, `And`,
+`Or`, `Not`, `Neg`),
 and a user operator is `CustomOperator<"symbol", Rhs, Out>` with `fn apply`,
 binding its precedence inside its impl (`attr precedence = N;`), discovered
 before expression parsing.
@@ -49,7 +49,7 @@ is a documented shim, and the declaration here is canonical.
 | ------------- | -------------------------------- | -------- |
 | `core::prelude` | (implicit `std.standard`)        | always loaded, built in: `Bool`, `string`, `Boolean`, `Range`, indexing, `Resolve`, `Eq`, `Ord`, `Ordering`, `New`, `From`, `precedence`, the built-in macros |
 | `core::primitive` | std.standard `boolean`, `string` | `Bool`, `string = Char[]` |
-| `core::ops`   | (operators are VHDL functions)     | `Add`, `Sub`, `Mul`, `Div`, `Shl`, `Shr`, `And`, `Or`, `Not`, `Neg`, `CustomOperator`, `Prefix`, `Suffix`, `Index`, `IndexAssign`, `Range`, `Boolean`, `Resolve`, `LogicEncoding` |
+| `core::ops`   | (operators are VHDL functions)     | `Add`, `Sub`, `Mul`, `Div`, `Rem`, `Shl`, `Shr`, `And`, `Or`, `Not`, `Neg`, `CustomOperator`, `Prefix`, `Suffix`, `Index`, `IndexAssign`, `Range`, `Boolean`, `Resolve`, `LogicEncoding` |
 | `core::cmp`   |                                    | `Eq`, `Ord` (the comparisons, returning `Bool`), `Ordering` |
 | `core::convert` |                                  | `From` |
 | `core::default` |                                  | `New` |
@@ -198,7 +198,7 @@ The math functions and constants:
 | --- | --- |
 | `abs(x)` | magnitude |
 | `min(a, b)`, `max(a, b)` | the smaller / larger |
-| `rem(a, m)` | remainder with the dividend's sign (VHDL `rem`, Rust `%`) |
+| `rem(a, m)` | remainder with the dividend's sign, as `a % m` (VHDL `rem`) |
 | `mod(a, m)` | remainder with the divisor's sign (VHDL `mod`) |
 | `clamp(v, lo, hi)` | `v` held to `lo..hi` (Rust's `Ord::clamp`) |
 | `cmp(a, b)` | an `Ordering`: `Less`, `Equal` or `Greater` (Rust's `Ord::cmp`); unordered values, such as a NaN, compare `Equal` |
