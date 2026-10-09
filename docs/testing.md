@@ -450,7 +450,21 @@ and verifies DWARF. The shared-body unit additionally checks void/sret function
 and call signatures, canonical i192/i145 values and entry-owned return storage.
 Only the private canonical payload is used by executable callers; normalized
 source bytes are debugger-facing. These checks do not prove small unaligned,
-string, partial-demand or arbitrary-wide basic-integer return decoding.
+partial-demand or arbitrary-wide basic-integer return decoding.
+An eleventh regression checks actual GDB `finish` for runtime and nonempty-literal
+`Char[]` returns. It verifies all Unicode code points and UTF-8 bytes, including
+an embedded NUL and one-character literals with i32 executable carriers,
+reuses a returned runtime string after `await`, and runs two
+test roots with distinct borrowed content. Exact source-call counts are checked;
+empty literal specializations must remain void without a new debugger history
+value. Both inline hints and packing modes run ordinary/debug native assertions,
+VCD parity and DWARF verification. A boundary unit separately verifies the
+32-byte source-view prefix, unchanged i32/i64/i193 executable payloads,
+handle-only narrowing for metadata, caller decoding and LLVM module validity.
+It guards explicitly declared `Char[1]` against acquiring a dynamic-string
+return view. These checks do not prove string eligibility for shared Process
+bodies or general dynamic-array support; borrowed content is inspected before
+its owning test root is cleaned up.
 To run the existing native corpus with DWARF enabled:
 
 ```bash

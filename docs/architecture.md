@@ -398,7 +398,8 @@ inline body and its string inspection views. Its SSA execution marker is only
 readiness bookkeeping, not an integer string representation. Selected joins
 retain one such call when either or both consumers need it, and no call on an
 untaken path. GDB `finish` on this specialization does not invent a returned
-value. Nonempty literal/runtime-string return ABIs remain under audit. Source
+value. Nonempty literal/runtime-string returns use the borrowed-view memory
+transport described below. Source
 read/file-probe paths still require literals; no computed-path feature is added.
 Shared Process functions attach this same source-body metadata directly to
 `sx.fn.*` bodies and bind their canonical `Parameter` nodes to the native SSA
@@ -445,9 +446,22 @@ Actual `finish` coverage includes 24-byte integer/real structs, 19-byte
 unsigned[81]/real structs and 43-byte nested signed[81]/real/descending-array
 values, with negative fields and opposite signed zeros. Shared-body unit tests
 also check the void/sret signatures and canonical i192/i145 results without
-an extra execution wrapper. Small subword/unaligned, wide basic scalar,
-string and partially demanded return ABIs remain open; this is not a general
-cross-target ABI implementation.
+an extra execution wrapper.
+Runtime and nonempty-literal `Char[]` returns reuse this carrier with a 32-byte
+borrowed source view (code-point count, Unicode-data pointer, UTF-8 byte count
+and UTF-8 pointer). The existing read-only runtime query fills the view from
+the already-emitted handle and its test root; literals reuse constant Unicode
+and UTF-8 data. The private executable payload remains the exact requested
+integer format, not a reconstructed inspection value. Only the handle supplied
+to the metadata query is fitted to 64 bits. Literal stores use byte alignment,
+including a one-character i32 carrier, without promising unsupported alignment.
+Actual GDB `finish` checks embedded NULs and multibyte UTF-8 content, reuse after
+`await`, distinct test roots, and the unchanged empty-return history behavior.
+Explicit fixed `Char[N]` declarations remain arrays rather than dynamic string
+views. This does not extend string eligibility for shared Process bodies or add
+general dynamic arrays. Small subword/unaligned, wide basic scalar and partially
+demanded return ABIs remain open; this is not a general cross-target ABI
+implementation.
 Wide source-call parameter/local inspection is checked at 81 and 129 bits,
 including negative values, zeros, inferred generic signed/unsigned signatures,
 8-bit return consumers and 193-bit widening. These are declaration-owned views
