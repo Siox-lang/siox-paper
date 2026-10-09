@@ -761,7 +761,7 @@ the names, as rustc's lint registry does:
 | `unreachable_match_arm` | W-P006 | | `dead_assignment` | W-P014 |
 | `non_exhaustive_match` | W-P007 | | `unimplemented_attr` | W-P015 |
 | `suspicious_logic_compare` | W-P008 | | `incomplete_struct_literal` | W-P016 |
-| `unknown_lints` | W-P017 | | | |
+| `unknown_lints` | W-P017 | | `overlapping_range_endpoints` | W-P018 |
 
 `warnings` names all of them at once.
 
@@ -1878,8 +1878,17 @@ match n {
 let slot: integer = match t { 0ns..9ns => 1, 10ns..19ns => 2, _ => 3 };
 ```
 
-Integer-literal ranges also feed the coverage check above; a match whose
-bounds are expressions needs a `_` for that check to stay quiet.
+Arms may overlap: the first that matches wins, as in an `if` chain, and a
+partial overlap (`0..9` then `5..20`) is ordinary priority. Two overlaps
+warn. An arm the earlier ones cover between them can never match
+(`unreachable_match_arm`): `3..8` after `0..5` and `6..9`. Two ranges that
+share exactly one value (`0..10` then `10..20`) are usually an off-by-one,
+since both ends are included (`overlapping_range_endpoints`).
+
+Bounds that fold to integers (literals, constants, integer arithmetic over
+them, open ends) take part in both warnings and in the coverage check of a
+sized vector. Typed bounds (`10ns`, `1.5`) and anything not constant step
+aside, so such a match needs a `_` for the coverage check.
 
 ---
 
