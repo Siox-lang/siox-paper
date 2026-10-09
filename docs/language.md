@@ -3244,8 +3244,10 @@ evaluated as values. It may contain `let`s, reassignment of its own locals,
 `if`/`match` and `return`, and `for` loops whose bounds are constant once
 the arguments' shapes are known (`for k in 0..v'length - 1`), as a VHDL
 function's variables and loops are. A loop unrolls; an `if` without a
-`return` becomes a select per variable it assigns. A loop whose bounds depend
-on a runtime value, or a write to one element of a local, has no hardware
+`return` becomes a select per variable it assigns. A write to one element of
+a packed local at a constant index (`r[v'low + k] = v[v'high - k];`) replaces
+that bit. A loop whose bounds depend on a runtime value, and an element write
+at a runtime index or of a metavalue literal (`r[0] = 'X'`), have no hardware
 form.
 
 In a simulation process, a function with or without a return value may contain locals,
