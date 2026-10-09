@@ -340,7 +340,8 @@ Remaining inspection work includes demand-preserving whole aggregate-return
 boundaries for effectful/checked/nested-call and partially retained results,
 further companion argument/return-plane transport audits, and debugger `finish`
 return-ABI
-checks for runtime/nonempty-literal string, normalized wide and mixed-layout/
+checks for runtime/nonempty-literal string, wide basic scalar, small subword/
+unaligned and mixed-layout/
 partial aggregate results.
 Formal-type audits also remain for hardware operators/suffixes/conversions
 and constrained/generic signatures; the tested scalar function cases do not
@@ -437,6 +438,19 @@ shared Process-body eligibility or larger/partial/normalized return ABIs.
 A canonical-IR unit test separately checks the same boundary in actual shared
 Process functions: mixed/reversed/all-real native signatures, canonical i128
 call results, module verification and no additional source-call wrapper.
+A tenth regression checks actual GDB `finish` for memory-class SysV source
+returns: a 24-byte integer/real struct, a normalized 19-byte unsigned[81]/real
+struct, and a 43-byte nested signed[81]/real struct with a descending real array.
+Every invocation's returned fields are checked against its captured formals,
+including intermediate delta inputs, and settled positive/negative/signed-zero
+cases are mandatory. Negative signed data uses the full 81-bit literal to avoid
+the separately tracked integer-widening defect. The test uses both inline hints
+and packing modes, runs ordinary/debug native assertions, compares VCD bytes
+and verifies DWARF. The shared-body unit additionally checks void/sret function
+and call signatures, canonical i192/i145 values and entry-owned return storage.
+Only the private canonical payload is used by executable callers; normalized
+source bytes are debugger-facing. These checks do not prove small unaligned,
+string, partial-demand or arbitrary-wide basic-integer return decoding.
 To run the existing native corpus with DWARF enabled:
 
 ```bash

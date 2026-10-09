@@ -431,9 +431,23 @@ including nested structs and arrays. The shared return encoder/decoder packs
 and unpacks the same canonical integer bits; it does not derive operands from
 inspection buffers or retain discarded fields. Actual GDB `finish` covers
 both real/integer field orders, nested wrappers, two-real arrays and one-real
-wrappers, including signed zero. This does not establish larger, subword,
-unaligned, normalized-wide or partially demanded aggregate return ABIs; those
-remain open and require further ABI transport work.
+wrappers, including signed zero.
+Complete aggregates whose byte-normalized source size exceeds 16 bytes use a
+caller-owned memory return on this host. The common shared/expression boundary
+adds a hidden typed LLVM `sret` pointer and returns void. Its carrier starts with
+the normalized source bytes and retains a separate private canonical integer
+payload; both are written from the same already-emitted value. GDB reads the
+source prefix, while the executable caller loads only the canonical payload.
+No discarded field becomes a dependency, and source inspection bytes never
+become executable operands. Storage is allocated at the caller's entry, once
+per static call site rather than once per runtime loop iteration.
+Actual `finish` coverage includes 24-byte integer/real structs, 19-byte
+unsigned[81]/real structs and 43-byte nested signed[81]/real/descending-array
+values, with negative fields and opposite signed zeros. Shared-body unit tests
+also check the void/sret signatures and canonical i192/i145 results without
+an extra execution wrapper. Small subword/unaligned, wide basic scalar,
+string and partially demanded return ABIs remain open; this is not a general
+cross-target ABI implementation.
 Wide source-call parameter/local inspection is checked at 81 and 129 bits,
 including negative values, zeros, inferred generic signed/unsigned signatures,
 8-bit return consumers and 193-bit widening. These are declaration-owned views
