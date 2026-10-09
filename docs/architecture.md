@@ -433,8 +433,18 @@ and unpacks the same canonical integer bits; it does not derive operands from
 inspection buffers or retain discarded fields. Actual GDB `finish` covers
 both real/integer field orders, nested wrappers, two-real arrays and one-real
 wrappers, including signed zero.
+Complete byte-aligned small aggregates also support 8/16/32-bit integer leaves
+beside real fields. Consecutive subword integer leaves share their SysV
+eightbyte; the native encoder/decoder uses each slot's actual bit width, not a
+fixed 64-bit stride. For example, a real/Char result uses `double, i32`, while
+a real/two-byte-field result uses `double, i16`. Canonical packed bits remain
+unchanged across the boundary.
 Complete aggregates whose byte-normalized source size exceeds 16 bytes use a
-caller-owned memory return on this host. The common shared/expression boundary
+caller-owned memory return on this host, as do smaller aggregates with naturally
+unaligned members. The alignment check follows the source struct/array shape
+and byte-normalized member offsets, including nested members; odd-sized basic
+integer alignment is left unknown rather than guessed. The common
+shared/expression boundary
 adds a hidden typed LLVM `sret` pointer and returns void. Its carrier starts with
 the normalized source bytes and retains a separate private canonical integer
 payload; both are written from the same already-emitted value. GDB reads the
@@ -447,6 +457,12 @@ unsigned[81]/real structs and 43-byte nested signed[81]/real/descending-array
 values, with negative fields and opposite signed zeros. Shared-body unit tests
 also check the void/sret signatures and canonical i192/i145 results without
 an extra execution wrapper.
+Small memory-class coverage includes both a 12-byte Char-before-real struct and
+a nested 12-byte Char/real wrapper, plus 9-byte unsigned[8]/real and normalized
+unsigned[3]/real structs. The latter retains an exact i67 execution payload
+beside its 9-byte source prefix. Native GDB `finish` also checks the reversed
+Char/real layout, a real/Char[2] array tail and adjacent byte fields that share
+one return slot, including negative real values and signed zero.
 Runtime and nonempty-literal `Char[]` returns reuse this carrier with a 32-byte
 borrowed source view (code-point count, Unicode-data pointer, UTF-8 byte count
 and UTF-8 pointer). The existing read-only runtime query fills the view from
@@ -459,9 +475,9 @@ Actual GDB `finish` checks embedded NULs and multibyte UTF-8 content, reuse afte
 `await`, distinct test roots, and the unchanged empty-return history behavior.
 Explicit fixed `Char[N]` declarations remain arrays rather than dynamic string
 views. This does not extend string eligibility for shared Process bodies or add
-general dynamic arrays. Small subword/unaligned, wide basic scalar and partially
-demanded return ABIs remain open; this is not a general cross-target ABI
-implementation.
+general dynamic arrays. Normalized subword register layouts, odd-sized/wide
+basic scalars and partially demanded return ABIs remain open; this is not a
+general cross-target ABI implementation.
 Wide source-call parameter/local inspection is checked at 81 and 129 bits,
 including negative values, zeros, inferred generic signed/unsigned signatures,
 8-bit return consumers and 193-bit widening. These are declaration-owned views

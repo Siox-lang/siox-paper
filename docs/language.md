@@ -3256,8 +3256,9 @@ evaluated as values. It may contain `let`s, reassignment of its own locals,
 the arguments' shapes are known (`for k in 0..v'length - 1`), as a VHDL
 function's variables and loops are. A loop unrolls; an `if` without a
 `return` becomes a select per variable it assigns. A write to one element of
-a packed local at a constant index (`r[v'low + k] = v[v'high - k];`) replaces
-that bit. A loop whose bounds depend on a runtime value, and an element write
+a local at a constant index (`r[v'low + k] = v[v'high - k];`), or to a
+constant slice of an array local (`r[3..0] = v;`), replaces those elements.
+A loop whose bounds depend on a runtime value, and an element write
 at a runtime index or of a metavalue literal (`r[0] = 'X'`), have no hardware
 form.
 

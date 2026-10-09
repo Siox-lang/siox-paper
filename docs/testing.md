@@ -428,16 +428,25 @@ packing modes. The existing wide-return regression additionally guards native
 formal availability before a narrow callee's source return stop.
 A ninth regression checks the actual native GDB `finish` return value for
 complete small SysV real/integer aggregates in both field orders, a nested
-struct, a two-real array with distinct values and a one-real wrapper. It runs
+struct, a two-real array with distinct values and a one-real wrapper. It also
+checks both 12-byte Char/real field orders, nested member alignment, a real/Char[2]
+tail, 9-byte unsigned[8]/real and normalized unsigned[3]/real structs, and a
+real/two-byte-field struct whose integer fields must share one register slot.
+It runs
 with both inline hint settings and both packing modes, comparing ordinary/debug
 native results and VCD bytes and verifying DWARF. Every hardware invocation is checked against
 its captured formals, including intermediate delta-cycle inputs; all settled
 positive, negative and signed-zero cases must also occur. These checks cover
-only complete one/two-64-bit-leaf aggregate return transport, not general
-shared Process-body eligibility or larger/partial/normalized return ABIs.
+complete standard-sized byte-aligned register leaves and naturally unaligned
+memory-class returns, not general shared Process-body eligibility,
+normalized-subword register layouts or partial returns.
 A canonical-IR unit test separately checks the same boundary in actual shared
 Process functions: mixed/reversed/all-real native signatures, canonical i128
 call results, module verification and no additional source-call wrapper.
+The unit also guards mixed i8/i16/i32/i48 register slots, exact i72/i80/i96/i112
+canonical results, subword-slot coalescing, small unaligned void/sret signatures
+and a normalized 9-byte/i67 memory carrier. Executable callers retain their
+canonical payloads instead of consuming normalized inspection bytes.
 A tenth regression checks actual GDB `finish` for memory-class SysV source
 returns: a 24-byte integer/real struct, a normalized 19-byte unsigned[81]/real
 struct, and a 43-byte nested signed[81]/real struct with a descending real array.
@@ -449,8 +458,8 @@ and packing modes, runs ordinary/debug native assertions, compares VCD bytes
 and verifies DWARF. The shared-body unit additionally checks void/sret function
 and call signatures, canonical i192/i145 values and entry-owned return storage.
 Only the private canonical payload is used by executable callers; normalized
-source bytes are debugger-facing. These checks do not prove small unaligned,
-partial-demand or arbitrary-wide basic-integer return decoding.
+source bytes are debugger-facing. These checks do not prove normalized-subword
+register, partial-demand or arbitrary-wide basic-integer return decoding.
 An eleventh regression checks actual GDB `finish` for runtime and nonempty-literal
 `Char[]` returns. It verifies all Unicode code points and UTF-8 bytes, including
 an embedded NUL and one-character literals with i32 executable carriers,
