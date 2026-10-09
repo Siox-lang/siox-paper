@@ -404,7 +404,8 @@ pub enum Severity { Note, Warning, Error, Failure }
 
 `Display` says how a type prints; `write!(f, "fmt", args)` appends to its
 output inside `fn fmt(self, f: Formatter)`. Format strings take Rust's specs
-(`{:.3}`, `{:e}`, `{:#x}`, `{:>8}`; language §3 "Format strings"). Types
+(`{:.3}`, `{:e}`, `{:#x}`, `{:>8}`; language §3 "Format strings"), and `{:?}`
+prints the built-in form below even for a type with a `Display` impl. Types
 without an impl print in a built-in form: structs and views as
 `Name { field: value }`, arrays as `[a, b]`, logic vectors as `01XZ`.
 

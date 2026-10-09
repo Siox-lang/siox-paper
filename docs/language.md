@@ -3198,6 +3198,7 @@ a spec, `{:[[fill]align][+][#][0][width][.precision][type]}`:
 | width | pad to this many characters; numbers sit right, everything else left | `{:6}` → `    42` |
 | `<` `^` `>` | align left, centre (odd padding goes right) or right, with an optional fill character before | `{:*^7}` → `**42***` |
 | `0` | pad a number with zeros after its sign and prefix | `{:#06x}` → `0x001f` |
+| `?` | the built-in form even when the type implements `Display`, with strings and characters quoted and a real keeping its point (Rust's `Debug`) | `{:?}` of `Pair { a: 1, b: 2 }` → `Pair { a: 1, b: 2 }`; of `"hi"` → `"hi"`; of `2.0` → `2.0` |
 
 A malformed spec is an error, as is a radix form on a `real` or a precision or
 notation on text or an enum. A width pads a placeholder's whole output, so a
