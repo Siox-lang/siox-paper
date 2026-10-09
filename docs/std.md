@@ -158,7 +158,9 @@ pub trait Resolve { fn resolve(self, rhs: Self) -> Self; }
 
 **Comparisons** are `core::cmp`'s `Eq<Rhs>` (`eq`, and `ne` by default) and
 `Ord<Rhs>` (`lt`, `le`, and `gt`/`ge` by default), each returning `Bool`
-(spec 3.25). `Ordering` is an ordinary enum beside them.
+(spec 3.25). `Ordering` is an ordinary enum beside them. `Match<Pattern>`
+(`matches`, `unknown`) is matching equality for bit patterns, VHDL's `?=`:
+`Logic` implements it as `std_match` in `std::logic`.
 
 **`Boolean`** — a type usable as a condition provides `as_bool` returning the
 system `Bool` type (`true`/`false`), applied only in condition position.

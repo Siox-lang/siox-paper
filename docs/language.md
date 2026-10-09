@@ -1826,11 +1826,26 @@ match line {
 A bit pattern cannot express this: it tests the value bit only, so `'Z'` and
 `'0'` are indistinguishable to it.
 
-A bare string in pattern position is a per-bit pattern: `0`/`1` are fixed and
-`-` (the `std_ulogic` don't-care) matches either value. A radix-prefixed
-string (`x"A?"` / `o"7?"`) masks a whole group (nibble/triad) with `?`. These
-are not special literal tokens — a prefixed string lexes as an identifier
-glued to a string; the compiler lowers each arm to `(scrut & mask) == value`.
+A bare string in pattern position is a per-element pattern: `0`/`1` are
+fixed and `-` matches anything. A radix-prefixed string (`x"A?"` / `o"7?"`)
+masks a whole group (nibble/triad) with `?`. These are not special literal
+tokens — a prefixed string lexes as an identifier glued to a string.
+
+How a fixed position matches is the element type's, through
+`core::cmp::Match` (VHDL-2008's matching equality `?=`, separate from `==`):
+the arm tests `scrutinee[k].matches('1')` for every position the pattern
+fixes. `Logic` implements it as `std_match` in `std::logic`: `'H'` and `'L'`
+read as `'1'` and `'0'`, and a metavalue (`'X'`, `'Z'`, `'U'`, `'W'`) matches
+nothing but a `-`. So a `"0X11"` scrutinee falls through `"01-1"` and lands
+in `_`; in a testbench such a `match` also warns, as `std_match` reports a
+metavalue. An element type without `Match` compares its value bits.
+
+```siox
+pub trait Match<Pattern> {
+    fn matches(self, pattern: Pattern) -> Bool;  // one element, one pattern character
+    fn unknown(self) -> Bool;                    // a value no pattern matches
+}
+```
 
 A bit pattern is only meaningful in `match` position — it is not a value:
 
@@ -1848,6 +1863,23 @@ Numeric literal and range patterns compare in the scrutinee's own domain:
 unsigned vectors remain unsigned, `signed` vectors and kernel `integer` use
 signed ordering, and integer endpoints are promoted when matching a `real`.
 The scrutinee is evaluated once and retains its complete width.
+
+A range's bounds are any constant expressions of the scrutinee's type, and
+either end may be open; it matches through the type's `Ord`, so any ordered
+type works, `time` and the fixed-point formats included. Like every siox
+range it is a set: `9..3` matches what `3..9` does.
+
+```siox
+match n {
+    ..-1           => sign = Sign::Negative,
+    0..DEPTH - 1   => slot = n,
+    DEPTH..        => overflow = true,
+}
+let slot: integer = match t { 0ns..9ns => 1, 10ns..19ns => 2, _ => 3 };
+```
+
+Integer-literal ranges also feed the coverage check above; a match whose
+bounds are expressions needs a `_` for that check to stay quiet.
 
 ---
 
