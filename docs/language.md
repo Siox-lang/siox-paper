@@ -2228,7 +2228,10 @@ Inside a comparison method, the comparison it answers is the built-in one:
 `unsigned`'s `lt` is `return self < rhs;`, the kernel's unsigned compare of
 the words. Built-in comparison also stays where no impl exists — the kernel
 types (`integer`, `real`, `Char`), enums by discriminant, and `Logic`-element
-vectors. `core::cmp::Ordering` (`Less`/`Equal`/`Greater`) remains an ordinary
+vectors. Two such vectors are equal element by element, by identity, as VHDL's
+predefined `=` on `std_logic_vector` (`"10XZ" == "10XZ"`), and a string
+literal beside one is its symbols (`v == "1010"`); `unsigned`/`signed`
+compare as numbers instead. `core::cmp::Ordering` (`Less`/`Equal`/`Greater`) remains an ordinary
 enum for code that wants a three-way answer; the compiler gives it no meaning.
 
 **`%` is the remainder**, the core operator `Rem<Rhs, Out>` (`fn rem`),
