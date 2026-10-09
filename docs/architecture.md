@@ -378,8 +378,15 @@ share an operand without selecting the wrong fields. Return inspection uses
 the whole packed result layout at the selected source span; formal/local
 inspection and lexical shadowing still follow existing SSA captures. Independent
 field conditions keep their ordinary emitter paths inside the same native frame.
-Checked, effectful, nested-call and partial returns remain leaf-backed pending
-demand-preserving grouping. Packing a missing field
+Complete aggregates containing pure nested calls also share a return when
+every executable use first crosses a value demanding all their fields. The
+proof follows actual Process instruction, terminator, initializer and function
+result roots; a complete consumer cannot hide an independent field use.
+Whole-value conditional branches are allowed, as are proven valid constant
+array selectors. Unknown, invalid, signed or wrapping selectors are not evidence
+for discarding an arm. Checked/effectful bodies, independently selected nested
+calls and partial returns remain leaf-backed pending demand-preserving grouping.
+Packing a missing field
 as zero would falsely advertise it as available; eagerly packing an inactive
 field could introduce effects or extra source stops. Whole aggregate-return
 fidelity therefore remains under audit, not completed by the pure case.
@@ -439,6 +446,14 @@ eightbyte; the native encoder/decoder uses each slot's actual bit width, not a
 fixed 64-bit stride. For example, a real/Char result uses `double, i32`, while
 a real/two-byte-field result uses `double, i16`. Canonical packed bits remain
 unchanged across the boundary.
+Naturally aligned sub-byte register leaves use reversible SSA packing from
+their canonical bit offsets to whole-byte source offsets. For example, two
+3-bit fields use an i16 native return but retain an i6 canonical payload;
+a real followed by two 3-bit fields uses `double, i16` with an i70 payload.
+Signed padding is sign-extended when encoding and discarded when decoding.
+Nested structs and fixed arrays use the same codec, without allocating or
+reading an inspection buffer. Only final native functions retain the packing
+plan; temporary draft functions never become cache keys.
 Complete aggregates whose byte-normalized source size exceeds 16 bytes use a
 caller-owned memory return on this host, as do smaller aggregates with naturally
 unaligned members. The alignment check follows the source struct/array shape
@@ -475,8 +490,8 @@ Actual GDB `finish` checks embedded NULs and multibyte UTF-8 content, reuse afte
 `await`, distinct test roots, and the unchanged empty-return history behavior.
 Explicit fixed `Char[N]` declarations remain arrays rather than dynamic string
 views. This does not extend string eligibility for shared Process bodies or add
-general dynamic arrays. Normalized subword register layouts, odd-sized/wide
-basic scalars and partially demanded return ABIs remain open; this is not a
+general dynamic arrays. Odd-sized/wide basic scalars and partially demanded
+return ABIs remain open; this is not a
 general cross-target ABI implementation.
 Wide source-call parameter/local inspection is checked at 81 and 129 bits,
 including negative values, zeros, inferred generic signed/unsigned signatures,

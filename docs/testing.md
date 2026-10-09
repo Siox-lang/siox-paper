@@ -292,6 +292,12 @@ local must have no visible symbol on the fallback path. Independent field
 conditions on one source line and aliased aggregate locals retain native
 results and one source frame. GDB `finish` checks both returned integer fields
 for every branch/input in ordinary, nested/match, independent and alias cases.
+Complete arrays containing pure nested arithmetic calls are covered separately
+with all fields consumed in opposite orders on selected branches. Grouping is
+allowed only after a joint-demand proof; a unit check rejects an independent
+field use even when another consumer demands the whole value. It also guards
+dynamic whole-value selection, invalid checked indices, and signed/arithmetic
+selectors that cannot safely be folded for this proof.
 
 Runtime-owned `string`/`Char[]` values expose a read-only view under their source
 name: `text.length` counts Unicode code points, `text.data[i]` reads one code
@@ -337,12 +343,13 @@ wide return-value decoding. That debugger limitation and general native
 return-ABI validation remain separate open work.
 
 Remaining inspection work includes demand-preserving whole aggregate-return
-boundaries for effectful/checked/nested-call and partially retained results,
+boundaries for effectful/checked, independently selected nested-call and
+partially retained results,
 further companion argument/return-plane transport audits, and debugger `finish`
 return-ABI
-checks for runtime/nonempty-literal string, wide basic scalar, small subword/
-unaligned and mixed-layout/
-partial aggregate results.
+checks for wide basic scalars and remaining odd-sized/mixed-layout/partial
+aggregate results. The string and complete byte-normalized register/memory
+cases described below have focused native coverage, not a general ABI proof.
 Formal-type audits also remain for hardware operators/suffixes/conversions
 and constrained/generic signatures; the tested scalar function cases do not
 prove every signature specialization.
@@ -432,14 +439,17 @@ struct, a two-real array with distinct values and a one-real wrapper. It also
 checks both 12-byte Char/real field orders, nested member alignment, a real/Char[2]
 tail, 9-byte unsigned[8]/real and normalized unsigned[3]/real structs, and a
 real/two-byte-field struct whose integer fields must share one register slot.
+Sub-byte coverage includes unsigned[3]/signed[3] pairs, real tails, nested
+structs and three-element unsigned[3] arrays containing nested arithmetic calls.
+The array consumer visits elements in opposite orders on its selected branches.
 It runs
 with both inline hint settings and both packing modes, comparing ordinary/debug
 native results and VCD bytes and verifying DWARF. Every hardware invocation is checked against
 its captured formals, including intermediate delta-cycle inputs; all settled
 positive, negative and signed-zero cases must also occur. These checks cover
-complete standard-sized byte-aligned register leaves and naturally unaligned
-memory-class returns, not general shared Process-body eligibility,
-normalized-subword register layouts or partial returns.
+complete standard-sized byte-normalized register leaves and naturally unaligned
+memory-class returns, not general shared Process-body eligibility, odd-sized
+basic integer layouts or partial returns.
 A canonical-IR unit test separately checks the same boundary in actual shared
 Process functions: mixed/reversed/all-real native signatures, canonical i128
 call results, module verification and no additional source-call wrapper.
@@ -447,6 +457,8 @@ The unit also guards mixed i8/i16/i32/i48 register slots, exact i72/i80/i96/i112
 canonical results, subword-slot coalescing, small unaligned void/sret signatures
 and a normalized 9-byte/i67 memory carrier. Executable callers retain their
 canonical payloads instead of consuming normalized inspection bytes.
+Sub-byte units additionally check i16 and mixed double/i16 register signatures
+with exact canonical i6/i70 caller results and LLVM module verification.
 A tenth regression checks actual GDB `finish` for memory-class SysV source
 returns: a 24-byte integer/real struct, a normalized 19-byte unsigned[81]/real
 struct, and a 43-byte nested signed[81]/real struct with a descending real array.
@@ -458,8 +470,8 @@ and packing modes, runs ordinary/debug native assertions, compares VCD bytes
 and verifies DWARF. The shared-body unit additionally checks void/sret function
 and call signatures, canonical i192/i145 values and entry-owned return storage.
 Only the private canonical payload is used by executable callers; normalized
-source bytes are debugger-facing. These checks do not prove normalized-subword
-register, partial-demand or arbitrary-wide basic-integer return decoding.
+source bytes are debugger-facing. These checks do not prove partial-demand or
+arbitrary-wide basic-integer return decoding.
 An eleventh regression checks actual GDB `finish` for runtime and nonempty-literal
 `Char[]` returns. It verifies all Unicode code points and UTF-8 bytes, including
 an embedded NUL and one-character literals with i32 executable carriers,

@@ -3261,9 +3261,10 @@ function's variables and loops are. A loop unrolls; an `if` without a
 `return` becomes a select per variable it assigns. A write to one element of
 a local at a constant index (`r[v'low + k] = v[v'high - k];`), or to a
 constant slice of an array local (`r[3..0] = v;`), replaces those elements.
-A loop whose bounds depend on a runtime value, and an element write
-at a runtime index or of a metavalue literal (`r[0] = 'X'`), have no hardware
-form.
+An element holds whatever value of its enum is written, `'X'` as much
+as `'1'`: as in VHDL, a metavalue means something only to a resolution
+function or a numeric operator. A loop whose bounds depend on a runtime
+value, and an element write at a runtime index, have no hardware form.
 
 In a simulation process, a function with or without a return value may contain locals,
 branches, matches, loops, nested calls and `await`. Its body shares the caller's
