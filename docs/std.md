@@ -62,6 +62,7 @@ is a documented shim, and the declaration here is canonical.
 | `std::bits`   | ieee.numeric_std                 | `unsigned[N]` / `signed[N]` operators as `Add`/`Sub`/… impls, `Eq`/`Ord` (signed compares signed) |
 | `std::ops`    | (operators are functions in VHDL packages) | re-exports `core::ops` |
 | `std::math`   | ieee.math_complex                | `Complex` over `real`, `+`/`-` impls, the `i` suffix |
+| `std::mem`    | (VHDL procedures with `inout`)     | `swap`, `replace`: move values between a testbench's places |
 | `std::numeric`| natural/positive subtypes        | ranged integers: `Byte`, `Short`, `Int`, `Long`, `Natural`, `Positive` |
 | `std::text`   | `'pos`/`'val`                    | encoding tables `Unicode`/`Ascii` |
 | `std::sim`    | std.standard `time`              | `time`, `frequency` + unit suffixes; FS..MS constants |
@@ -209,6 +210,18 @@ The math functions and constants:
 (`abs`, `min`, `max`) — and inline with the argument type's own operators.
 `abs` of a `float` is `-x` below zero, so `abs(-0.0)` stays `-0.0` (equal to
 `+0.0`) and a NaN keeps its sign.
+
+## `std::mem`
+
+```siox
+pub fn swap<T>(a: T, b: T);                // exchange the two values
+pub fn replace<T>(dest: T, value: T) -> T; // store `value`, return the old one
+```
+
+As Rust's `core::mem`. A testbench function's parameters are its caller's
+places, so `swap(a, b)` exchanges two variables, struct values or testbench
+signals. In hardware a function cannot write its arguments, so neither has a
+hardware form.
 
 ## `std::sim`
 
