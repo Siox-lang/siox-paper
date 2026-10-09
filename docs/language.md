@@ -3239,6 +3239,15 @@ value is printed, so the runtime only ever writes text and numbers. A plain
 condition reports to stderr and counts toward the test's warning total, but
 the test still passes. It is the recoverable tier of error handling.
 
+In hardware, a function call becomes combinational logic, so its body is
+evaluated as values. It may contain `let`s, reassignment of its own locals,
+`if`/`match` and `return`, and `for` loops whose bounds are constant once
+the arguments' shapes are known (`for k in 0..v'length - 1`), as a VHDL
+function's variables and loops are. A loop unrolls; an `if` without a
+`return` becomes a select per variable it assigns. A loop whose bounds depend
+on a runtime value, or a write to one element of a local, has no hardware
+form.
+
 In a simulation process, a function with or without a return value may contain locals,
 branches, matches, loops, nested calls and `await`. Its body shares the caller's
 canonical Process control flow: `return;` leaves that call and resumes the

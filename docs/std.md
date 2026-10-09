@@ -125,6 +125,27 @@ declared by `impl Prefix<"x", _> for unsigned` in `std::bits` (spec 3.24); a pla
 `"0101"` covers the binary case with no prefix. A file that never imports
 `std::bits` falls back to kernel word semantics.
 
+**Bit methods**, after Rust's integer methods. They work in hardware and in
+testbenches, at any width:
+
+| method | on | result |
+| --- | --- | --- |
+| `count_ones()`, `count_zeros()` | both | `integer`: bits that are `'1'` / `'0'` |
+| `leading_zeros()`, `trailing_zeros()` | both | `integer`: `'0'`s above the highest / below the lowest `'1'` |
+| `leading_ones()`, `trailing_ones()` | both | `integer`: `'1'`s from the MSB / LSB to the first non-`'1'` |
+| `reverse_bits()` | both | the bits in the opposite order |
+| `pow(exp)` | both | `self` to the power `exp`, wrapping like `*` |
+| `saturating_add(rhs)`, `saturating_sub(rhs)` | both | the sum / difference, held at the type's bounds instead of wrapping |
+| `rotate_left(n)`, `rotate_right(n)` | `unsigned` | shifted, with the bits off one end coming in at the other |
+| `is_power_of_two()` | `unsigned` | `Bool`: exactly one bit set |
+| `next_power_of_two()` | `unsigned` | the smallest power of two not below `self`; 1 for zero, zero when it does not fit |
+| `abs_diff(rhs)` | `unsigned` | the distance, which cannot overflow |
+
+Bit `k` is `k` places above the LSB, `'low + k`, whichever way the range runs
+(`'high` is the MSB). A metavalue is neither `'0'` nor `'1'`: `count_ones`
+skips an `'X'`, and `leading_zeros` stops at one. `checked_*` (Rust's
+`Option` results) waits for payload enums.
+
 ## `core::ops` (re-exported by `std::ops`)
 
 ```siox
@@ -178,10 +199,12 @@ The math functions and constants:
 | `min(a, b)`, `max(a, b)` | the smaller / larger |
 | `rem(a, m)` | remainder with the dividend's sign (VHDL `rem`, Rust `%`) |
 | `mod(a, m)` | remainder with the divisor's sign (VHDL `mod`) |
+| `clamp(v, lo, hi)` | `v` held to `lo..hi` (Rust's `Ord::clamp`) |
+| `cmp(a, b)` | an `Ordering`: `Less`, `Equal` or `Greater` (Rust's `Ord::cmp`); unordered values, such as a NaN, compare `Equal` |
 | `sqrt`, `sin`, `cos`, `exp`, `log`, `pow`, `floor`, `ceil`, `round` | on `real`, from the C math library |
 | `PI`, `E` | `real` constants |
 
-`abs`, `min`, `max`, `rem` and `mod` are generic over the numeric types —
+`abs`, `min`, `max`, `clamp`, `cmp`, `rem` and `mod` are generic over the numeric types —
 `integer`, `real`, `signed`, `unsigned`, the fixed formats and `float`
 (`abs`, `min`, `max`) — and inline with the argument type's own operators.
 `abs` of a `float` is `-x` below zero, so `abs(-0.0)` stays `-0.0` (equal to
