@@ -346,6 +346,8 @@ let r: real = gain.to_real();                       // 2.5
 - The constructor `ufixed<W, F>(x)` / `sfixed<W, F>(x)` takes a `real` or an
   `integer` to that format, rounding to nearest (ties away from zero) and
   saturating; it works in hardware too. `x.to_real()` goes back.
+- `x'integers` and `x'fractions`, type attributes, give the format: 4 and 4
+  for `ufixed<8, 4>`; an `sfixed`'s integer bits include the sign.
 - `/` keeps the format, rounding toward minus infinity as `*` does; a quotient
   by zero is zero, as for `unsigned`.
 - Between formats the constructor resizes: `ufixed<12, 6>(x)` from another
@@ -387,7 +389,9 @@ let v: real = r.to_real();
   infinite, and a NaN is unordered — every comparison with one is false
   except `!=`, so `x != x` holds exactly for a NaN.
 - `-x` (`Neg`, the IEEE sign flip), `x.is_nan()`, `x.is_infinite()`,
-  `x.is_zero()`, `x.to_real()`; `std::math`'s `abs`, `min`, `max`. The
+  `x.is_zero()`, `x.to_real()`; `std::math`'s `abs`, `min`, `max`. The type
+  attributes `x'exponent`, `x'mantissa` and `x'bias` give the format (8, 23
+  and 127 for `float<32, 23>`). The
   constructor `float<W, M>(x)` takes a `real` or an `integer` to the format,
   rounding to nearest even.
 - Subnormals are flushed to zero on input and output, VHDL's

@@ -712,6 +712,29 @@ so `if p'external_clock { ... }` costs nothing at run time. A declared
 attribute may not take a system attribute's name (`length`, `event`, …),
 so `x'length` keeps its meaning.
 
+**Type attributes.** An implementation may declare an attribute that every
+value of its type answers, written in terms of `self`:
+
+```siox
+impl ufixed {
+    pub attr integers: integer = self'high + 1;    // x'integers
+    pub attr fractions: integer = 0 - self'low;    // x'fractions
+}
+```
+
+`x'integers` reads it for any `ufixed` `x`, and `Self'integers` inside the
+type's implementations (`ufixed<6, 2>::resize` reads its target's format so).
+A type attribute is a **shape fact**, a constant as `x'high` is: its value may
+read only `self`'s attributes (system ones, or other type attributes),
+constants, and arithmetic or free functions over them, never the value
+itself. A computation on the value is a method. It may not take a system or a
+declared metadata attribute's name, belongs to the type's own (not a trait's)
+implementation, and without `pub` is read only inside that type's
+implementations; any of these is `E-P037` (privacy is `E-P024`). VHDL's
+user-defined attributes are constants specified per named item; a type
+attribute is how siox's library states the per-type facts VHDL leaves to
+`'high`/`'low` arithmetic.
+
 **`#[...]` is for directives.** A directive changes what the compiler emits,
 accepts, or reports; removing metadata changes only what a tool sees. Metadata
 written as `#[...]` is `E-P032`, and the help names the binding that replaces
