@@ -282,6 +282,14 @@ pub type Natural = integer<0..9223372036854775807>;
 pub type Positive = integer<1..9223372036854775807>;
 ```
 
+The resize styles of `std::fixed` and `std::float`, after VHDL's
+`fixed_float_types`:
+
+```siox
+pub enum Overflow { Saturate, Wrap }
+pub enum Rounding { Nearest, Truncate }
+```
+
 ## `std::attrs` and `core::attrs`
 
 The base metadata (spec 3.5) nearly every flow needs, each with a default so
@@ -343,7 +351,17 @@ let r: real = gain.to_real();                       // 2.5
 - Between formats the constructor resizes: `ufixed<12, 6>(x)` from another
   `ufixed`, `sfixed<8, 4>(y)` from another `sfixed`, rounding to the nearest
   step (ties away from zero) and saturating, VHDL's `resize` defaults.
-- Not yet: the other resize styles (wrap, truncate).
+- `ufixed<6, 2>::resize(x, overflow, rounding)` (and `sfixed`) chooses the
+  styles, VHDL's `fixed_overflow_style` and `fixed_round_style`, from
+  `std::numeric`: `Overflow::Saturate` or `Overflow::Wrap` (drop the bits
+  above the format), `Rounding::Nearest` or `Rounding::Truncate` (toward
+  minus infinity, dropping the bits below). Wrap with truncate is a plain bit
+  selection, no logic at all.
+
+```siox
+use std::numeric::{Overflow, Rounding};
+let y: ufixed<5, 2> = ufixed<5, 2>::resize(x, Overflow::Wrap, Rounding::Truncate);
+```
 
 ## `std::float`
 
@@ -379,6 +397,11 @@ let v: real = r.to_real();
   Source-defined function locals retain shared Process value IDs; the old
   hardware tree-inlining size restriction is gone. The hardware and procedural
   binary32 conformance tests check the same 44 operand pairs for `*`, `+`, `-`.
+- Between formats: the constructor `float<16, 10>(x)` from another `float`
+  rounds to nearest even; `float<16, 10>::resize(x, rounding)` takes a
+  `std::numeric::Rounding`, where `Truncate` rounds toward zero. Overflow
+  follows IEEE-754 for the rounding: infinite to nearest, the largest finite
+  number truncated. NaN, infinity and zero carry over.
 - Not yet: division, square root, subnormals, other rounding modes,
   conversions to and from fixed point.
 

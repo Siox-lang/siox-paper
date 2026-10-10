@@ -624,6 +624,11 @@ type Pair<T> = Packet<T>;              // a generic alias
   integer>(Logic[N])`) keeps the ordinary generic meaning.
 - A call's explicit generic arguments may be values as well as types, as a
   type's may: `float<32, 23>(1.5)`, `read<string>(path)`.
+- An applied type heads a path to its associated functions, and is their
+  `Self`: in `ufixed<6, 2>::resize(x, Overflow::Wrap, Rounding::Truncate)`,
+  `Self'high`/`Self'low` inside `resize` describe `ufixed<6, 2>`, while the
+  parameter's own attributes (`value'low`) describe the argument. A result
+  declared as the bare family (`-> ufixed`) or `Self` is that applied type.
 - Operators never need an import: `a + b` finds its `impl Add<…>` through
   the operand's type (§3.25). Every module reached by any `use` form
   contributes its user operators' precedences.
