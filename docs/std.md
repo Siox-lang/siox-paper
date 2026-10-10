@@ -68,7 +68,7 @@ is a documented shim, and the declaration here is canonical.
 | `std::sim`    | std.standard `time`              | `time`, `frequency` + unit suffixes; FS..MS constants |
 | `std::sync`   | (vendor CDC macros)              | `Sync2`, `ResetSync`, `EdgeDetect`, `PulseSync` |
 | `std::fixed`  | ieee.fixed_pkg                   | `ufixed<W, F>`, `sfixed<W, F>` (W bits, F of them fraction), constructors from `real`/`integer` (`ufixed<8, 4>(2.5)`), `.to_real()` |
-| `std::float`  | ieee.float_pkg                   | `float<W, M>` (`float<32, 23>` is binary32), constructors from `real`/`integer` (`float<32, 23>(1.5)`), `.to_real()`, `+ - *`, comparisons, `is_nan` … |
+| `std::float`  | ieee.float_pkg                   | `float<W, M>` (`float<32, 23>` is binary32), constructors from `real`/`integer` (`float<32, 23>(1.5)`), `.to_real()`, `+ - * /`, comparisons, fixed-point conversions, `is_nan` … |
 | `std::fs`     | textio / impure host I/O         | typed `read<T>` construction and `exists` fixture probes |
 | `std::attrs`  | (attributes; VHDL has none)      | base metadata: `keep`, `top`, `clock`, `library`, `name` |
 
@@ -384,7 +384,7 @@ r = x * y + x;                    // rounds to nearest, ties to even
 let v: real = r.to_real();
 ```
 
-- `+`, `-`, `*` and the six comparisons (`-0` equals `+0`). Zero, infinity
+- `+`, `-`, `*`, `/` and the six comparisons (`-0` equals `+0`). Zero, infinity
   and NaN follow IEEE-754: `0 * inf` and `inf - inf` are NaN, overflow is
   infinite, and a NaN is unordered — every comparison with one is false
   except `!=`, so `x != x` holds exactly for a NaN.
@@ -406,8 +406,16 @@ let v: real = r.to_real();
   `std::numeric::Rounding`, where `Truncate` rounds toward zero. Overflow
   follows IEEE-754 for the rounding: infinite to nearest, the largest finite
   number truncated. NaN, infinity and zero carry over.
-- Not yet: division, square root, subnormals, other rounding modes,
-  conversions to and from fixed point.
+- `/` rounds to nearest even: `x / 0` is infinite, `0 / 0` and `inf / inf`
+  are NaN, `x / inf` is zero.
+- Fixed point converts both ways: `float<32, 23>(x)` from a `ufixed`/`sfixed`
+  rounds to nearest even; `ufixed<8, 4>(f)`/`sfixed<8, 4>(f)` from a float
+  rounds to the nearest step (ties away from zero) and saturates, as fixed
+  point's other constructors do; a NaN is zero and an infinity saturates.
+- `*` and `/` work in the 64-bit kernel word, so they hold for formats with up
+  to 29 mantissa bits (binary16, bfloat16, binary32); binary64 needs wider
+  kernel arithmetic.
+- Not yet: square root, subnormals, other rounding modes.
 
 ## `std::sync`
 
