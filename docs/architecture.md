@@ -346,6 +346,9 @@ fragments at the companion view's byte-aligned offsets, so unretained fields
 are unavailable rather than zero-filled. Native-input inspection has its own
 block before body emission: this prevents -O0 instruction scheduling from
 placing a later packed extraction/source stop before formal references are ready.
+Reference initialization and native-input capture use line-zero locations.
+Function-name breakpoints therefore skip that setup rather than exposing
+uninitialized reference slots as source parameters.
 Hardware source lowering retains the same expression-call identity and
 bindings in `ProcessValueInline`. Inspection layouts belong to declarations,
 not executable operands: debugger type recovery must not override canonical
@@ -355,6 +358,12 @@ operand width and nominal family, including `Self` resolved from the receiver.
 Those inspection shapes are separate from the operator body's kernel-word
 environment: they must not trigger recursive operator dispatch or change
 native argument widths. Generic formals fall back to their bound source shape.
+`SourceCallInspection` also carries a result override, separate from the
+return shape that drives executable body lowering. Resolve receives the known
+signal/element layout; nominal conversions reuse stored type layouts, and
+sized packed conversions retain their source/target formats. This specializes
+debugger `Self` and unsized signatures without changing return expressions or
+creating new argument dependencies.
 Metadata is available before hardware bodies are emitted,
 and the common native call emitter handles their frames. Bounded helpers keep
 distinct owning source-process scopes; generated scheduler code uses line-zero

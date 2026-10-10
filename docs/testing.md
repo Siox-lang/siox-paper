@@ -350,9 +350,10 @@ return-ABI
 checks for wide basic scalars and remaining odd-sized/mixed-layout/partial
 aggregate results. The string and complete byte-normalized register/memory
 cases described below have focused native coverage, not a general ABI proof.
-Formal-type audits remain for Resolve and remaining composite/generic conversion
-specializations; the tested scalar function/operator cases do not prove every
-signature specialization.
+Formal-type audits remain for non-enum Resolve and remaining composite/generic
+conversion specializations, as well as companion views whose packed source
+range is unknown. The tested signatures do not prove every specialization or
+every argument's availability at entry.
 Runtime-sized native values currently support Char[]
 handles only; general dynamic arrays are a separate host-service extension,
 not an already-supported representation missing debugger metadata. Debug mode
@@ -407,6 +408,13 @@ use contextual widths, not the minimum width of a literal's executable node.
 GDB can canonicalize `unsigned[N]` to `unsigned int [N]` under the current C++
 debug language; the regression also checks the integer type code and byte size
 so a similarly spelled array cannot pass as the packed scalar.
+The same fixture checks a custom enum Resolve's receiver, rhs and return type
+for all input pairs, a one-field struct returned by `From<integer>`, and an
+8-bit to 7-bit fixed-family conversion. Actual GDB `finish` values must match
+the captured inputs. Function-name breakpoints inspect live packed operator
+and fixed-family arguments after reference/native-input initialization;
+inspection setup itself must not be advertised as a source stop. Ordinary and
+debug native assertions and VCDs still agree in both packing modes.
 Its aggregate parameter/local probe includes one-field wrappers, nested structs,
 sub-byte and signed wide leaves, arrays in both directions and negative labels. It checks field
 values, inspection sizes and unavailable pruned members; IR/native unit checks
