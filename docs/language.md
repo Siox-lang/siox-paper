@@ -2545,6 +2545,19 @@ let p: Phase;          // == Phase::new(): the default Phase
 let n: unsigned[8];        // == 0
 ```
 
+**Group declaration.** One `let` may declare several names with one type and
+initializer, as VHDL's `signal a, b : bit := '0';` does. It is the sequence of
+single declarations, each with its own copy of the initializer, wherever a
+`let` may stand (signals, testbench storage, function and process locals):
+
+```siox
+let a, b: Bit = '0';           // let a: Bit = '0'; let b: Bit = '0';
+let lo, hi: integer;           // both the default, 0
+```
+
+Extracting a tuple will be parenthesized, `let (q, r) = divmod(a, b);` (the
+tuples proposal), so the two forms never share a spelling.
+
 `new` is siox's default constructor — a `New` trait, `fn new() -> Self`. It is
 written either as `T::new()` (the underlying trait method) or, equivalently, as
 **`T()`** — the zero-argument member of the same `T(...)` construction family
