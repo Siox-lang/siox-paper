@@ -68,7 +68,7 @@ is a documented shim, and the declaration here is canonical.
 | `std::sim`    | std.standard `time`              | `time`, `frequency` + unit suffixes; FS..MS constants |
 | `std::sync`   | (vendor CDC macros)              | `Sync2`, `ResetSync`, `EdgeDetect`, `PulseSync` |
 | `std::fixed`  | ieee.fixed_pkg                   | `ufixed<W, F>`, `sfixed<W, F>` (W bits, F of them fraction), constructors from `real`/`integer` (`ufixed<8, 4>(2.5)`), `.to_real()` |
-| `std::float`  | ieee.float_pkg                   | `float<W, M>` (`float<32, 23>` is binary32), constructors from `real`/`integer` (`float<32, 23>(1.5)`), `.to_real()`, `+ - * /`, comparisons, fixed-point conversions, `is_nan` … |
+| `std::float`  | ieee.float_pkg                   | `float<W, M>` (`float<32, 23>` is binary32), constructors from `real`/`integer` (`float<32, 23>(1.5)`), `.to_real()`, `+ - * /`, `.sqrt()`, comparisons, fixed-point conversions, `is_nan` … |
 | `std::fs`     | textio / impure host I/O         | typed `read<T>` construction and `exists` fixture probes |
 | `std::attrs`  | (attributes; VHDL has none)      | base metadata: `keep`, `top`, `clock`, `library`, `name` |
 
@@ -412,10 +412,12 @@ let v: real = r.to_real();
   rounds to nearest even; `ufixed<8, 4>(f)`/`sfixed<8, 4>(f)` from a float
   rounds to the nearest step (ties away from zero) and saturates, as fixed
   point's other constructors do; a NaN is zero and an infinity saturates.
-- `*` and `/` work in the 64-bit kernel word, so they hold for formats with up
-  to 29 mantissa bits (binary16, bfloat16, binary32); binary64 needs wider
-  kernel arithmetic.
-- Not yet: square root, subnormals, other rounding modes.
+- `x.sqrt()` is IEEE `squareRoot`, rounded to nearest even: a NaN or a
+  negative number gives NaN, and `0`, `-0` and infinity are their own roots.
+- `*`, `/` and `sqrt` work in the 64-bit kernel word, so they hold for formats
+  with up to 28 mantissa bits (binary16, bfloat16, binary32); binary64 needs
+  wider kernel arithmetic.
+- Not yet: subnormals, other rounding modes.
 
 ## `std::sync`
 
