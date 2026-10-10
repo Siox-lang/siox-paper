@@ -349,7 +349,13 @@ placing a later packed extraction/source stop before formal references are ready
 Hardware source lowering retains the same expression-call identity and
 bindings in `ProcessValueInline`. Inspection layouts belong to declarations,
 not executable operands: debugger type recovery must not override canonical
-arithmetic formats. Metadata is available before hardware bodies are emitted,
+arithmetic formats. Concrete formal declarations take precedence over an actual
+argument's storage layout. Unsized packed operator formals retain the existing contextual
+operand width and nominal family, including `Self` resolved from the receiver.
+Those inspection shapes are separate from the operator body's kernel-word
+environment: they must not trigger recursive operator dispatch or change
+native argument widths. Generic formals fall back to their bound source shape.
+Metadata is available before hardware bodies are emitted,
 and the common native call emitter handles their frames. Bounded helpers keep
 distinct owning source-process scopes; generated scheduler code uses line-zero
 locations, while event writes retain their own process/call-site attribution.
