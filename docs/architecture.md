@@ -341,7 +341,13 @@ inspection layout and copying as stored values. Capture hooks observe only
 already-emitted numeric and companion planes, or the existing proof that a
 value has no metavalues. They do not request new operands, formats or argument
 payloads. Missing planes remain unavailable; a narrow numeric consumer cannot
-establish omitted bits in a wider declaration. Partial aggregate views use
+establish omitted bits in a wider declaration. Fully known integer literals
+are reconstructed with LLVM arbitrary-width constants, including negation,
+without executing an expression. Packed layouts with no recorded source range
+expose an explicit `bits` array of physical LSB-first positions; declared ranges
+keep their original labels. Proven metadata-free native inputs can initialize
+these views at entry without referencing body-local companion instructions.
+Partial aggregate views use
 fragments at the companion view's byte-aligned offsets, so unretained fields
 are unavailable rather than zero-filled. Native-input inspection has its own
 block before body emission: this prevents -O0 instruction scheduling from

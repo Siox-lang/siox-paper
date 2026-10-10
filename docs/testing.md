@@ -206,6 +206,10 @@ containing packed vectors, the companion preserves the recursive shape and
 ordinary scalar fields. Apply the same ascending-array/descending-record
 indexing conventions described above. These views refresh at source boundaries
 alongside the other inspection buffers; they do not change simulation storage.
+When an operand has a known width but no recorded source range (for example a
+contextual operator literal), its companion is a `bit positions` record with a
+`bits` array. Read `frame.read_var('rhs$logic')['bits'][0]` for the physical
+least-significant bit. These positions are not inferred source index labels.
 Expression-call formals and copied locals also expose `$logic` in their owning
 frame. For example, GDB Python can read `gdb.selected_frame().read_var('value$logic')`.
 These snapshots become available only when ordinary emission has produced both
@@ -351,8 +355,8 @@ checks for wide basic scalars and remaining odd-sized/mixed-layout/partial
 aggregate results. The string and complete byte-normalized register/memory
 cases described below have focused native coverage, not a general ABI proof.
 Formal-type audits remain for non-enum Resolve and remaining composite/generic
-conversion specializations, as well as companion views whose packed source
-range is unknown. The tested signatures do not prove every specialization or
+conversion specializations, as well as remaining packed companion transports.
+The tested signatures do not prove every specialization or
 every argument's availability at entry.
 Runtime-sized native values currently support Char[]
 handles only; general dynamic arrays are a separate host-service extension,
@@ -415,6 +419,10 @@ the captured inputs. Function-name breakpoints inspect live packed operator
 and fixed-family arguments after reference/native-input initialization;
 inspection setup itself must not be advertised as a source stop. Ordinary and
 debug native assertions and VCDs still agree in both packing modes.
+The mixed-return fixture also checks contextual literal operator companions
+at function entry: the `bits` array has the contextual width and decodes the
+actual value using source enum symbols. Constant-inspection units cover full
+64-bit unsigned values, multiword literals and negation without host truncation.
 Its aggregate parameter/local probe includes one-field wrappers, nested structs,
 sub-byte and signed wide leaves, arrays in both directions and negative labels. It checks field
 values, inspection sizes and unavailable pruned members; IR/native unit checks
