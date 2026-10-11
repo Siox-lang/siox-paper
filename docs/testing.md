@@ -594,6 +594,19 @@ entries check those availability transitions and actual native finish values.
 Other normalized signatures remain under audit; this does not imply every
 source formal is available at every function-name stop.
 
+The independently selected nested-partial regression exercises neither, left,
+right and both consumers with changing inputs under both hints and packing
+modes. Its third, unused return field calls `abort()` and must remain pruned.
+Ordinary/debug stdout preserves the exact eight foreign evaluations, including
+transient hardware inputs; numeric results and VCD also match. GDB inspects
+each retained `$return` fragment and consumed formal, waits through lazy
+caller-owned ranges, then observes the caller's own fragment store after
+source finish. Entry references cannot expose an earlier call, and discarded
+fields stay optimized out. The probe checks the first unused GDB history slot
+directly after finish: captured finish text alone is not proof that no native
+return was fabricated. This verifies partial frames, not eager whole-return
+grouping for independently guarded fields.
+
 To run the existing native corpus with DWARF enabled:
 
 ```bash

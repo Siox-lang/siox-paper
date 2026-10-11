@@ -446,6 +446,13 @@ only when the emitted result supplies the declared bits. References reset in
 the caller's source range before entering the inline frame; the completion edge
 keeps the callee's range until the new snapshot can be inspected. Lazy argument
 expressions keep their caller locations, so inline ranges can be discontiguous.
+Independently guarded nested fields retain these partial frames rather than
+forming an eager whole return. The source range can temporarily disappear
+during a lazy caller argument read, then resume when the actual return fragment
+is captured. Finishing the partial frame stops at the caller assignment before
+its own fragment store necessarily runs; that binding becomes available only
+after the existing store executes. Neither transition justifies extra
+evaluation, a stale snapshot or a fabricated native return-history value.
 A single effect-free leaf covering the complete result (such as a one-field
 wrapper) keeps its full native return boundary when the debugger supports that ABI.
 On AMD64, wide basic scalars and small complete aggregates containing
