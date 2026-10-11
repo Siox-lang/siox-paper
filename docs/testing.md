@@ -554,19 +554,33 @@ arbitrary-width integer classifier; large aggregate memory returns and basic
 wide scalar inspection retain their separate tests and limitations.
 
 The ordered-aggregate regression checks checked/effectful return grouping under
-both inline hints and packing modes. GDB observes one native source frame and
-actual `finish` values for forward/reverse foreign-call field consumers, checked
-array fields and total division (including zero divisors). A `putchar` between
-field uses preserves separate partial frames; their `$return` fragments expose
+both inline hints and packing modes. GDB observes complete read-only `$return`
+snapshots on in-place forward/reverse foreign-call source frames, and actual
+native `finish` values for checked array fields and total division (including
+zero divisors). A `putchar` between field uses preserves separate partial
+frames; their `$return` fragments expose
 only already-evaluated fields. One-bit `and` leaves an untaken `abort()` field
 unavailable. Exact calls and transient inputs are checked, not just settled final
 values. Ordinary/debug stdout equality proves foreign-call order and counts;
 native assertions, VCD equality and DWARF verification also run. A failing active
 variant checks the first bounds diagnostic and native exit status against the
-ordinary build. Changing inputs catches reuse of compatibility capture bodies
-in direct procedural execution. Untaken aggregate-return bounds checks have an
-independent ordinary-lowering gap recorded in the compiler TODO; this fixture
+ordinary build. Changing inputs checks compatibility captures and direct
+procedural execution without sharing a debug-only effect body. Untaken
+aggregate-return bounds checks have an independent ordinary-lowering gap
+recorded in the compiler TODO; this fixture
 does not claim to fix it.
+
+The reused-effect regression consumes the same foreign result at narrow and
+wide formats across another foreign call, with changing input epochs. Ordinary
+and debug stdout/VCD must match; a seeded random test also checks that host draws
+are not repeated for new consumer formats. GDB inspects both cached aggregate
+fragments, completed inline scalar snapshots and normalized pure-tail loop returns,
+with exact stop counts under both hints and packing modes. An inline entry must
+not expose an earlier invocation's return snapshot. Lazy arguments become
+inspectable only as their actual values are consumed; the probe follows caller-
+owned argument ranges as well as callee ranges. Procedural effect-normalized
+pure-tail entry bindings remain a signature/pruning audit, not evidence that
+every source formal is already available at every function-name stop.
 
 To run the existing native corpus with DWARF enabled:
 

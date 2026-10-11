@@ -414,20 +414,30 @@ packed offsets. Conflicting branch orders retain their leaf bodies. One-bit
 dependencies. Integer division is already total in the common emitter and needs
 no special exclusion. Independently selected nested calls and partial returns
 remain leaf-backed pending demand-preserving grouping.
-Effectful source-function cache entries distinguish compatibility hardware
-helpers, which capture calls for a scheduling phase, from procedural CFG entries,
-which execute them directly. Reusing a captured-call body for direct execution
-would retain stale foreign results after input changes. Effect-free source bodies
-still share their native specialization across those contexts; this introduces
-no extra execution wrapper or readback from inspection storage.
-For a genuinely partial result, the existing native leaf body has an artificial
-implementation scope; the declared source function is an inline frame over
+Effectful expression source calls use DWARF inline frames directly in their
+caller's common emitter and cache. A separate debug-only native body would lose
+captured foreign results when the caller's state-dependent expressions are
+cleared, executing the same source effect again on a later consumer. In-place
+frames preserve ordinary hardware phase captures, direct CFG effects, lazy
+argument consumption and consumer-specific arithmetic; pure state reads are
+still invalidated normally. Effect-free calls retain their shared native
+specialization, and canonical procedural CFG calls retain their native bodies.
+There is no extra effect runtime or executable readback from inspection storage.
+For a genuinely partial effect-free result, the existing native leaf body has
+an artificial implementation scope; the declared source function is an inline frame over
 that body. Its full source signature is not falsely attached to the native
 leaf return ABI. A read-only `$return` binding uses the ordinary fragment
 inspection path, exposing only an already-evaluated result field. Missing
 members are unavailable, including effectful fields that were not demanded.
-A single leaf covering the complete result (such as a one-field wrapper)
-keeps its full native return boundary when the debugger supports that ABI.
+Effectful partial results reuse these same fragments in their in-place frames.
+Their cached actual foreign results are inspected without executing the effect
+again. Complete in-place returns expose a nullable read-only `$return` snapshot
+only when the emitted result supplies the declared bits. References reset in
+the caller's source range before entering the inline frame; the completion edge
+keeps the callee's range until the new snapshot can be inspected. Lazy argument
+expressions keep their caller locations, so inline ranges can be discontiguous.
+A single effect-free leaf covering the complete result (such as a one-field
+wrapper) keeps its full native return boundary when the debugger supports that ABI.
 Small complete aggregates containing odd-byte-sized basic fields also use an
 inline source frame: GDB cannot classify those native return types. Their
 original source type is preserved, and the existing return inspection writes
