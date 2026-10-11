@@ -474,6 +474,10 @@ reference is reset to null on entry, so repeated calls cannot expose a stale sna
 value; the ordinary caller still consumes the unchanged canonical payload.
 This is a metadata distinction, not
 an extra execution wrapper or eager evaluation of the rest of an aggregate.
+Concrete generic identities retain this same source-signature and return
+transport path: a struct containing a sub-byte tag, real and descending wide
+signed array uses a memory return, while a procedural real uses the native
+double return. Inspection types and physical carriers remain separate.
 Packing a missing field
 as zero would falsely advertise it as available; eagerly packing an inactive
 field could introduce effects or extra source stops. Whole aggregate-return

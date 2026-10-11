@@ -506,6 +506,13 @@ with exact canonical i6/i70 caller results and LLVM module verification.
 A tenth regression checks actual GDB `finish` for memory-class SysV source
 returns: a 24-byte integer/real struct, a normalized 19-byte unsigned[81]/real
 struct, and a 43-byte nested signed[81]/real struct with a descending real array.
+The same fixture also checks a generic identity over a 31-byte struct with a
+3-bit tag, real and descending signed[81] array. Concrete formal/result types,
+all memory-return fields, changing inputs and signed zero are checked directly
+in GDB. Procedural generic real identities check actual native history values
+for positive/negative inputs and negative zero. Both hints and packing modes
+run, with native assertions, ordinary/debug VCD parity and DWARF verification;
+these specializations require no separate executable-ABI or signature fix.
 Every invocation's returned fields are checked against its captured formals,
 including intermediate delta inputs, and settled positive/negative/signed-zero
 cases are mandatory. Negative signed data uses the full 81-bit literal to avoid
