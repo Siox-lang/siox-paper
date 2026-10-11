@@ -364,8 +364,11 @@ return-ABI
 checks for wide basic scalars and remaining odd-sized/mixed-layout/partial
 aggregate results. The string and complete byte-normalized register/memory
 cases described below have focused native coverage, not a general ABI proof.
-Formal-type audits remain for non-enum Resolve and remaining composite/generic
-conversion specializations, as well as remaining packed companion transports.
+Signed integer-derived Resolve and mixed integer/real struct-to-struct From
+now have actual argument/return checks under both inline hints. Other supported
+conversion specializations and packed companion transports remain under audit;
+generic From constructor syntax rejected by the ordinary frontend is a separate
+language boundary, not evidence of a DWARF regression.
 The tested signatures do not prove every specialization or
 every argument's availability at entry.
 Runtime-sized native values currently support Char[]
@@ -529,6 +532,27 @@ fragments, unavailable discarded fields, caller bindings after `finish` and
 exact source-call counts. `finish` must not manufacture a whole-result history
 value. DWARF verification also runs. This covers faithful partial views, not
 single-boundary grouping of independently demanded or effectful aggregate leaves.
+A signature regression checks nominal `Number` Resolve inputs/results with both
+signs, plus distinct `Source` and `Target` struct types and mixed integer/real
+From values at function entry and after actual GDB `finish`. The packed-logic
+fixture also checks a nested return: its numeric-only callee has unavailable
+companions, while the caller sees all source states once it consumes metadata.
+Source call counts and actual numeric/enum finish values are checked.
+
+An odd-sized aggregate regression covers 17/33/65/81-bit unsigned fields with
+an 8-bit sibling in procedural and hardware calls under both inline hints.
+[GDB's AMD64 classifier](https://gnu.googlesource.com/binutils-gdb/+/refs/heads/master/gdb/amd64-tdep.c)
+cannot classify these small structs' basic integer fields; `finish` on the old
+native source boundary failed with an unknown-alignment error. The source call
+now remains an inline frame over the same native body, retaining the real source
+type. GDB Python `frame.read_var('$return')` exposes the already-computed complete
+snapshot before leaving that frame. Tests reject stale availability at entry,
+check snapshot values and subsequent caller bindings, and require `finish` not
+to fabricate a native history value. Ordinary/debug native assertions, VCD
+parity and DWARF verification still apply. This is not a fix for GDB's native
+arbitrary-width integer classifier; large aggregate memory returns and basic
+wide scalar inspection retain their separate tests and limitations.
+
 To run the existing native corpus with DWARF enabled:
 
 ```bash

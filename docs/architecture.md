@@ -414,7 +414,15 @@ leaf return ABI. A read-only `$return` binding uses the ordinary fragment
 inspection path, exposing only an already-evaluated result field. Missing
 members are unavailable, including effectful fields that were not demanded.
 A single leaf covering the complete result (such as a one-field wrapper)
-keeps its full native return boundary. This is a metadata distinction, not
+keeps its full native return boundary when the debugger supports that ABI.
+Small complete aggregates containing odd-byte-sized basic fields also use an
+inline source frame: GDB cannot classify those native return types. Their
+original source type is preserved, and the existing return inspection writes
+feed a `$return` binding only after the whole result is computed. Its reference
+is reset to null on entry, so repeated calls cannot expose a stale snapshot.
+`finish` leaves the source frame without asking GDB to invent a native history
+value; the ordinary caller still consumes the unchanged canonical payload.
+This is a metadata distinction, not
 an extra execution wrapper or eager evaluation of the rest of an aggregate.
 Packing a missing field
 as zero would falsely advertise it as available; eagerly packing an inactive
