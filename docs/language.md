@@ -1513,7 +1513,9 @@ impl Boolean for State {
 
 ### 3.17 No implicit broad conversions
 
-Avoid hidden conversions between unrelated digital types.
+Avoid hidden conversions between unrelated digital types. Numbers are the one
+exception, and only inside arithmetic (below): storing a value still takes an
+explicit conversion.
 
 Use constructors/casts:
 
@@ -1567,8 +1569,29 @@ zero-extension/truncation rule above.
 struct/enum dispatches to `impl From<Source> for T`, selected by the
 argument's type — `Complex(10)`, or the resolved/unresolved crossing
 `Logic(u)` / `ULogic(l)` (both are std source). Conversions never fire
-implicitly — only at a conversion expression. Kernel numeric conversions
-stay width-driven builtins.
+implicitly — only at a conversion expression or a numeric promotion. Kernel
+numeric conversions stay width-driven builtins.
+
+**Numbers promote in arithmetic.** In `a op b` for an arithmetic or
+comparison operator, a `real` beside any number whose type has `impl From<T>
+for real` promotes that number to `real` through the impl: std declares one
+for `unsigned`, `signed`, `ufixed`, `sfixed` and `float`, and `integer`
+promotes as before. The result is a `real`, whichever side it stands on:
+
+```siox
+let r: real = 2.5;
+let s: sfixed<8, 4> = sfixed<8, 4>(1.5);
+sqrt(i + r + u - s)              // integer + real + unsigned - sfixed: a real
+let y: sfixed<8, 4> = sfixed<8, 4>(r - s);   // storing converts explicitly
+```
+
+This is the top of the numeric ladder, `integer → unsigned/signed →
+ufixed/sfixed → float → real`: an operation's result takes the higher rung.
+Promotion between the lower rungs (`unsigned + sfixed`, `sfixed + float`) and
+widening one rung's formats to cover both (`sfixed<8, 4> + sfixed<12, 6>`) are
+the [numeric promotion proposal](https://github.com/Siox-lang/sioxc/blob/main/docs/proposals/numeric-promotion.md)'s
+next phase. Assignment and connection stay strict (§3.12): only a value's own
+type stores without a conversion.
 
 ### 3.18 `in`, `out`, and `inout` are permission/connection semantics
 
