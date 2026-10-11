@@ -26,9 +26,10 @@ have C layout or multiword-call rules for them. Wrap such an API in a C adapter
 that accepts and returns the scalar types above. Calls are usable in
 combinational expressions, clocked logic, and testbenches.
 
-In the **native binary**, symbols resolve at link time. The math library is
-linked by default, so the `std::math` surface — `sin`, `sqrt`, … — works out of
-the box. Other symbols may be resolved by a consumer linking a compiler-emitted
+In the **native binary**, symbols resolve at link time. `std::math` uses no
+foreign symbols — its `real` functions are compiler built-ins — but the math
+library is linked by default, so a C declaration of `sin`, `labs` and the
+like resolves out of the box. Other symbols may be resolved by a consumer linking a compiler-emitted
 object; the generated native test executable does not yet accept custom library
 search paths or `-l` options.
 

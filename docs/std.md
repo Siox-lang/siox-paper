@@ -194,7 +194,9 @@ Complex over the **reals** (f64 in simulation): `+`/`-` component-wise,
 written. Real arithmetic uses the float operators in the IR; integer
 literals coerce (`.re = 10` stores 10.0).
 
-The math functions and constants:
+The math functions and constants. The `real` ones are compiler built-ins,
+declared in `core::intrinsics` (`extern "intrinsic"`, reserved to `core`) and
+emitted as LLVM's own intrinsics, as nvc builds in `ieee.math_real`:
 
 | function | meaning |
 | --- | --- |
@@ -205,7 +207,7 @@ The math functions and constants:
 | `clamp(v, lo, hi)` | `v` held to `lo..hi` (Rust's `Ord::clamp`) |
 | `cmp(a, b)` | an `Ordering`: `Less`, `Equal` or `Greater` (Rust's `Ord::cmp`); unordered values, such as a NaN, compare `Equal` |
 | `sqrt(x)` | the square root of a `real`, `float`, `ufixed` or `sfixed` (trait `Sqrt`) |
-| `sin`, `cos`, `exp`, `log`, `pow`, `floor`, `ceil`, `round` | on `real`, from the C math library |
+| `sin`, `cos`, `exp`, `log`, `pow`, `floor`, `ceil`, `round` | on `real`, built in |
 | `PI`, `E` | `real` constants |
 
 `abs`, `min`, `max`, `clamp`, `cmp`, `rem` and `mod` are generic over the numeric types —
@@ -216,7 +218,7 @@ The math functions and constants:
 
 `sqrt` dispatches through the trait `Sqrt` (`fn sqrt(self) -> Self`), which
 each number type implements beside its declaration, as it implements its
-operators: `real` through the C library, `float` as IEEE `squareRoot`,
+operators: `real` built in, `float` as IEEE `squareRoot`,
 `ufixed`/`sfixed` to the nearest step. `x.sqrt()` is the same call.
 
 ```siox
@@ -488,7 +490,9 @@ a precision applies to the numbers inside.
   surface is one typed construct: `read<string>` decodes UTF-8,
   `read<integer>` reads raw binary, and packed numeric `read<T>` constructs `T`
   from that integer representation.
-- **Real math exists** through `std::math` and the native C math ABI. `real`
+- **Real math is built in**: `std::math`'s `real` functions are compiler
+  intrinsics (`core::intrinsics`, LLVM's `llvm.sqrt.f64` and so on), as a VHDL
+  simulator builds in `ieee.math_real`; no C declaration is involved. `real`
   remains IEEE binary64; quad precision is a future LLVM/runtime capability,
   not an advertised compiler feature.
 - **Conversions and resize exist** for the numeric families used by the

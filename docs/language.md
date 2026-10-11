@@ -2412,7 +2412,7 @@ C libraries connect through Rust-style extern blocks:
 
 ```siox
 extern "C" {
-    pub fn sqrt(x: real) -> real;      // std::math is exactly this
+    pub fn cbrt(x: real) -> real;      // from the C math library
     pub fn labs(v: integer) -> integer;
 }
 ```
@@ -2423,7 +2423,8 @@ unsigned 64-bit ABI word. Calls are usable in combinational hardware
 expressions, clocked updates, and testbenches; results are converted to the
 destination's storage width.
 The native binary resolves symbols at link time (the math library is linked by
-default). Only the `"C"` ABI is supported.
+default). Only the `"C"` ABI is open to programs; `"intrinsic"` is `core`'s,
+for the compiler's built-in `real` math (`std::math`'s `sqrt`, `sin`, …).
 
 The implemented boundary is value-returning and scalar: a packed numeric must
 be 1 through 64 bits, and every function must return `real`, `integer`, or one
