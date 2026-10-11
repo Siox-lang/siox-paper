@@ -448,11 +448,16 @@ keeps the callee's range until the new snapshot can be inspected. Lazy argument
 expressions keep their caller locations, so inline ranges can be discontiguous.
 A single effect-free leaf covering the complete result (such as a one-field
 wrapper) keeps its full native return boundary when the debugger supports that ABI.
-Small complete aggregates containing odd-byte-sized basic fields also use an
-inline source frame: GDB cannot classify those native return types. Their
-original source type is preserved, and the existing return inspection writes
-feed a `$return` binding only after the whole result is computed. Its reference
-is reset to null on entry, so repeated calls cannot expose a stale snapshot.
+On AMD64, wide basic scalars and small complete aggregates containing
+odd-byte-sized basic fields also use an inline source frame: GDB cannot
+reliably decode those native return types. A small declared scalar return with
+a private integer payload above 128 bits uses this same path, because its
+hidden memory ABI cannot be inferred from the smaller source type. Ordinary
+register-return integers retain their native frames. The original source type
+is preserved, and the existing return inspection writes
+feed a `$return` binding only after every declared result bit is computed;
+if only a narrower consumer value exists, the result stays unavailable. Its
+reference is reset to null on entry, so repeated calls cannot expose a stale snapshot.
 `finish` leaves the source frame without asking GDB to invent a native history
 value; the ordinary caller still consumes the unchanged canonical payload.
 This is a metadata distinction, not
