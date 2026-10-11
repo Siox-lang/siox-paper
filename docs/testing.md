@@ -561,6 +561,21 @@ parity and DWARF verification still apply. This is not a fix for GDB's native
 arbitrary-width integer classifier; large aggregate memory returns and basic
 wide scalar inspection retain their separate tests and limitations.
 
+The 81/127/128/129/256-bit return regression inspects the source-enum
+`$return$logic` companion after its actual mirror stores, alongside the numeric
+snapshot. Signed, unsigned and generic results cover negative values, zero,
+large positives and repeated entries under both hints and packing modes.
+The low-byte return retains its declared eight-bit companion even when the
+private executable payload is wider. A narrowed consumer cannot fabricate a
+complete companion, and a fresh source entry cannot reveal a previous call.
+Instruction-step budgets scale with the existing per-bit enum mirror writes;
+numeric availability does not imply the companion's stores have run yet.
+The missing-plane regression returns an 81-bit hardware input containing X.
+Native assertions and ordinary/debug VCD parity prove that simulation retains
+the real X state. GDB can read the complete numeric snapshot but cannot read a
+logic companion whose metadata was not consumed inside that source frame.
+Both hints run; absence is intentional, not a request to evaluate another plane.
+
 The ordered-aggregate regression checks checked/effectful return grouping under
 both inline hints and packing modes. GDB observes complete read-only `$return`
 snapshots on in-place forward/reverse foreign-call source frames, and actual

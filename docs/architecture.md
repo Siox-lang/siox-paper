@@ -442,8 +442,13 @@ members are unavailable, including effectful fields that were not demanded.
 Effectful partial results reuse these same fragments in their in-place frames.
 Their cached actual foreign results are inspected without executing the effect
 again. Complete in-place returns expose a nullable read-only `$return` snapshot
-only when the emitted result supplies the declared bits. References reset in
-the caller's source range before entering the inline frame; the completion edge
+only when the emitted result supplies the declared bits. Packed returns also
+expose `$return$logic` through the existing source-enum binding observer, using
+an already-emitted matching metadata plane or a proven binary value. Missing
+planes and narrowed results remain unavailable; inspection does not request
+another operand format or metadata evaluation. The numeric and logic views
+have independent nullable references, reset in the caller's source range
+before entering the inline frame; the completion edge
 keeps the callee's range until the new snapshot can be inspected. Lazy argument
 expressions keep their caller locations, so inline ranges can be discontiguous.
 Independently guarded nested fields retain these partial frames rather than
