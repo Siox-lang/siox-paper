@@ -67,8 +67,8 @@ is a documented shim, and the declaration here is canonical.
 | `std::text`   | `'pos`/`'val`                    | encoding tables `Unicode`/`Ascii` |
 | `std::sim`    | std.standard `time`              | `time`, `frequency` + unit suffixes; FS..MS constants |
 | `std::sync`   | (vendor CDC macros)              | `Sync2`, `ResetSync`, `EdgeDetect`, `PulseSync` |
-| `std::fixed`  | ieee.fixed_pkg                   | `ufixed<W, F>`, `sfixed<W, F>` (W bits, F of them fraction), constructors from `real`/`integer` (`ufixed<8, 4>(2.5)`), `.to_real()` |
-| `std::float`  | ieee.float_pkg                   | `float<W, M>` (`float<32, 23>` is binary32), constructors from `real`/`integer` (`float<32, 23>(1.5)`), `.to_real()`, `+ - * /`, `.sqrt()`, comparisons, fixed-point conversions, `is_nan` … |
+| `std::fixed`  | ieee.fixed_pkg                   | `ufixed<W, F>`, `sfixed<W, F>` (W bits, F of them fraction), constructors from `real`/`integer` (`ufixed<8, 4>(2.5)`), `real(x)` |
+| `std::float`  | ieee.float_pkg                   | `float<W, M>` (`float<32, 23>` is binary32), constructors from `real`/`integer` (`float<32, 23>(1.5)`), `real(x)`, `+ - * /`, `std::math::sqrt`, comparisons, fixed-point conversions, `is_nan` … |
 | `std::fs`     | textio / impure host I/O         | typed `read<T>` construction and `exists` fixture probes |
 | `std::attrs`  | (attributes; VHDL has none)      | base metadata: `keep`, `top`, `clock`, `library`, `name` |
 
@@ -204,7 +204,8 @@ The math functions and constants:
 | `mod(a, m)` | remainder with the divisor's sign (VHDL `mod`) |
 | `clamp(v, lo, hi)` | `v` held to `lo..hi` (Rust's `Ord::clamp`) |
 | `cmp(a, b)` | an `Ordering`: `Less`, `Equal` or `Greater` (Rust's `Ord::cmp`); unordered values, such as a NaN, compare `Equal` |
-| `sqrt`, `sin`, `cos`, `exp`, `log`, `pow`, `floor`, `ceil`, `round` | on `real`, from the C math library |
+| `sqrt(x)` | the square root of a `real`, `float`, `ufixed` or `sfixed` (trait `Sqrt`) |
+| `sin`, `cos`, `exp`, `log`, `pow`, `floor`, `ceil`, `round` | on `real`, from the C math library |
 | `PI`, `E` | `real` constants |
 
 `abs`, `min`, `max`, `clamp`, `cmp`, `rem` and `mod` are generic over the numeric types —
@@ -212,6 +213,17 @@ The math functions and constants:
 (`abs`, `min`, `max`) — and inline with the argument type's own operators.
 `abs` of a `float` is `-x` below zero, so `abs(-0.0)` stays `-0.0` (equal to
 `+0.0`) and a NaN keeps its sign.
+
+`sqrt` dispatches through the trait `Sqrt` (`fn sqrt(self) -> Self`), which
+each number type implements beside its declaration, as it implements its
+operators: `real` through the C library, `float` as IEEE `squareRoot`,
+`ufixed`/`sfixed` to the nearest step. `x.sqrt()` is the same call.
+
+```siox
+use std::math::sqrt;
+let r: float<32, 23> = sqrt(x);    // binary32 sqrt(2) is 0x3FB504F3
+let q: ufixed<8, 4> = sqrt(u);     // sqrt(2) is 1.4375, the nearest sixteenth
+```
 
 ## `std::mem`
 
@@ -334,7 +346,7 @@ let gain: ufixed<8, 4> = ufixed<8, 4>(2.5);         // the word 40
 let error: sfixed<16, 8> = sfixed<16, 8>(0.0 - 0.75);
 let scaled: ufixed<8, 4>;
 scaled = (gain + gain) * gain;                      // formats carry through
-let r: real = gain.to_real();                       // 2.5
+let r: real = real(gain);                           // 2.5
 ```
 
 - `+`, `-`, `*` between operands of one format give that format. A sum wraps
@@ -345,7 +357,10 @@ let r: real = gain.to_real();                       // 2.5
   format.
 - The constructor `ufixed<W, F>(x)` / `sfixed<W, F>(x)` takes a `real` or an
   `integer` to that format, rounding to nearest (ties away from zero) and
-  saturating; it works in hardware too. `x.to_real()` goes back.
+  saturating; it works in hardware too. `real(x)` goes back.
+- `std::math::sqrt(x)` rounds to the nearest step (ties away from zero) and
+  saturates; a negative `sfixed` gives zero, since fixed point has no NaN.
+  The radicand needs `W + F + 2` bits of the 64-bit kernel word.
 - `x'integers` and `x'fractions`, type attributes, give the format: 4 and 4
   for `ufixed<8, 4>`; an `sfixed`'s integer bits include the sign.
 - `/` keeps the format, rounding toward minus infinity as `*` does; a quotient
@@ -381,7 +396,7 @@ let y: float<32, 23>;
 x = float<32, 23>(1.5);           // the word 0x3FC00000
 y = float<32, 23>(0.0 - 2.25);
 r = x * y + x;                    // rounds to nearest, ties to even
-let v: real = r.to_real();
+let v: real = real(r);
 ```
 
 - `+`, `-`, `*`, `/` and the six comparisons (`-0` equals `+0`). Zero, infinity
@@ -389,7 +404,7 @@ let v: real = r.to_real();
   infinite, and a NaN is unordered — every comparison with one is false
   except `!=`, so `x != x` holds exactly for a NaN.
 - `-x` (`Neg`, the IEEE sign flip), `x.is_nan()`, `x.is_infinite()`,
-  `x.is_zero()`, `x.to_real()`; `std::math`'s `abs`, `min`, `max`. The type
+  `x.is_zero()`, `real(x)`; `std::math`'s `abs`, `min`, `max`. The type
   attributes `x'exponent`, `x'mantissa` and `x'bias` give the format (8, 23
   and 127 for `float<32, 23>`). The
   constructor `float<W, M>(x)` takes a `real` or an `integer` to the format,
@@ -412,7 +427,7 @@ let v: real = r.to_real();
   rounds to nearest even; `ufixed<8, 4>(f)`/`sfixed<8, 4>(f)` from a float
   rounds to the nearest step (ties away from zero) and saturates, as fixed
   point's other constructors do; a NaN is zero and an infinity saturates.
-- `x.sqrt()` is IEEE `squareRoot`, rounded to nearest even: a NaN or a
+- `std::math::sqrt(x)` is IEEE `squareRoot`, rounded to nearest even: a NaN or a
   negative number gives NaN, and `0`, `-0` and infinity are their own roots.
 - `*`, `/` and `sqrt` work in the 64-bit kernel word, so they hold for formats
   with up to 28 mantissa bits (binary16, bfloat16, binary32); binary64 needs
