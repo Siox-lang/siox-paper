@@ -423,6 +423,16 @@ argument consumption and consumer-specific arithmetic; pure state reads are
 still invalidated normally. Effect-free calls retain their shared native
 specialization, and canonical procedural CFG calls retain their native bodies.
 There is no extra effect runtime or executable readback from inspection storage.
+After procedural effects are extracted into caller CFG instructions, a retained
+source frame can describe only the remaining pure tail. A formal used solely
+by those earlier effects is genuinely absent from the tail's native inputs;
+inspection must not recompute it. Locals referencing captured results become
+visible when those existing results are actually consumed.
+Likewise, a narrow consumer cannot establish a wider nonconstant source value.
+Numeric and logic inspection leave omitted bits unavailable, preserving known
+constants and sound extension from the operand's natural width. Native entry
+inspection prefers the widest format already requested by the body, independently
+of source type metadata; it never adds a format or argument just for DWARF.
 For a genuinely partial effect-free result, the existing native leaf body has
 an artificial implementation scope; the declared source function is an inline frame over
 that body. Its full source signature is not falsely attached to the native

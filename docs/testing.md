@@ -336,9 +336,19 @@ This is distinct from a runtime string handle whose content happens to be empty.
 Wide source-call views are checked at 81 and 129 bits for signed/unsigned
 parameters and copied locals, including inferred generic declarations. Their
 sizes remain 11/17 bytes when a caller narrows to 8 bits or widens to 193 bits,
-and a callee returning just the low byte still exposes the original parameter.
+and a callee returning just the low byte still exposes the original literal
+parameter. These literal cases do not justify padding missing nonconstant bits.
 Ordinary and debug executables verify the returned values and waveform parity;
 the low-byte return also passes native GDB `finish`.
+
+The narrow-consumer regression uses changing, nonconstant 81-bit hardware
+arguments with high bits set. A callee consuming only eight bits leaves its
+full-width parameter/local unavailable rather than displaying a truncated value
+as the complete source value. A second callee consumes both eight and 81 bits;
+entry inspection uses its already-requested complete format, even when the
+narrow consumer comes first. Both inline hints check actual native results,
+ordinary/debug stdout and VCD parity, source binding sizes and DWARF validity.
+Inspection requests no new executable operand formats.
 
 On AMD64, **do not use GDB 18.1 `finish` on an arbitrary-width basic integer
 return**: it can report a false zero at 81 bits and hit an internal assertion at
@@ -578,9 +588,13 @@ fragments, completed inline scalar snapshots and normalized pure-tail loop retur
 with exact stop counts under both hints and packing modes. An inline entry must
 not expose an earlier invocation's return snapshot. Lazy arguments become
 inspectable only as their actual values are consumed; the probe follows caller-
-owned argument ranges as well as callee ranges. Procedural effect-normalized
-pure-tail entry bindings remain a signature/pruning audit, not evidence that
-every source formal is already available at every function-name stop.
+owned argument ranges as well as callee ranges. Normalized IR inspection and
+instruction stepping confirm that the procedural pure-tail frame no longer
+consumes its original `value` formal. It stays unavailable; its `saved` local
+becomes visible after the existing captured result is read. Repeated loop
+entries check those availability transitions and actual native finish values.
+Other normalized signatures remain under audit; this does not imply every
+source formal is available at every function-name stop.
 
 To run the existing native corpus with DWARF enabled:
 
