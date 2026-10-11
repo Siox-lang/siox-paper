@@ -405,8 +405,21 @@ proof follows actual Process instruction, terminator, initializer and function
 result roots; a complete consumer cannot hide an independent field use.
 Whole-value conditional branches are allowed, as are proven valid constant
 array selectors. Unknown, invalid, signed or wrapping selectors are not evidence
-for discarding an arm. Checked/effectful bodies, independently selected nested
-calls and partial returns remain leaf-backed pending demand-preserving grouping.
+for discarding an arm. Checked/effectful aggregates also require an uninterrupted
+first-use field order: an intervening call, check or mutable read must not move
+across another field's evaluation. Construction order need not be consumption
+order; retained pieces are emitted in the proven consumer order with unchanged
+packed offsets. Conflicting branch orders retain their leaf bodies. One-bit
+`and` / `or` right-hand operands are conditional demand, not automatically eager
+dependencies. Integer division is already total in the common emitter and needs
+no special exclusion. Independently selected nested calls and partial returns
+remain leaf-backed pending demand-preserving grouping.
+Effectful source-function cache entries distinguish compatibility hardware
+helpers, which capture calls for a scheduling phase, from procedural CFG entries,
+which execute them directly. Reusing a captured-call body for direct execution
+would retain stale foreign results after input changes. Effect-free source bodies
+still share their native specialization across those contexts; this introduces
+no extra execution wrapper or readback from inspection storage.
 For a genuinely partial result, the existing native leaf body has an artificial
 implementation scope; the declared source function is an inline frame over
 that body. Its full source signature is not falsely attached to the native

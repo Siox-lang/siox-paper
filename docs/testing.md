@@ -553,6 +553,21 @@ parity and DWARF verification still apply. This is not a fix for GDB's native
 arbitrary-width integer classifier; large aggregate memory returns and basic
 wide scalar inspection retain their separate tests and limitations.
 
+The ordered-aggregate regression checks checked/effectful return grouping under
+both inline hints and packing modes. GDB observes one native source frame and
+actual `finish` values for forward/reverse foreign-call field consumers, checked
+array fields and total division (including zero divisors). A `putchar` between
+field uses preserves separate partial frames; their `$return` fragments expose
+only already-evaluated fields. One-bit `and` leaves an untaken `abort()` field
+unavailable. Exact calls and transient inputs are checked, not just settled final
+values. Ordinary/debug stdout equality proves foreign-call order and counts;
+native assertions, VCD equality and DWARF verification also run. A failing active
+variant checks the first bounds diagnostic and native exit status against the
+ordinary build. Changing inputs catches reuse of compatibility capture bodies
+in direct procedural execution. Untaken aggregate-return bounds checks have an
+independent ordinary-lowering gap recorded in the compiler TODO; this fixture
+does not claim to fix it.
+
 To run the existing native corpus with DWARF enabled:
 
 ```bash
