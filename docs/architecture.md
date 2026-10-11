@@ -407,6 +407,15 @@ Whole-value conditional branches are allowed, as are proven valid constant
 array selectors. Unknown, invalid, signed or wrapping selectors are not evidence
 for discarding an arm. Checked/effectful bodies, independently selected nested
 calls and partial returns remain leaf-backed pending demand-preserving grouping.
+For a genuinely partial result, the existing native leaf body has an artificial
+implementation scope; the declared source function is an inline frame over
+that body. Its full source signature is not falsely attached to the native
+leaf return ABI. A read-only `$return` binding uses the ordinary fragment
+inspection path, exposing only an already-evaluated result field. Missing
+members are unavailable, including effectful fields that were not demanded.
+A single leaf covering the complete result (such as a one-field wrapper)
+keeps its full native return boundary. This is a metadata distinction, not
+an extra execution wrapper or eager evaluation of the rest of an aggregate.
 Packing a missing field
 as zero would falsely advertise it as available; eagerly packing an inactive
 field could introduce effects or extra source stops. Whole aggregate-return

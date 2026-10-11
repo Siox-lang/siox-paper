@@ -221,6 +221,16 @@ available scalar fields while pruned packed members remain optimized out.
 Process frames and function breakpoints are instance-qualified, for example
 `break T::stimulus`.
 
+Partially evaluated aggregate-return calls appear as source inline frames.
+Their `$return` snapshot becomes readable after the retained field has been
+evaluated; instruction stepping can inspect it before leaving the frame.
+Read it through GDB Python with `gdb.selected_frame().read_var('$return')`.
+Discarded fields remain optimized out. `finish` returns to the caller without
+inventing a whole aggregate value from native leaf registers; inspect the
+caller's bound variable there instead. This follows GDB's documented
+[inline-return limitation](https://sourceware.org/gdb/current/onlinedocs/gdb.html/Inline-Functions.html).
+Complete one-field wrappers still use their real native aggregate return ABI.
+
 Procedures and value-returning functions expanded into CFGs retain source
 inline frames and call sites. Use `up`/`down` to select the caller or callee;
 equal-spelled locals remain distinct at repeated calls (even on one source
@@ -509,6 +519,16 @@ It guards explicitly declared `Char[1]` against acquiring a dynamic-string
 return view. These checks do not prove string eligibility for shared Process
 bodies or general dynamic-array support; borrowed content is inspected before
 its owning test root is cleaned up.
+A twelfth regression checks partial integer/integer and integer/real aggregate
+returns. Both retained field positions and positive/negative inputs are tested
+under all four caller/callee inline-hint combinations and both packing modes.
+The discarded field calls `abort()`: ordinary/debug native assertions and
+identical VCDs prove inspection does not force it. GDB checks the declared source
+return type, initialized formals, inline frame identity, actual `$return`
+fragments, unavailable discarded fields, caller bindings after `finish` and
+exact source-call counts. `finish` must not manufacture a whole-result history
+value. DWARF verification also runs. This covers faithful partial views, not
+single-boundary grouping of independently demanded or effectful aggregate leaves.
 To run the existing native corpus with DWARF enabled:
 
 ```bash
