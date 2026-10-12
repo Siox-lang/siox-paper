@@ -1776,6 +1776,22 @@ directions. For example, an implementation may write the `out` leaves of its
 port but not its `in` leaves. Two real drivers of one unresolved leaf remain a
 normal driver error.
 
+A view on an array type applies to each element, as a port's direction applies
+to each element of an array port. `down: Bus[N] Requester` is `N` elements of
+`Bus Requester`: `down[i]` is the applied view, so an implementation may write
+`down[i]`'s `out` leaves, may not write its `in` leaves, and may read any
+element at a run-time index. A parent connects the whole array to a
+`let wires: Bus[N];` and each element to its endpoint:
+
+```siox
+entity Hub<N: integer> { up: Bus Completer, down: Bus[N] Requester }
+
+let wires: Bus[2];
+let hub: Hub<2> = { .up = up, .down = wires };
+let a: Device = { .bus = wires[0] };
+let b: Device = { .bus = wires[1] };
+```
+
 ---
 
 ### 3.20 Traits are compile-time contracts
@@ -2296,14 +2312,14 @@ method of a `core::cmp` trait (in the prelude), returning `Bool`:
 ```siox
 pub trait Eq<Rhs> {
     fn eq(self, rhs: Rhs) -> Bool;                                  // ==
-    fn ne(self, rhs: Rhs) -> Bool { return not self.eq(rhs); }      // !=
+    fn ne(self, rhs: Rhs) -> Bool { return not (self == rhs); }     // !=
 }
 
 pub trait Ord<Rhs> {
     fn lt(self, rhs: Rhs) -> Bool;                                  // <
     fn le(self, rhs: Rhs) -> Bool;                                  // <=
-    fn gt(self, rhs: Rhs) -> Bool { return rhs.lt(self); }          // >
-    fn ge(self, rhs: Rhs) -> Bool { return rhs.le(self); }          // >=
+    fn gt(self, rhs: Rhs) -> Bool { return rhs < self; }            // >
+    fn ge(self, rhs: Rhs) -> Bool { return rhs <= self; }           // >=
 }
 ```
 
