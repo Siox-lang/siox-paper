@@ -790,6 +790,7 @@ the names, as rustc's lint registry does:
 | `non_exhaustive_match` | W-P007 | | `unimplemented_attr` | W-P015 |
 | `suspicious_logic_compare` | W-P008 | | `incomplete_struct_literal` | W-P016 |
 | `unknown_lints` | W-P017 | | `overlapping_range_endpoints` | W-P018 |
+| `non_constant_loop_bound` | W-P019 | | | |
 
 `warnings` names all of them at once.
 
@@ -3386,7 +3387,11 @@ constant slice of an array local (`r[3..0] = v;`), replaces those elements.
 An element holds whatever value of its enum is written, `'X'` as much
 as `'1'`: as in VHDL, a metavalue means something only to a resolution
 function or a numeric operator. A loop whose bounds depend on a runtime
-value, and an element write at a runtime index, have no hardware form.
+value, and an element write at a runtime index, have no RTL form. A loop
+whose bound is not constant still **simulates**: the process or concurrent
+statement that reaches it runs as procedural code, re-run whenever a signal
+it reads changes (a clocked one on its edge, as any process), and
+`non_constant_loop_bound` (W-P019) warns that it has no RTL form.
 
 In a simulation process, a function with or without a return value may contain locals,
 branches, matches, loops, nested calls and `await`. Its body shares the caller's
