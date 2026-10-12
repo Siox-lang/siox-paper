@@ -85,7 +85,8 @@ pub const HIGH: Bit = '1';
 ```
 
 - `Bit` — two-valued scalar (VHDL `bit`). Keeps the built-in two-value
-  operators; a valid condition via `Boolean`.
+  operators; a valid condition via `Boolean`. `Bit(b)` turns a `Bool` into
+  a bit (`ready = Bit(count < DEPTH);`), via `impl From<Bool> for Bit`.
 - `Logic` — nine-valued scalar (VHDL `std_ulogic`, IEEE 1076-2019): `'U'`
   uninitialized, `'X'` strong unknown, `'0'/'1'` forcing, `'Z'` high-impedance,
   `'W'` weak unknown, `'L'/'H'` weak, `'-'` don't-care. Core `and`/`or`/`not`
