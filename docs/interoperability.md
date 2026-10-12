@@ -1,7 +1,7 @@
 # Interoperability
 
-How siox talks to the outside world: foreign C functions, file I/O, editors,
-and compiler embedding.
+How siox talks to the outside world: foreign C functions, foreign HDLs, file
+I/O, editors, and compiler embedding.
 
 ## Foreign functions (`extern "C"`)
 
@@ -32,6 +32,135 @@ library is linked by default, so a C declaration of `sin`, `labs` and the
 like resolves out of the box. Other symbols may be resolved by a consumer linking a compiler-emitted
 object; the generated native test executable does not yet accept custom library
 search paths or `-l` options.
+
+## Foreign HDLs
+
+Phase 1 meets other HDLs only at an `extern entity`: a black box whose
+interface siox elaborates and checks, with `library`/`name` metadata naming the
+foreign implementation (`siox-tests/external_entity_stub.siox`). Nothing
+simulates or emits a foreign design yet; that is Phase 3 ([roadmap](roadmap.md)).
+This section fixes what a siox value and a siox operation *mean* at such a
+boundary, so a future co-simulation bridge, foreign-interface import, or
+RTL/HDL exporter preserves siox semantics instead of inheriting the other
+language's.
+
+It covers VHDL, Verilog, SystemVerilog, SystemC, and Chisel/FIRRTL. Chisel
+reaches other tools through the SystemVerilog `firtool` emits, so a Chisel
+design meets siox there; its own rules matter only when one is written against
+a siox interface.
+
+### What crosses unchanged
+
+| siox | VHDL | Verilog | SystemVerilog | SystemC | Chisel |
+|---|---|---|---|---|---|
+| `entity` + `impl` | entity + architecture | `module` | `module` | `SC_MODULE` | `Module` |
+| `<W: integer>` | generic | `parameter` | `parameter` | template/constructor argument | Scala parameter |
+| `<T>` type parameter | VHDL-2008 type generic | none | `parameter type` | template | Scala type parameter |
+| `in` / `out` / `inout` | same | `input`/`output`/`inout` | same | `sc_in`/`sc_out`/`sc_inout` | `Input`/`Output`/`Analog` |
+| `.x = y` | named association | `.x(y)` | `.x(y)` | port binding | `<>` / `:=` |
+| `for`/`if` generate | `for`/`if generate` | `generate` | `generate` | constructor loop | Scala loop |
+| `if clk.rising()` register | `rising_edge(clk)` | `always @(posedge clk)` | `always_ff` | `SC_METHOD` on `clk.pos()` | `Reg` (implicit clock) |
+| impl-body statement | concurrent assignment | `assign` | `assign`/`always_comb` | `SC_METHOD` | `:=` |
+| delta cycles, `after` (inertial), `transport` | identical | nonblocking update, `#` delay | same | `sc_signal` update phase | none (cycle-based) |
+| `real` | `real` | `real` | `real` | `double` | none in hardware |
+| `enum` | enumeration type | none | `enum` | C++ `enum` | `ChiselEnum` |
+
+Traits, macros, `match`, inlining and generics are resolved before any boundary
+and have nothing to map.
+
+### Boundary rules
+
+A bridge or exporter follows these. "4-state" means Verilog/SystemVerilog
+`logic`/`wire` and SystemC `sc_logic`; "2-state" means SystemVerilog `bit`/`int`,
+SystemC `bool`/`sc_uint`, and Chisel.
+
+1. **Logic values.** `Logic` is VHDL `std_logic`, value for value, and `Bit` is
+   VHDL `bit`. To 4-state: `'0'`→`0`, `'1'`→`1`, `'Z'`→`z`, `'L'`→`0`,
+   `'H'`→`1`, and `'U'`/`'X'`/`'W'`/`'-'`→`x`; from 4-state: `0`, `1`, `x`, `z`
+   become `'0'`, `'1'`, `'X'`, `'Z'`. Where a Verilog net carries strength,
+   `'L'`/`'H'` map to and from `weak0`/`weak1`. To 2-state, `'1'` and `'H'` are
+   `1` and everything else is `0`, as SystemVerilog's 4-to-2 cast. Those
+   mappings lose information, `'U'` and the weak values do not survive a
+   round trip, and a bridge reports the first lossy conversion on each port
+   rather than hiding an unknown.
+2. **Widths.** A siox operator produces its operands' width and wraps, and an
+   assignment must match its target's width exactly, as VHDL `numeric_std`.
+   Chisel's `+` (`+%`) agrees; its `+&` widens. Verilog and SystemVerilog size
+   an expression to its context, so the carry of a wider target survives: an
+   exporter sizes every arithmetic subexpression explicitly (an SV
+   `W'(a + b)` cast or a slice). SystemC's `sc_uint<W>` wraps only on
+   assignment, so intermediate results are cast the same way.
+3. **Signedness and shifts.** Signedness belongs to the type. siox promotes
+   `signed` + `unsigned` to a signed format that holds both ([language §3.17](language.md)), which
+   `numeric_std` and Chisel reject and Verilog/SystemVerilog compute *unsigned*:
+   one unsigned operand makes the whole expression unsigned. An exporter emits
+   the extension and the sign explicitly (`$signed({1'b0, u})`, `asSInt`,
+   `signed(resize(u, n))`). `>>` on `signed` is arithmetic, as VHDL
+   `shift_right` and Chisel; Verilog/SystemVerilog need `>>>` on a signed
+   operand.
+4. **Comparisons with metavalues.** siox follows `numeric_std`: `==`, `<`,
+   `<=`, `>`, `>=` with an unknown operand are false and `!=` is true (checked
+   against `nvc`, `siox-tests/xz_compare_test.siox`). Verilog/SystemVerilog
+   answer `x`, which an `if` treats as false, so `!=` takes the other branch.
+   SystemC's `sc_lv` compares symbols exactly (`"0X" == "0X"` is true). An
+   exporter to 4-state code writes each relation `r` as `(r) === 1'b1` and
+   `a != b` as `!((a == b) === 1'b1)`. 2-state targets have no unknowns. Bit
+   patterns (`Match`, `'-'` don't-care) are SystemVerilog's `==?` and VHDL's
+   `?=`/`std_match`.
+5. **Integers.** The kernel `integer` is 64-bit signed at run time. VHDL
+   guarantees 32 bits before VHDL-2019, Verilog `integer` and SystemVerilog
+   `int` are 32-bit, and Chisel has no hardware integer. At a port an
+   `integer` is a 64-bit signed vector (SV `longint`, VHDL `signed(63 downto
+   0)`); a ranged `integer<lo..hi>` that fits 32 bits may map to VHDL
+   `integer range lo to hi`.
+6. **Initial values.** A siox signal starts at its type's default ([language §3.29](language.md)): `Bit`
+   `'0'`, scalar `Logic` `'U'`, an enum's first variant, and a numeric vector
+   `0`. VHDL agrees except for vectors (`unsigned` starts all `'U'`); Verilog
+   and 4-state SystemVerilog variables start `x`, 2-state ones `0`; SystemC
+   `sc_logic` starts `'X'`. The values are a simulation power-on state. A
+   co-simulated or exported design that must agree at time zero resets
+   explicitly.
+7. **Drivers.** Two drivers of an unresolved siox type (`Bit`, a struct
+   without `Resolve`) are a compile error, as VHDL's unresolved types,
+   SystemVerilog variables under `always_ff`/`always_comb`, and SystemC's
+   default single-writer `sc_signal`. `Logic` resolves through
+   `std_logic_1164`'s table, as VHDL `std_logic`, Verilog `wire`/`tri` and
+   SystemC `sc_signal_resolved`. Chisel's last-connect rule (a later `:=`
+   wins, at module level too) has no siox counterpart: in siox only a
+   process's sequential statements override each other, and two
+   impl-body statements are two drivers.
+8. **Composite ports.** A struct port is a VHDL record and a SystemVerilog
+   packed struct. A view ([language §3.19](language.md)) is a VHDL-2019 mode view, a SystemVerilog
+   `interface` with one `modport` per view, and a Chisel `Bundle` with
+   `Flipped` leaves; an array of views is an array of those. Verilog-2001 and
+   SystemC have no directional bundles, so the port flattens to one scalar
+   port per leaf, joined with `_` in declaration order (`bus.awvalid` →
+   `bus_awvalid`, `down[2].awvalid` → `down_2_awvalid`); an exporter reports a
+   flattened name that collides with another port. Tool support for VHDL-2019
+   views is still thin, so a VHDL exporter may fall back to records split by
+   direction.
+9. **Fixed and float.** `ufixed<W, F>`/`sfixed<W, F>` and `float<W, M>` are
+   VHDL-2008 `fixed_pkg`/`float_pkg` formats, ranges included (`ufixed<8, 4>`
+   is `3 downto -4`). SystemC's `sc_fixed<wl, iwl>` takes the integer width:
+   `iwl = W - F`. Verilog, SystemVerilog and Chisel have no fixed or float
+   types, so these cross as plain vectors whose binary point the interface
+   documents. Rounding and overflow styles ([std.md](std.md), `std::fixed`) are written out,
+   never left to the other side's defaults.
+10. **Time.** siox resolves time in femtoseconds, as VHDL's default. Verilog and
+    SystemVerilog modules carry their own `timescale`/`timeprecision`, SystemC
+    its `sc_time` resolution (1 ps by default): a bridge converts at the
+    boundary and rejects a delay the coarser side cannot represent.
+11. **Names.** siox identifiers are case-sensitive, like Verilog, SystemVerilog,
+    SystemC and Chisel; VHDL's are not, so `Data` and `data` collide there. An
+    identifier that is a keyword of the target (`next`, `range`, `type`,
+    `select`, `wait`, `signal`, `buffer` in VHDL; `reg`, `wire`, `input`,
+    `output`, `logic`, `bit` in Verilog/SystemVerilog) is escaped (VHDL
+    `\next\`, Verilog `\reg `), never renamed silently.
+12. **Simulation-only constructs.** `Char`, strings, file I/O, `print!`,
+    testbench `await`, and hardware loops with non-constant bounds (W-P019)
+    have no synthesizable counterpart in any of these languages. They stay on
+    the siox side of a co-simulation boundary, and an exporter rejects them
+    with the construct's span.
 
 ## File I/O
 
