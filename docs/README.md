@@ -141,8 +141,9 @@ cargo run --bin sioxc -- <file>           # compile the sole structural root
 cargo run --bin sioxc -- --test <file> -o tests # compile native #[test] executable
 ```
 
-A bare `sioxc <file>` compiles the sole uninstantiated entity to a native
-object (like `rustc foo.rs`); multiple structural roots require
+A bare `sioxc <file>` compiles the file's sole uninstantiated entity to a
+native object (like `rustc foo.rs`); entities of imported modules are never
+roots. Multiple structural roots require
 `--top <qualified-entity>`. LLVM 22 is the selected native backend. Creating a
 native `#[test]` executable normally invokes Clang only as a linker for the LLVM
 design object and the prebuilt, design-independent Process scheduler, CLI, and

@@ -913,8 +913,14 @@ attr name for Counter = "ExternalCounter";
 `top` is std's base metadata (`std::attrs`), for tools that need to know the
 design's top entity; the frontend retains it for those output consumers. It
 does not select sioxc elaboration roots or alter entity semantics. Ordinary elaboration reaches every uninstantiated
-structural root; native object output accepts the sole root by default and
-requires `--top <entity>` when several roots exist.
+structural root of the file being compiled; native object output accepts the
+sole root by default and requires `--top <entity>` when several roots exist.
+An imported module is a library: its unused entities are never roots, so a
+design that imports `wishbone` and instantiates only its `Interconnect` has
+one root. A library is analysed as a root by checking the library file
+itself, where a generic entity has no values for its parameters: loops over
+them, arrays sized by them and indices into those arrays are left unchecked
+until an instantiation fixes them.
 
 More than one `#[test]` entity may share a leaf when they belong to different
 modules. Generated executables report and filter them by qualified test name,
