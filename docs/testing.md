@@ -629,6 +629,18 @@ directly after finish: captured finish text alone is not proof that no native
 return was fabricated. This verifies partial frames, not eager whole-return
 grouping for independently guarded fields.
 
+The joint-partial regression consumes the first and last fields of a three-field
+return whose middle field calls `abort()` and must stay pruned. It requires one
+source frame per input epoch, a complete declared struct type with two readable
+return fragments, and no fabricated native history slot on source finish.
+Forward/reverse field use checks actual foreign-call order; pure/foreign nested
+calls and selected/fallback return branches run under both hints and packing
+modes, with native assertions, DWARF verification and stdout/VCD parity.
+The carrier unit proves that two retained 64-bit fields occupy 128 private bits,
+not the source struct's 192 bits, and rejects independent uses and overlapping
+projections. The existing independently selected regression remains separate:
+its guarded fields cannot justify eager joint grouping.
+
 To run the existing native corpus with DWARF enabled:
 
 ```bash

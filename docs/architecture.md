@@ -433,13 +433,21 @@ Numeric and logic inspection leave omitted bits unavailable, preserving known
 constants and sound extension from the operand's natural width. Native entry
 inspection prefers the widest format already requested by the body, independently
 of source type metadata; it never adds a format or argument just for DWARF.
-For a genuinely partial effect-free result, the existing native leaf body has
+Without a joint-demand proof, a partial effect-free result's native leaf body has
 an artificial implementation scope; the declared source function is an inline frame over
 that body. Its full source signature is not falsely attached to the native
 leaf return ABI. A read-only `$return` binding uses the ordinary fragment
 inspection path, exposing only an already-evaluated result field. Missing
 members are unavailable, including effectful fields that were not demanded.
 Effectful partial results reuse these same fragments in their in-place frames.
+Jointly demanded partial groups compact only retained fields into a private
+carrier, with nonoverlapping original paths still described as source return
+fragments. The declared type remains complete while pruned members remain
+unavailable. Grouping preserves proven first-use order for checks/effects and
+stays in the caller's common emitter/cache; it advertises no full native return
+ABI and never pads missing source fields. Synchronized return selectors use
+their already-computed joined carrier bits to capture the original fragments
+before the source frame ends, without reevaluating a selector or operand.
 Their cached actual foreign results are inspected without executing the effect
 again. Complete in-place returns expose a nullable read-only `$return` snapshot
 only when the emitted result supplies the declared bits. Packed returns also
