@@ -153,6 +153,9 @@ A file with no `#[test]` entity reports zero tests rather than erroring.
 
 ## Native debugger smoke test
 
+The [DWARF acceptance checklist](dwarf-audit.md) maps the source-debugging
+contract to permanent checks and records the latest verification status.
+
 GDB can debug the native runtime, or step Siox source and inspect named state
 when compiled with `--debug`. The reproducible check uses the existing FIFO and
 128-bit corpus designs in both ordinary and debug builds:
@@ -669,8 +672,12 @@ The regression caught an early shared-native entry stop caused by binary
 inspection `select`s becoming control flow at `-O0`; the encoding-aware
 branch-free mapping fixes that without adding evaluation demand. A unit checks
 reversed binary codes, modular width wrapping and nonbinary metadata forwarding.
-This does not establish returned logical labels for every numeric format:
-the shared float16 result-layout range remains a separate provenance audit.
+The fixture additionally builds binary16 and bfloat16 from the same binary32
+input. Canonical IR must retain the explicit return ranges `5..-10` and
+`8..-7`, with distinct used shared functions, plus binary32 `8..-23` and
+sfixed8 `3..-4`. GDB must observe both actual 16-bit result encodings in both
+caller contexts, not just a count of conversions. No extra executable width or
+argument is introduced to repair metadata; omitted planes stay unavailable.
 
 The restoring-root loop regression checks that synthesized pure selections
 retain shared SSA instead of generating `debug.select.then` machine branches.

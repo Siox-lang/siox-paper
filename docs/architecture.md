@@ -357,6 +357,13 @@ Unlike a `select`, this remains branch-free at `-O0`: LLVM's prologue search
 must reach actual source code before GDB stops on a shared native function.
 Nonbinary metadata still uses the existing encoding-aware selection; no new
 plane, source evaluation or ABI argument is introduced.
+An explicitly applied family conversion carries its target range into both
+the source-call descriptor and the used shared Process function's return
+descriptor. Generic width-only bounds and source-operand bounds do not define
+that target. Self-family shared signatures include the target format shape,
+so two equally wide formats can retain different code and inspection labels;
+kernel-number helpers remain shared across formats. These descriptors never
+choose executable widths or request omitted arguments/return planes.
 Expression parameter/local `$logic` views reuse the same recursive source-enum
 inspection layout and copying as stored values. Capture hooks observe only
 already-emitted numeric and companion planes, or the existing proof that a
