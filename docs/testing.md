@@ -658,6 +658,20 @@ Both inline hints and packing modes run native assertions, ordinary/debug VCD
 parity and DWARF verification. Metadata-only comparison dependencies do not
 justify evaluating another numeric fragment or grouping these frames.
 
+The numeric-family signature regression converts binary32 to binary16,
+binary16 to signed fixed, and signed fixed to binary32. GDB verifies source
+formal/return types, byte sizes and actual `finish` values separately for
+procedural and hardware calls, with positive/negative input epochs under both
+inline hints and packing modes. Qualified and local source type names are
+matched as the same nominal family without changing compiler metadata.
+Ordinary/debug native assertions and VCDs agree, and DWARF verification runs.
+The regression caught an early shared-native entry stop caused by binary
+inspection `select`s becoming control flow at `-O0`; the encoding-aware
+branch-free mapping fixes that without adding evaluation demand. A unit checks
+reversed binary codes, modular width wrapping and nonbinary metadata forwarding.
+This does not establish returned logical labels for every numeric format:
+the shared float16 result-layout range remains a separate provenance audit.
+
 The restoring-root loop regression checks that synthesized pure selections
 retain shared SSA instead of generating `debug.select.then` machine branches.
 Its nested identity input is a caller-owned captured evaluation, not a fresh

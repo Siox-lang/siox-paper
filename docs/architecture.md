@@ -351,6 +351,12 @@ Sub-byte scalar source returns use the existing byte-normalized register codec,
 so GDB does not read undefined upper register bits as enum discriminants. The
 caller decodes the original execution width; signed tiny values retain sign
 extension, and debugger inspection layouts do not choose operand formats.
+Binary `$logic` snapshots map a value-plane bit with
+`low + zext(bit) * (high - low)`, using the source encoding's discriminants.
+Unlike a `select`, this remains branch-free at `-O0`: LLVM's prologue search
+must reach actual source code before GDB stops on a shared native function.
+Nonbinary metadata still uses the existing encoding-aware selection; no new
+plane, source evaluation or ABI argument is introduced.
 Expression parameter/local `$logic` views reuse the same recursive source-enum
 inspection layout and copying as stored values. Capture hooks observe only
 already-emitted numeric and companion planes, or the existing proof that a
