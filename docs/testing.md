@@ -658,6 +658,18 @@ Both inline hints and packing modes run native assertions, ordinary/debug VCD
 parity and DWARF verification. Metadata-only comparison dependencies do not
 justify evaluating another numeric fragment or grouping these frames.
 
+The restoring-root loop regression checks that synthesized pure selections
+retain shared SSA instead of generating `debug.select.then` machine branches.
+Its nested identity input is a caller-owned captured evaluation, not a fresh
+callee effect. Ordinary/debug native assertions and VCDs match, source frames
+remain present, and DWARF verification runs in both packing modes. The real
+`float_sqrt_test` corpus compile additionally exercises the larger std loop;
+the focused measured debug compiler child used 783612 KiB after the guard.
+Existing selected-return and checked/effectful regressions protect the cases
+that still require conditional source ranges. The custom-enum Resolve fixture
+also checks byte-normalized sub-byte native returns: `finish` reads `High` as
+one, not undefined high register bits.
+
 To run the existing native corpus with DWARF enabled:
 
 ```bash

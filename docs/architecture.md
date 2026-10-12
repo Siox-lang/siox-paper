@@ -341,8 +341,16 @@ Pure function-body `if`/`match` selections carry the selected return-expression
 spans separately from value IDs: returning an existing local or argument does
 not reuse its initializer's source line. These records are inspection metadata,
 remapped or pruned with existing nodes, never additional executable roots.
-Debug emission uses taken-arm blocks and finishes local inspection writes
-before later source statements; ordinary emission keeps its existing SSA path.
+Debug emission uses taken-arm blocks for recorded source-return branches and
+fresh calls/checks, finishing local inspection writes before later statements.
+Synthesized pure selections keep the shared SSA path: caller-owned captured
+formals do not execute their original dependencies again inside a source body.
+This prevents unrolled arithmetic loops from duplicating their value DAG into
+debug-only branch arms while preserving selected source stops and effect guards.
+Sub-byte scalar source returns use the existing byte-normalized register codec,
+so GDB does not read undefined upper register bits as enum discriminants. The
+caller decodes the original execution width; signed tiny values retain sign
+extension, and debugger inspection layouts do not choose operand formats.
 Expression parameter/local `$logic` views reuse the same recursive source-enum
 inspection layout and copying as stored values. Capture hooks observe only
 already-emitted numeric and companion planes, or the existing proof that a
