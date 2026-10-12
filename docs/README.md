@@ -133,7 +133,7 @@ left and the [CHANGELOG](https://github.com/Siox-lang/sioxc/blob/main/CHANGELOG.
 ## Build and run
 
 ```bash
-cargo build                       # library + sioxc (Rust 1.90, LLVM 22)
+cargo build                       # library + sioxc (Rust 1.90, LLVM 23.1)
 cargo test                        # run all tests
 cargo check --no-default-features --lib # frontend/API only; no LLVM
 
@@ -144,7 +144,10 @@ cargo run --bin sioxc -- --test <file> -o tests # compile native #[test] executa
 A bare `sioxc <file>` compiles the file's sole uninstantiated entity to a
 native object (like `rustc foo.rs`); entities of imported modules are never
 roots. Multiple structural roots require
-`--top <qualified-entity>`. LLVM 22 is the selected native backend. Creating a
+`--top <qualified-entity>`. LLVM 23.1 is the selected native backend, with
+strict version checking and an exact Inkwell Git revision until a released tag
+includes these bindings. Set `LLVM_SYS_231_PREFIX` and use the matching Clang 23
+on `PATH` when multiple toolchains are installed. Creating a
 native `#[test]` executable normally invokes Clang only as a linker for the LLVM
 design object and the prebuilt, design-independent Process scheduler, CLI, and
 FST runtime objects plus zlib. If host precompilation was unavailable, Clang

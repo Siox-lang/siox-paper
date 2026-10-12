@@ -68,6 +68,23 @@ Every requirement above has current native or metadata evidence from these
 checks; no known implementation work remains for this documented contract.
 The limits below stay explicit rather than being hidden by fabricated values.
 
+### LLVM 23 bindings alignment, 2026-10-13
+
+Compiler commit: `74cd66c` (`Align LLVM bindings and CI on LLVM 23.1`).
+The earlier acceptance used LLVM 22 bindings against the local LLVM 23 library.
+The bindings now explicitly select LLVM 23 through pinned Inkwell revision
+`c8234a0ee4171e946f94f6b3b5da0ea8d6ef5f3b` and llvm-sys 231.0.0. Repository
+and CI builds enable strict LLVM 23.1 version checking; CI installs Clang/LLVM 23.
+Guarded job 406157 completed exited/success/0 with peak 2,621,702,144 bytes:
+both full suites (23 DWARF checks each), strict Clippy, all four 239/0 corpora,
+FIFO/wide GDB source checks and VCD parity passed. Rebuilt sioxc links
+`libLLVM.so.23.1`. Logs are retained under
+`/home/max/.cache/siox-jobs/tmp/llvm23-alignment.F68ZKc`.
+The accepted source/config/build/README hash, including `.cargo` configuration,
+is `3d4928781cbb008bc12a1db112b6bbd03aa37b71840331a4e89ebe6845d4ff72`.
+This verifies the local CI-equivalent gate; the changed GitHub workflow still
+requires a push/PR run. No Rust compiler APIs or language behavior changed.
+
 ## Supported limits, not fabricated values
 
 - Inspection buffers and `$return`/`$logic` snapshots are read-only views of

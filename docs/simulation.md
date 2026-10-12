@@ -46,8 +46,8 @@ operations.
 
 Signal values cross the runtime ABI in low-word-first 64-bit words, so values
 such as `unsigned[128]` retain their per-type width. LLVM is the permanent
-backend, so building `sioxc` needs LLVM 22. Emitting a native test executable
-also needs Clang and zlib: Clang links the LLVM design object with the fixed
+backend, so building `sioxc` needs LLVM 23.1. Emitting a native test executable
+also needs Clang 23 and zlib: Clang links the LLVM design object with the fixed
 runtime and FST objects that were precompiled and embedded with `sioxc`. If
 those host objects could not be prepared when the compiler was built, native
 test generation compiles the same pinned, design-independent runtime sources.
