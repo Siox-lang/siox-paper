@@ -1573,25 +1573,39 @@ implicitly — only at a conversion expression or a numeric promotion. Kernel
 numeric conversions stay width-driven builtins.
 
 **Numbers promote in arithmetic.** In `a op b` for an arithmetic or
-comparison operator, a `real` beside any number whose type has `impl From<T>
-for real` promotes that number to `real` through the impl: std declares one
-for `unsigned`, `signed`, `ufixed`, `sfixed` and `float`, and `integer`
-promotes as before. The result is a `real`, whichever side it stands on:
+comparison operator on two numbers of different types, both promote to the
+higher rung of one ladder, and the result has that type:
 
-```siox
-let r: real = 2.5;
-let s: sfixed<8, 4> = sfixed<8, 4>(1.5);
-sqrt(i + r + u - s)              // integer + real + unsigned - sfixed: a real
-let y: sfixed<8, 4> = sfixed<8, 4>(r - s);   // storing converts explicitly
+```
+integer  →  unsigned / signed  →  ufixed / sfixed  →  float<W, M>  →  real
 ```
 
-This is the top of the numeric ladder, `integer → unsigned/signed →
-ufixed/sfixed → float → real`: an operation's result takes the higher rung.
-Promotion between the lower rungs (`unsigned + sfixed`, `sfixed + float`) and
-widening one rung's formats to cover both (`sfixed<8, 4> + sfixed<12, 6>`) are
-the [numeric promotion proposal](https://github.com/Siox-lang/sioxc/blob/main/docs/proposals/numeric-promotion.md)'s
-next phase. Assignment and connection stay strict (§3.12): only a value's own
-type stores without a conversion.
+- **The result holds both operands exactly** below `float`: the larger
+  integer part and the larger fraction, and one more integer bit for an
+  `unsigned` beside a signed type. `unsigned[8] + signed[8]` is a
+  `signed[9]`; `sfixed<8, 4> + sfixed<12, 6>` is an `sfixed<12, 6>`;
+  `sfixed<8, 4> + unsigned[8]` is an `sfixed<13, 4>`. Two floats take the
+  wider exponent and mantissa.
+- **A promotion is exact alignment**: std's `core::convert::Widen<Source>`
+  impls only shift a binary point and extend a sign (no rounding, no
+  saturation), so in hardware a promotion below `float` is wiring. Into
+  `float` it normalizes, rounding to nearest even where the format cannot
+  hold the value; into `real` it goes through `impl From<T> for real`.
+- **An `integer` beside a fixed or float format is its value**: `s + 1` adds
+  1.0, and `x == 40` compares the number; `integer(x) == 40` compares the raw
+  word. Beside `unsigned`/`signed`, where the two agree, nothing changes.
+- **Storing stays strict** (§3.12): only a value of the place's own type
+  stores without a conversion, so a promoted result is written back with
+  `T(x)` or `T::resize(x, ..)`, where rounding and overflow are chosen:
+
+```siox
+let y: sfixed<8, 4> = sfixed<8, 4>(a + s);   // sfixed<9, 4> back to 8 bits
+sqrt(i + r + u - s)                          // up to real, simulation only
+```
+
+`time`, `frequency`, enums and `Logic` are not on the ladder. A format is
+part of a fixed or float type: a `ufixed<8, 4>` does not assign to a
+`ufixed<8, 2>` without a conversion.
 
 ### 3.18 `in`, `out`, and `inout` are permission/connection semantics
 
