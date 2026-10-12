@@ -367,6 +367,9 @@ let r: real = real(gain);                           // 2.5
   for `ufixed<8, 4>`; an `sfixed`'s integer bits include the sign.
 - `/` keeps the format, rounding toward minus infinity as `*` does; a quotient
   by zero is zero, as for `unsigned`.
+- A format is part of the type: a `ufixed<8, 4>` does not assign to a
+  `ufixed<8, 2>` (its bits would read at other weights) without one of the
+  conversions below.
 - Between formats the constructor resizes: `ufixed<12, 6>(x)` from another
   `ufixed`, `sfixed<8, 4>(y)` from another `sfixed`, rounding to the nearest
   step (ties away from zero) and saturating, VHDL's `resize` defaults.
