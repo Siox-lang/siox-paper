@@ -363,14 +363,13 @@ consumer payload also uses this path; an ordinary byte return keeps native
 `finish` decoding. No executable ABI or evaluation demand is changed.
 This does not fix GDB's native history decoder or prove every return ABI.
 
-Remaining inspection work includes demand-preserving whole aggregate-return
-boundaries for effectful/checked, independently selected nested-call and
-partially retained results,
-further companion argument/return-plane transport audits, and debugger `finish`
-return-ABI
-checks for wide basic scalars and remaining odd-sized/mixed-layout/partial
-aggregate results. The string and complete byte-normalized register/memory
-cases described below have focused native coverage, not a general ABI proof.
+Remaining inspection work includes supported companion argument/return-plane
+and normalized conversion/signature transport audits. The focused regressions
+below cover checked/effectful grouping, independent nested fragments, joint
+partial returns and mixed wide-array/real fragments; they are not a general
+ABI proof. Independent demand must retain independent frames, not be forced
+into one whole-return boundary. Wide basic scalars use the truthful inline
+snapshot path described above rather than GDB's unsupported native decoder.
 Signed integer-derived Resolve and mixed integer/real struct-to-struct From
 now have actual argument/return checks under both inline hints. Other supported
 conversion specializations and packed companion transports remain under audit;
@@ -640,6 +639,15 @@ The carrier unit proves that two retained 64-bit fields occupy 128 private bits,
 not the source struct's 192 bits, and rejects independent uses and overlapping
 projections. The existing independently selected regression remains separate:
 its guarded fields cannot justify eager joint grouping.
+
+The mixed-partial regression returns a descending `signed[81][2..1]` array,
+an unused middle `abort()` field and a real value through generic nested calls.
+Its comparison consumers retain three independent source fragments. GDB checks
+the full 38-byte declared `Mixed` type and each actual array/real fragment over
+three input epochs, including negative zero; the abort field stays unavailable.
+Both inline hints and packing modes run native assertions, ordinary/debug VCD
+parity and DWARF verification. Metadata-only comparison dependencies do not
+justify evaluating another numeric fragment or grouping these frames.
 
 To run the existing native corpus with DWARF enabled:
 
