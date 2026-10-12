@@ -242,6 +242,15 @@ callee writes through an argument, inspection reports its current value, not
 an entry-time copy. Structs, indexed places, wide/real projections and runtime
 strings use the same read-only inspection conventions as locals. Return types
 are also retained in the source subroutine metadata.
+CFG-expanded packed formals expose `value$logic` (or `self$logic` for a receiver)
+using the same recursive source-enum layout. These read the captured place's
+current numeric/companion state before source stops, including indexed aliases
+and parent frames across suspension and mutation. They are not entry-time
+simulation copies. References are cleared before refresh and remain unavailable
+if either required plane cannot be read. The suspended-call regression checks
+all nine logic states, descending negative-label indexed aliases, 81-bit fields,
+aggregate/receiver views and known binary literals in both packing modes, with
+native assertions, DWARF verification and ordinary/debug VCD parity.
 Literal string arguments use that same `length`/`data`/`byte_length`/`utf8`
 view, backed by immutable character/byte arrays rather than runtime handles.
 Empty literals remain visible formal arguments: both lengths are zero and

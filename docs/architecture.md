@@ -329,6 +329,13 @@ LLVM uses these for source parameter/return types and formal argument locations;
 it does not reevaluate call arguments or turn language aliases into copies.
 Debug-only reference slots point at existing persistent storage or its read-only
 inspection view, so parameters remain inspectable after writes and suspension.
+CFG formal `$logic` companions reuse the numeric parameter snapshot reader and
+the existing recursive companion emitter over captured constants/places.
+This includes current mutable receiver and indexed alias state, not reevaluation
+of source arguments. Numeric and metadata reads share the snapshot cache with
+inactive bounds checks; no simulation ABI or storage changes. Nullable companion
+references are cleared before each refresh and published only after both planes
+have been read and copied into the debugger-only source-enum view.
 Expression-call bindings also retain their smallest owning lexical extent.
 Pure function-body `if`/`match` selections carry the selected return-expression
 spans separately from value IDs: returning an existing local or argument does
