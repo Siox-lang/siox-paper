@@ -371,8 +371,11 @@ let r: real = real(gain);                           // 2.5
   `ufixed<8, 2>` (its bits would read at other weights) without one of the
   conversions below.
 - Between formats the constructor resizes: `ufixed<12, 6>(x)` from another
-  `ufixed`, `sfixed<8, 4>(y)` from another `sfixed`, rounding to the nearest
-  step (ties away from zero) and saturating, VHDL's `resize` defaults.
+  `ufixed`, `sfixed<8, 4>(y)` from a `ufixed` or `sfixed`, `sfixed<13, 4>(u)`
+  from an `unsigned` or `signed`, and `ufixed<8, 4>(3)` from an integer,
+  rounding to the nearest step (ties away from zero) and saturating, VHDL's
+  `resize` defaults. Into a format that holds every source value it only
+  aligns, which is the conversion numeric promotion uses (language §3.17).
 - `ufixed<6, 2>::resize(x, overflow, rounding)` (and `sfixed`) chooses the
   styles, VHDL's `fixed_overflow_style` and `fixed_round_style`, from
   `std::numeric`: `Overflow::Saturate` or `Overflow::Wrap` (drop the bits

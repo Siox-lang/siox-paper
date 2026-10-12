@@ -834,10 +834,9 @@ entirely their **operator impls**:
 `signed` has a signed `Ord` (compare), an arithmetic `>>`, and a signed `/`;
 `unsigned` uses the kernel's unsigned operators. There is no `signed`/`unsigned`
 marker (attribute or trait) — signedness is behaviour, and behaviour lives in
-impls. The one thing that is not an operator — sign-extension when widening —
-is therefore a library function, `std::bits::sext` (re-exported by the
-prelude): `signed[16](sext(x))` widens a signed vector, while a bare
-`signed[16](x)` is a raw resize (zero-extend / truncate).
+impls. Sign extension when widening is std's too: `signed[16](x)` calls
+`impl From<signed> for signed` (§3.17), and `std::bits::sext` (re-exported
+by the prelude) reads a signed vector's value as a kernel integer.
 
 Array behavior is reusable without making nominal vectors interchangeable:
 
@@ -1534,24 +1533,24 @@ This is especially important for `Logic` to `Bit` because unknown/high-impedance
 
 ```siox
 y = unsigned[16](a);  // widen: zero-extends
-z = signed[16](s);    // widen: zero-extends too — see below
+z = signed[16](s);    // widen: sign-extends (std's From<signed> for signed)
 n = unsigned[4](a);   // narrow: truncates
 k = integer(s);       // the raw (unsigned) bits as a kernel word
 r = resize(a, W + 1); // same rule, width as a const-evaluable value
 ```
 
-A conversion is a **raw resize**: zero-extend or truncate, whatever the
-families involved — except between `integer` and `real`, which convert the
-*number*: `integer(r)` truncates toward zero and `real(n)` is exactly n. An
-`integer` is also promoted to `real` implicitly, by value, where a `real` is
-expected (`let r: real = n;`, `1.5 + n`). The compiler tracks no signedness (§3.10), so it cannot
-know that a widening should copy a sign bit — sign extension is the library
-function [`std::bits::sext`](https://github.com/Siox-lang/sioxc/blob/main/std/bits.siox), and a signed value is widened
-by going through it:
+A conversion is a **raw resize**, zero-extend or truncate, unless the
+target family declares `impl From<S> for T` for the source's type (below).
+Between `integer` and `real` it converts the *number*: `integer(r)`
+truncates toward zero and `real(n)` is exactly n. An `integer` is also
+promoted to `real` implicitly, by value, where a `real` is expected
+(`let r: real = n;`, `1.5 + n`). The compiler tracks no signedness (§3.10);
+std's `From<signed> for signed` is what makes `signed[16](s)` copy the sign
+bit, as VHDL's `resize` (narrowing keeps the low bits):
 
 ```siox
-z = signed[16](sext(s));   // -56 stays -56
-k = sext(s);               // the signed *value* as a kernel integer
+z = signed[16](s);   // -56 stays -56
+k = sext(s);         // the signed *value* as a kernel integer
 ```
 
 `resize(x, n)` takes its width as a value argument because the language is
@@ -1586,11 +1585,14 @@ integer  →  unsigned / signed  →  ufixed / sfixed  →  float<W, M>  →  re
   `signed[9]`; `sfixed<8, 4> + sfixed<12, 6>` is an `sfixed<12, 6>`;
   `sfixed<8, 4> + unsigned[8]` is an `sfixed<13, 4>`. Two floats take the
   wider exponent and mantissa.
-- **A promotion is exact alignment**: std's `core::convert::Widen<Source>`
-  impls only shift a binary point and extend a sign (no rounding, no
-  saturation), so in hardware a promotion below `float` is wiring. Into
-  `float` it normalizes, rounding to nearest even where the format cannot
-  hold the value; into `real` it goes through `impl From<T> for real`.
+- **A promotion is the constructor**: an operand becomes `T(x)` through std's
+  `impl From<S> for T`. The promoted format holds every value of the
+  operand's, so the impl takes its exact path, chosen on formats alone
+  (`Self'low <= value'low`, a constant condition that hardware folds): it
+  only shifts a binary point and extends a sign, with no rounding or
+  saturation, so a promotion below `float` is wiring. Into `float` it
+  normalizes, rounding to nearest even where the format cannot hold the
+  value; into `real` it is `impl From<T> for real`.
 - **An `integer` beside a fixed or float format is its value**: `s + 1` adds
   1.0, and `x == 40` compares the number; `integer(x) == 40` compares the raw
   word. Beside `unsigned`/`signed`, where the two agree, nothing changes.
