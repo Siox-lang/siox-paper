@@ -3547,7 +3547,7 @@ one of three forms: **hardware error conditions are ordinary signals**
 (`out error: Bit`, ready/valid); **fatal simulation errors** (`assert!`,
 range violations, missing files) fail the test, like a panic; and
 **recoverable conditions** use explicit status values/signals or `warn!`.
-`exists("fixture.bin")` probes a literal source-relative path without failing;
+`exists("fixture.bin")` probes a source-relative path without failing;
 `read<T>` failures are fatal: runtime reads identify the read expression's
 source location and stop its entry before subsequent initializer or process
 effects. A `Result`-style
@@ -3556,7 +3556,8 @@ value would ride on future payload-carrying enums — never a keyword.
 File-returning primitives are typed initializers. In hardware/top declarations,
 the compiler opens the literal source-relative path and bakes a ROM image into
 the design. In a native `#[test]`, the generated executable opens the path when
-the test runs. `read<string>` decodes UTF-8 and may create a runtime-sized
+the test runs; there the path may be any string value, resolved against the
+source directory as a literal is. `read<string>` decodes UTF-8 and may create a runtime-sized
 Unicode string. `read<integer>` consumes raw little-endian binary, while a
 packed numeric request such as `read<unsigned[16]>` reads the integer data and
 uses the ordinary `unsigned[16](integer)` construction. One numeric element

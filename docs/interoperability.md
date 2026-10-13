@@ -268,6 +268,21 @@ failures fail the test with the operation and path. Hardware/top initializers
 remain different by design: the same call is a compile-time ROM image baked
 into the object.
 
+A testbench path need not be a literal. Any string works: a string local, an
+element of a string array, or a string read from another fixture. It is
+resolved against the source file's directory when the test runs, exactly as a
+literal is when the test is compiled:
+
+```siox
+let names: Char[8][2] = ["word.bin", "wore.bin"];
+let total: integer = 0;
+for fixture in names { total = total + read<integer>(fixture); }
+let listed: string = read<string>("list.txt");   // holds another fixture's name
+let value: integer = read<integer>(listed);
+```
+
+A hardware/top read happens at compile time, so its path stays a literal.
+
 ## Editor support (`siox-lsp`)
 
 The separate [`siox-lsp`](https://github.com/Siox-lang/siox-lsp) repository
@@ -339,6 +354,13 @@ backend-unavailable `CompileFailure` unless the `llvm` feature is enabled.
 File artifacts require an output path when the host wants to control their
 location; `CompileRequest::with_output` sets it. The compiler writes the
 artifact but still never launches it.
+
+`Emit::Source` returns comment-preserving, whitespace-formatted entry source
+as `Artifact::Text`. Retained lexer spans anchor the original token text;
+comments, literals, macro tokens and trailing commas are not rewritten or
+discarded. Formatting is idempotent. This is separate from expanded AST
+pretty-printing, and does not by itself change the LSP's comment-free-only
+formatting policy described above.
 
 `CompileRequest::with_lint_levels` takes the same levels as `sioxc -A/-W/-D/-F`,
 in order (`vec![(Level::Deny, "warnings".into())]` is `-D warnings`). Lint
