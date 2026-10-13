@@ -1080,7 +1080,9 @@ module aliases, `self::`/`super::` paths, enum variant imports, block-level
 `use`, and generic `type` aliases — into plain imports and qualified paths,
 reporting glob ambiguity where a name is used. Imported variants keep the
 `Enum::Variant` form later stages expect, with a hidden import of the enum
-when needed, and generic aliases are substituted away.
+when needed, and generic aliases are substituted away. It also resolves the
+position types of a tuple `let` written through an alias
+(`let (q, r): Pair<A, B> = e;`), which the parser can only mark.
 The binding pass `syntax::attributes::attach` then runs just before resolution: it copies each `attr … for … = …;` binding onto its
 target as an applied attribute (the form later stages read) and folds each
 `x'name` read of a declared attribute into its bound or default value.
@@ -1096,6 +1098,15 @@ ordinary namespaced trait.
 Stage-4 typing represents all indexed collections with one `Ty::Array` shape.
 Array-derived newtypes retain their family name for trait dispatch, but there
 is no separate semantic vector type or `Vector` trait.
+Tuples are checked as `Ty::Tuple`, then `types::lower_tuples` rewrites them
+after checking, next to `types::expand_type_attrs`: a tuple type becomes the
+generic struct `(,)<A, B>` (declared once per arity in a generated module,
+fields `0`, `1`, ..), a tuple value the struct literal `{ .0 = a, .1 = b }`,
+and a tuple `==` the conjunction of its positions'. Elaboration and both
+lowering paths therefore see ordinary generic structs. Two tuple forms stay
+for lowering: a `match` scrutinee, matched position by position and never
+built, and an assignment target `(q, r) = e;`, written leaf by leaf (a hidden
+local holds the value in a process, so it is evaluated once).
 
 Multi-valued packed logic is source-directed as well. Elaboration evaluates
 the canonical `std::logic::LogicEncoding` impl over every enum variant and

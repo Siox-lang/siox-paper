@@ -120,6 +120,9 @@ precise reference.
 - **Container-relative visibility** — module items, struct fields, and
   inherent methods are private by default; `pub` exports them. Entity ports
   and trait methods are interface members and need no separate `pub`.
+- **Tuples** — `(A, B)` values, `t.0` positions, `let (q: A, r: B) = e;`,
+  and `match (a, b) { .. }` over several values at once; a tuple is the struct
+  whose fields are its positions (§3.7a).
 - **Newtypes** — `enum B(A);` / `struct B(A);` reuse a representation under a
   new identity, with the derivation conversion synthesised automatically.
   Derivation never adds members or generally inherits behaviour; bigger types
@@ -610,7 +613,8 @@ type Pair<T> = Packet<T>;              // a generic alias
   ranged integer, an applied generic. The alias is transparent for type
   identity; a distinct type is the newtype form, `struct Word(Bit[]);`
   (§3.28). A generic alias takes the same binder as other declarations and is
-  applied like its target: `Pair<unsigned[8]>` is `Packet<unsigned[8]>`.
+  applied like its target: `Pair<unsigned[8]>` is `Packet<unsigned[8]>`,
+  and `type Pair<A, B> = (A, B);` names a tuple (§3.7a).
   An alias also names its type's constructor: `Word(x)` for
   `type Word = unsigned[8];` is `unsigned[8](x)`.
 - **A struct whose parameters shape its base's index range** is that family
@@ -953,6 +957,81 @@ struct Packet<T> {
 ```
 
 Directions are applied at entity ports or on the fields of views.
+
+---
+
+### 3.7a Tuples are anonymous structs
+
+A tuple groups values by position instead of by name: several results from
+one function, or several signals matched at once.
+
+```siox
+fn divmod(a: unsigned[8], b: unsigned[8]) -> (unsigned[8], unsigned[8]) {
+    return (a / b, a % b);
+}
+
+let (q: unsigned[8], r: unsigned[8]) = divmod(x, 7);
+let pair: (Bit, unsigned[4]) = ('1', 9);
+let low: unsigned[4] = pair.1;
+
+match (state, start, count) {
+    (State::Idle, '1', _)   => next = State::Run,
+    (State::Run,  _, 0..14) => next = State::Run,
+    (State::Run,  _, _)     => next = State::Done,
+    _                       => next = State::Idle,
+}
+```
+
+**Syntax.**
+
+- A type is `(T1, T2, ..)`, with two or more elements; `(T)` is `T`. It may
+  be indexed like any type (`(Bit, Bit)[4]`) and named by an alias, generic
+  or not (`type Pair<A, B> = (A, B);`).
+- A value is `(a, b, ..)`; a parenthesized single expression stays grouping.
+- A position is `t.0`, `t.1`; `t.0.1` reads a nested tuple's position.
+- A pattern is `(p1, p2, ..)`, each position any pattern, nested tuples
+  included.
+- `let (q: A, r: B) = e;` declares each name. Every name declares a type, as
+  every `let` does: by itself, or through a type on the whole pattern,
+  `let (q, r): (A, B) = e;` (an alias works too). `_` declares nothing.
+  Patterns nest: `let ((hi: A, lo: A), odd: B) = e;`.
+- `(q, r) = e;` assigns existing places, in a process or as a concurrent
+  assignment; `_` skips a position. `let (..) = e;` is its declarations
+  followed by exactly this assignment.
+- A bare comma is not a tuple: `let a, b: T = v;` declares two names with one
+  type and value (VHDL's `signal a, b : T := v;`).
+
+**Meaning.** A tuple is the struct whose fields are its positions: `(A, B)`
+is `struct (,)<T0, T1> { 0: T0, 1: T1 }` applied to `A, B`. So a tuple port,
+signal or return flattens as a struct does (waveforms show `t.0`, `t.1`) and
+costs nothing beyond its elements. In hardware a tuple is wires.
+
+- **Assignment** is by position, with each element's own rules: a literal
+  reads through its position's type (`('1', 9)` into `(Bit, unsigned[4])`),
+  and widths must match exactly.
+- **Destructuring** evaluates the value once, then writes each position, so
+  `(a, b) = (b, a);` swaps in a process.
+- **Comparison** is `==` and `!=`, position by position through each
+  element's own equality; every position must have one. A tuple has no other
+  operator.
+- **Printing** with `{:?}` is Rust's form, `('1', 9)`.
+- **Matching:** a tuple pattern matches when every position does, the
+  conjunction of the positions' conditions, so it inherits everything a
+  single pattern does (`Match` bit patterns, `Ord` ranges, enum variants);
+  first match wins. A tuple literal scrutinee is never built: its positions
+  are matched where they are. Exhaustiveness is checked over the
+  combinations of the enum positions (`Bool`, `Logic`, a `State`); a match
+  naming every combination needs no `_`, and a missing one is reported by
+  name (`` `(State::Idle, Bool::false)` is not covered ``). Any other
+  position is covered only by `_`.
+- A generic function's tuple return takes its parameters from the arguments,
+  as a bare `-> T` does: `swap<T>(a: T, b: T) -> (T, T)`.
+
+Not part of tuples: the unit type `()` (a function without a value has no
+return type), single-element tuples `(T,)`, named tuple structs
+(`struct Point(integer, integer)`; one-field newtypes already exist),
+destructuring in function parameters, and matching a tuple of vectors with
+one concatenated bit pattern (write a tuple pattern).
 
 ---
 
@@ -1872,6 +1951,8 @@ Reserved future rule:
 ### 3.22 Pattern matching supports digital values
 
 Phase 1 should support `match` over enums and simple bit/vector patterns.
+Several values match at once as a tuple, `match (a, b) { ('1', _) => .. }`
+(§3.7a).
 
 Enum match:
 
