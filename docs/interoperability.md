@@ -74,15 +74,34 @@ A bridge or exporter follows these. "4-state" means Verilog/SystemVerilog
 `logic`/`wire` and SystemC `sc_logic`; "2-state" means SystemVerilog `bit`/`int`,
 SystemC `bool`/`sc_uint`, and Chisel.
 
-1. **Logic values.** `Logic` is VHDL `std_logic`, value for value, and `Bit` is
-   VHDL `bit`. To 4-state: `'0'`→`0`, `'1'`→`1`, `'Z'`→`z`, `'L'`→`0`,
-   `'H'`→`1`, and `'U'`/`'X'`/`'W'`/`'-'`→`x`; from 4-state: `0`, `1`, `x`, `z`
-   become `'0'`, `'1'`, `'X'`, `'Z'`. Where a Verilog net carries strength,
-   `'L'`/`'H'` map to and from `weak0`/`weak1`. To 2-state, `'1'` and `'H'` are
-   `1` and everything else is `0`, as SystemVerilog's 4-to-2 cast. Those
-   mappings lose information, `'U'` and the weak values do not survive a
-   round trip, and a bridge reports the first lossy conversion on each port
-   rather than hiding an unknown.
+1. **Logic values.** A 4-state port is typed `Logic` (or `Logic[N]`) on the
+   siox side; the nine values are a superset of the four, so the boundary
+   translates and the user writes nothing.
+
+   - **Into siox** nothing changes: `0`, `1`, `x`, `z` are `'0'`, `'1'`,
+     `'X'`, `'Z'`.
+   - **Out of siox** each element is collapsed by IEEE 1164 `To_X01Z`, as
+     mixed-language simulators do: `'L'`→`0`, `'H'`→`1`,
+     `'U'`/`'W'`/`'-'`→`x`, and the other four pass through. This is the
+     defined meaning of a siox value in Verilog, not a loss, and is not
+     reported.
+   - **`inout`**: the net stays a resolved siox `Logic`. The foreign driver
+     joins it as one more `Logic` driver, and the foreign side reads the
+     resolved value through `To_X01Z`. For strong drivers `Logic`'s
+     resolution agrees with a Verilog `wire` (`0` against `1` is `x`, `z`
+     yields to anything, `x` wins).
+   - **Strength**, where a Verilog net carries it: `pull`/`weak` `0`, `1`, `x`
+     enter as `'L'`, `'H'`, `'W'`, and `'L'`/`'H'` leave as `weak0`/`weak1`,
+     so a Verilog `pullup` resolves against a siox driver as in Verilog. A
+     bridge without strength sees a pull-up as a strong `1`.
+   - **2-state** (`Bit`, `unsigned`, `signed`, and 2-state foreign types):
+     `'1'` and `'H'` are `1` and everything else is `0`, as SystemVerilog's
+     4-to-2 cast. An `x` or `z` reaching a 2-state siox port is the one real
+     loss, and a bridge warns on the first one per port. Ports that face a
+     4-state design should therefore be `Logic`.
+
+   VHDL needs none of this: `Logic` is `std_logic` and `Bit` is `bit`, value
+   for value.
 2. **Widths.** A siox operator produces its operands' width and wraps, and an
    assignment must match its target's width exactly, as VHDL `numeric_std`.
    Chisel's `+` (`+%`) agrees; its `+&` widens. Verilog and SystemVerilog size
