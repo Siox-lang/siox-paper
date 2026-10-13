@@ -3514,8 +3514,11 @@ loop-iterable calls execute once at loop entry, not on each back-edge. Reading
 a parameter before a mutating call snapshots that value without redirecting
 the parameter's writable alias; subsequent reads observe immediate writes.
 
-Runtime recursion is not yet supported and must fail closed before argument
-or callee effects escape a failed inline. Reset-time impl declarations execute
+Runtime recursion is not yet supported: a testbench call expands where it is
+made and has no frame, so a function that reaches itself, directly or through
+other calls, is a compile-time error (`E-P038`) naming the function and the
+call. Unsupported call forms must fail closed before argument or callee
+effects escape a failed inline. Reset-time impl declarations execute
 as source-ordered initialization CFGs before reactive hardware bootstrap and
 ordinary stimulus. Calls may use loops, early returns and suspension here too;
 the same scheduler resumes them. Initialization that suspends advances time
