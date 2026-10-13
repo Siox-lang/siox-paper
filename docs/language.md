@@ -3566,7 +3566,9 @@ packed numeric request such as `read<unsigned[16]>` reads the integer data and
 uses the ordinary `unsigned[16](integer)` construction. One numeric element
 consumes `ceil(width / 8)` file bytes. A destination may be one requested value
 or a fixed array of it; short input zero-fills, and oversized, missing, or
-invalid input fails the owning compile or test phase.
+invalid input fails the owning compile or test phase. In a `#[test]`,
+`read<T[]>` instead sizes a read-only runtime array (`T[]`) to the file: as
+many elements as it holds, a trailing partial element being an error.
 
 Testbench `let`s run in **statement order**; a name not connected to a DUT
 port is a plain local. `for` binds its loop variable, and any array iterates

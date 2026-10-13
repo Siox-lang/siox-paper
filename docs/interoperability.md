@@ -283,6 +283,20 @@ let value: integer = read<integer>(listed);
 
 A hardware/top read happens at compile time, so its path stays a literal.
 
+A testbench can also read a file of unknown length into a **runtime-sized
+array**, `T[]`, for `integer` or a packed numeric of up to 64 bits:
+
+```siox
+let samples: unsigned[16][] = read<unsigned[16][]>("stimulus.bin");
+for sample in samples { din = sample; await 10ns; }
+assert!(samples'length > 0, "stimulus present");
+```
+
+Each element consumes `ceil(T'length / 8)` bytes, little-endian. A trailing
+partial element fails the test, as does an index past `'length`. The array is
+read-only, and passing it to a `T[]` parameter shares it. It lives in the
+runtime's string table, so a `string` and a `T[]` are the same kind of handle.
+
 ## Editor support (`siox-lsp`)
 
 The separate [`siox-lsp`](https://github.com/Siox-lang/siox-lsp) repository
