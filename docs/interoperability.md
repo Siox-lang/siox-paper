@@ -181,6 +181,70 @@ SystemC `bool`/`sc_uint`, and Chisel.
     the siox side of a co-simulation boundary, and an exporter rejects them
     with the construct's span.
 
+### Working with nvc
+
+nvc is the reference simulator for siox's logic semantics, and the free
+simulator most likely to sit on the other side of a boundary. This records
+what nvc 1.23 offers (from its source, `src/elab.c`, `src/vhpi/`,
+`src/jit/jit-ffi.c` and `lib/nvc/verilog*.vhd`) and how siox can use it.
+
+nvc is GPL-3 and has no embedding API, so it is never linked into `sioxc` or
+the siox runtime. Every arrangement below keeps nvc a separate program: siox
+either runs as a VHPI plugin that nvc loads (as cocotb does) or produces VHDL
+that nvc compiles. Mapping tables are taken from IEEE 1164 and 1364, not from
+nvc's code. Both simulators count time in 64-bit femtoseconds (nvc signed,
+siox unsigned) and share VHDL's delta-cycle model, so the two can step in
+lock-step without translating time.
+
+**nvc's own Verilog boundary.** For a VHDL instance of a Verilog module,
+nvc's elaborator inserts conversion functions from its `NVC.VERILOG` package
+into the port map, which is the arrangement rule 1 describes. It differs from
+rule 1 in two places, and siox keeps its own choice in both:
+
+| | nvc | siox (rule 1) |
+|---|---|---|
+| Verilog `x` enters as | `'U'` | `'X'`: `'U'` means never assigned, which `x` cannot say |
+| `pull0`/`pull1` enter as | `'0'`/`'1'` (only weak, medium and small become `'L'`/`'H'`) | `'L'`/`'H'`, so a `pullup` resolves against a siox driver |
+
+The outward direction agrees (`'U'`/`'X'`/`'W'`/`'-'`→`x`, `'L'`/`'H'`→weak
+`0`/`1`). nvc accepts only `input` and `output` across the language boundary
+and rejects `inout`, so it is no reference for rule 1's `inout` case.
+
+**What nvc's VHPI supports.** Value-change, end-of-processes, next-time-step
+and end-of-elaboration callbacks, object-model iteration over ports and
+generics, and `vhpi_put_value` with force, deposit and their propagating
+forms. Not supported: foreign architectures (`vhpi_register_foreignf` accepts
+only `vhpiFuncF`/`vhpiProcF`) and `vhpi_schedule_transaction` (missing), so a
+plugin cannot add a driver to a VHDL signal.
+
+The integrations, cheapest first:
+
+1. **Importing VHDL interfaces.** A VHPI plugin walks the elaborated design's
+   ports and generics at end of elaboration and prints the matching
+   `extern entity` declarations. siox gets VHDL interfaces without a VHDL
+   parser and without reading nvc's private library format. The VHDL top must
+   elaborate on its own, so its generics need defaults or `-g` values.
+2. **Co-simulation: siox inside nvc.** `nvc --load=libsiox_vhpi.so` runs the
+   siox runtime beside nvc's. Because nvc has no foreign architectures, a
+   siox entity appears in VHDL as an empty shell entity with its ports; the
+   plugin watches the shell's inputs, runs siox's delta cycles, and deposits
+   its outputs with propagation. Deposits are not drivers, so an `inout`
+   cannot resolve across this boundary, and siox outputs arrive one delta
+   cycle after the inputs that caused them, which is invisible to clocked
+   interfaces.
+3. **Exporting siox to VHDL.** The boundary rules above are what an exporter
+   must preserve. It is the largest piece, and the one that lets any siox
+   design run in nvc and turns today's hand-checked nvc comparisons (the
+   logic tables, the X/Z corpus tests) into an automatic differential test.
+4. **VHPI in the siox runtime.** cocotb drives nvc through VHPI; a siox
+   runtime that implements the same subset gets cocotb unchanged.
+   `vhpi-model.c` documents the subset that cocotb needs.
+
+nvc can also call C from VHDL (`VHPIDIRECT`, GHDL's convention: integer, enum
+and real scalars and arrays, no signal parameters). siox functions could be
+called that way once siox can export a C symbol, which it cannot today
+(`extern "C"` only imports); there is no plan for it.
+
 ## File I/O
 
 Testbenches can read fixtures from disk with `read<T>` and `exists` (in
