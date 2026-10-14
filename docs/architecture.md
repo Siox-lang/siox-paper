@@ -311,8 +311,9 @@ both storage modes. This is cooperative concurrency, not worker-thread support.
 Phase 1 acceptance evidence is recorded in the
 [exit audit](phase1-audit.md), including the five pipeline invariants, eleven
 language deliverables, twelve named examples and historical stage/CLI criteria.
-Native recursion, non-packed conversions, general runtime-sized arrays/computed
-file paths remain separate extensions rather than fallback execution paths.
+Testbench recursion, non-packed `From` bodies, runtime-sized arrays and computed
+file paths are Process IR CFG expansion and fixed-runtime host services, not
+fallback execution paths.
 `--debug` emits direct DWARF from these same Process entries, preserves lexical
 local extents and disables LLVM optimization. Debug-only byte-aligned buffers
 make packed aggregate fields inspectable at source boundaries without changing
@@ -775,7 +776,11 @@ the ordinary ready/continuation/event queues even across suspension. Reset
 installs default frames; retained initializer roots supply source/type metadata
 but are not re-executed in LLVM's reset helper. The fixed runtime publishes
 initializer bindings without exposing intermediate defaults as wave samples.
-Runtime recursion and guarded hardware evaluation remain unfinished work.
+Testbench recursion runs on the same queues: a function whose body is one value
+calls a shared native copy (guarded by `sx_runtime_frame_room`), and any other is
+expanded once with a per-process runtime frame stack (`FramePush`/`FramePop`/
+`FrameRestore` host operations, `sx_runtime_frame_push`/`pop`) holding its locals
+and X/Z planes per call. Guarded hardware evaluation remains unfinished work.
 Procedural signal reads retain their declaration-owned layout before projection,
 so entity-qualified packed ports use the same labelled slices as local aliases.
 Normalization rewrites each dependency once and compacts reachable values
@@ -1166,7 +1171,10 @@ offset; source-owned binary and weak/metavalue discriminants remain intact.
 Contiguous nonnegative index domains use two unsigned bounds comparisons,
 which also reject negative integer indices. Negative and sparse domains retain
 their equality predicates; storage-free block-local read selectors and
-captured-place candidate expansion remain optimization follow-ups.
+captured-place candidate expansion remain optimization follow-ups. An operand's
+element-wise unknown test (an arithmetic or comparison result is unknown when an
+operand element is) is built once per driver and companion read, not once per
+operation reading it.
 
 Canonical Process code generation computes immutable value-support,
 checked-index, and metavalue-free facts once per object, in arena dependency
@@ -1298,7 +1306,10 @@ X/Z cases, rather than a reduced set.
 
 Cargo features name implemented build boundaries only: `cli`/`llvm` select the
 compiler executable and LLVM dependency, `simd` targets the build host's CPU
-features, and `bitpack` selects the alternate packed state layout. Arbitrary-
+features, and `bitpack` selects the alternate packed state layout. Without
+`simd`, x86_64 objects target the x86-64-v2 level (SSE4.2, POPCNT): selecting
+wide-integer code for baseline x86-64 cost several times the compile time.
+Other triples use a generic CPU. Arbitrary-
 width integers are part of the normal compiler and need no `wide` flag. Quad
 precision has no `f128` flag until its lowering, ABI, formatting, and fallback
 runtime all exist.
