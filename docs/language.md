@@ -3522,8 +3522,8 @@ fails the test, naming the function. Any other recursive function is expanded
 once and keeps a frame per call on the process's runtime stack, so loops,
 mutated locals, effects and `await` work inside it. Its parameters are then
 copies rather than the caller's places, so a recursive function that writes a
-parameter is a compile-time error (`E-P038`), as is one that keeps a local with
-an X/Z plane (`unsigned`, `Logic`), which a frame does not save. Unsupported call forms must fail closed before argument or callee
+parameter is a compile-time error (`E-P038`). A frame saves each local with its
+X/Z plane. Unsupported call forms must fail closed before argument or callee
 effects escape a failed inline. Reset-time impl declarations execute
 as source-ordered initialization CFGs before reactive hardware bootstrap and
 ordinary stimulus. Calls may use loops, early returns and suspension here too;
