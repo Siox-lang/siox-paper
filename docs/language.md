@@ -2150,6 +2150,10 @@ pub type string = Char[];   // std::text
 s: string[5] in,             // the use supplies the range: Char[5]
 ```
 
+A sized index fills an unconstrained array's range. Empty brackets on one
+nest instead: `integer[][]` is an array of `integer[]`, and `string[]` an
+array of strings. In a testbench these are runtime arrays of runtime arrays.
+
 Using an unconstrained array where a concrete size is needed (a port, a
 signal) without supplying one is an error. A **string literal supplies the
 length**: `let s: string = "hello";` infers `Char[5]`, assigns one code
@@ -3585,7 +3589,11 @@ lowest, and `xs[i][j] = v` updates the element. `xs.push(v)` appends, as a
 Rust `Vec` does; an unset `T[]`, or `[]`, is empty. An array of a character
 enum (`read<Logic[]>`, `read<Bit[]>`) reads a text file instead, one symbol per
 element with whitespace skipped, as VHDL textio reads a `std_logic_vector`;
-X/Z values survive element writes and pushes.
+X/Z values survive element writes and pushes. Runtime arrays nest
+(`integer[][]`, `string[]`): `rows[i][j] = v` and `rows[i].push(v)` act on
+the inner array in place, and assigning or pushing an array copies every
+level. A fixed array or string becomes a runtime one where one is expected
+(`xs = [7, 8, 9]`, `names.push("de")`).
 
 Testbench `let`s run in **statement order**; a name not connected to a DUT
 port is a plain local. `for` binds its loop variable, and any array iterates
