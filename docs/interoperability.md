@@ -362,7 +362,84 @@ top selection, invalid codegen IR, or unavailable backend are represented by
 artifact, so a host remains responsible for presentation, caching, process
 execution, and project discovery.
 
-`Emit::Metadata`, `Source`, `Tokens`, `Ast`, `Tree`, and `Ir` work in the
+### Development interfaces (not yet published)
+
+The module-input and test-planning APIs below exist only in the local compiler
+development branch; they are not available on published compiler main yet.
+Wafer's corresponding integration requires that compiler work to pass its gate
+and be published. The compiled-library architecture is still a proposal.
+
+Explicit dependency source modules use the same API, without copying a die's
+sources next to the entry file:
+
+```rust
+use siox::compiler::ModuleSource;
+
+let request = CompileRequest::new(
+    SourceInput::path("/workspace/app.siox"),
+    Emit::Metadata,
+).with_module_sources([
+    ModuleSource::new("vendor::fifo", SourceInput::path("/dies/fifo/src/fifo.siox")),
+    ModuleSource::new(
+        "vendor::helpers",
+        SourceInput::memory("/dies/helpers/src/helpers.siox", unsaved_helper_text),
+    ),
+]);
+```
+
+The CLI equivalent is repeatable `--module NAME=PATH`. Names are complete module
+paths matching their source declarations, not package aliases. The caller can
+locate every transitive module explicitly; otherwise the existing entry-relative
+lookup remains available. Explicit inputs are authoritative and retain their
+original paths for diagnostics and compile-time reads. Import discovery and
+fully qualified references load only referenced modules, including the custom
+operator declarations needed before parsing expressions. Duplicate names/source
+aliases, invalid identifiers and `core`/`std` overrides are host input failures;
+an unreadable explicit source does not silently fall back to a local file.
+
+Wafer, the separate Cargo-like tool, owns packages called **dies**, manifest
+discovery, version selection, fetching and execution. `sioxc` receives explicit
+inputs and remains configuration-file independent. Unlike rustc's `--extern`,
+which locates compiled crate metadata/libraries, this initial interface supplies
+source modules. `--module` itself supplies no compiled metadata or linking.
+
+Compiled subparts must mirror rustc's metadata/native-library architecture,
+not a parsed-AST/source archive. The `.sioxlib` / `--emit library` / `--library`
+prototype was removed before publication; these are not supported commands.
+The target uses explicit `--extern NAME=PATH`, importable checked metadata,
+stable crate/declaration/type identities, typed generic bodies and native
+codegen units. Metadata-only output is not linkable object code. Package aliases
+and version isolation depend on the stable identity contract, while hardware
+units additionally need per-instance storage, scheduler and debug relocation.
+See [the compiled-unit implementation plan](proposals/compiled-units.md)
+for the target contracts and acceptance sequence. They are not implemented yet;
+current dependencies must still be supplied as source modules.
+
+This follows the separation documented in [rustc's dependency flags](https://doc.rust-lang.org/rustc/command-line-arguments.html#--extern-specify-where-an-external-library-is-located),
+not its compiled-crate format. Within the compiler, early import/operator
+discovery precedes full AST name resolution, comparable to rustc's
+[early and late resolution](https://rustc-dev-guide.rust-lang.org/name-resolution.html).
+Siox retains its existing scopes, visibility checks and pipeline; no package
+resolver is added to the language resolver.
+
+Package tools query `Emit::TestPlan` (CLI `--emit test-plan`) for canonical std
+test identities without native code generation. Its text artifact contains one
+qualified test name per line; a testless library returns an empty successful
+plan. `Compilation::test_plan` retains the corresponding entity identities,
+roots and spans for embedding callers.
+
+`CompileRequest::with_test_sources` (repeatable CLI `--test-source PATH`)
+restricts planning or native test compilation to tests owned by the selected
+source modules. Ownership follows the module's source identity, including
+expanded declarations, rather than package-name guesses or attribute scraping.
+Unselected dependency tests are not harness roots; dependency source still
+undergoes normal analysis. Without this selection the existing all-loaded-test
+behavior is unchanged. Selection is rejected for non-test artifacts, and
+an empty native executable selection remains an error rather than creating a
+dummy binary. Wafer queries the plan first and skips native compilation when
+there are no tests.
+
+`Emit::Metadata`, `TestPlan`, `Source`, `Tokens`, `Ast`, `Tree`, and `Ir` work in the
 frontend-only build. `Emit::LlvmIr`, `Object`, and `TestExecutable` return a
 backend-unavailable `CompileFailure` unless the `llvm` feature is enabled.
 File artifacts require an output path when the host wants to control their
