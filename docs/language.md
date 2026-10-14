@@ -3579,7 +3579,9 @@ invalid input fails the owning compile or test phase. In a `#[test]`,
 `read<T[]>` instead sizes a runtime array (`T[]`) to the file: as many
 elements as it holds, a trailing partial element being an error. Its elements
 are writable (`xs[i] = v`), and like any array it is a value: assigning it
-copies. `let xs: T[] = [a, b, c];` takes the literal's length.
+copies. `let xs: T[] = [a, b, c];` takes the literal's length. An element
+may be a fixed array (`unsigned[8][2][]`): its packed bits, inner index 0
+lowest, and `xs[i][j] = v` updates the element.
 
 Testbench `let`s run in **statement order**; a name not connected to a DUT
 port is a plain local. `for` binds its loop variable, and any array iterates
