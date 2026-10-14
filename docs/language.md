@@ -3514,10 +3514,14 @@ loop-iterable calls execute once at loop entry, not on each back-edge. Reading
 a parameter before a mutating call snapshots that value without redirecting
 the parameter's writable alias; subsequent reads observe immediate writes.
 
-Runtime recursion is not yet supported: a testbench call expands where it is
-made and has no frame, so a function that reaches itself, directly or through
-other calls, is a compile-time error (`E-P038`) naming the function and the
-call. Unsupported call forms must fail closed before argument or callee
+A testbench function may recurse when its body is one value: `if`/`return`
+over operators and calls without effects (`fact`, `fib`, mutually recursive
+`even`/`odd`). Its recursive calls call one shared native copy, and each runs
+only on the path its selection takes. A testbench call otherwise expands where
+it is made and has no frame, so recursion through a body with a loop, a
+mutated local or an effect is a compile-time error (`E-P038`) naming the
+function and the call. Recursion deep enough to exhaust the native stack is
+not yet guarded. Unsupported call forms must fail closed before argument or callee
 effects escape a failed inline. Reset-time impl declarations execute
 as source-ordered initialization CFGs before reactive hardware bootstrap and
 ordinary stimulus. Calls may use loops, early returns and suspension here too;
