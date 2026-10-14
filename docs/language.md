@@ -3520,10 +3520,13 @@ recursive `even`/`odd`) calls one shared native copy, each call running only on
 the path its selection takes; recursion deep enough to exhaust the native stack
 fails the test, naming the function. Any other recursive function is expanded
 once and keeps a frame per call on the process's runtime stack, so loops,
-mutated locals, effects and `await` work inside it. Its parameters are then
-copies rather than the caller's places, so a recursive function that writes a
-parameter is a compile-time error (`E-P038`). A frame saves each local with its
-X/Z plane. Unsupported call forms must fail closed before argument or callee
+mutated locals, effects and `await` work inside it. A frame saves each local
+with its X/Z plane. Its parameters are copies, and a written parameter is
+copied back to its argument when the call returns, so a parameter still writes
+through to the caller's local as in a plain call (copy-in/copy-out: the same
+variable passed for two parameters is where this differs from aliasing).
+Writing back to a signal or storage argument from a recursive function is a
+compile-time error (`E-P038`). Unsupported call forms must fail closed before argument or callee
 effects escape a failed inline. Reset-time impl declarations execute
 as source-ordered initialization CFGs before reactive hardware bootstrap and
 ordinary stimulus. Calls may use loops, early returns and suspension here too;
