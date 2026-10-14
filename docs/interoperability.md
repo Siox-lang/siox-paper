@@ -284,7 +284,7 @@ let value: integer = read<integer>(listed);
 A hardware/top read happens at compile time, so its path stays a literal.
 
 A testbench can also read a file of unknown length into a **runtime-sized
-array**, `T[]`, for `integer` or a packed numeric of up to 64 bits:
+array**, `T[]`, for `integer` or a packed numeric of any width:
 
 ```siox
 let samples: unsigned[16][] = read<unsigned[16][]>("stimulus.bin");
