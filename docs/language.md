@@ -3582,7 +3582,10 @@ are writable (`xs[i] = v`), and like any array it is a value: assigning it
 copies. `let xs: T[] = [a, b, c];` takes the literal's length. An element
 may be a fixed array (`unsigned[8][2][]`): its packed bits, inner index 0
 lowest, and `xs[i][j] = v` updates the element. `xs.push(v)` appends, as a
-Rust `Vec` does; an unset `T[]`, or `[]`, is empty.
+Rust `Vec` does; an unset `T[]`, or `[]`, is empty. An array of a character
+enum (`read<Logic[]>`, `read<Bit[]>`) reads a text file instead, one symbol per
+element with whitespace skipped, as VHDL textio reads a `std_logic_vector`;
+X/Z values survive element writes and pushes.
 
 Testbench `let`s run in **statement order**; a name not connected to a DUT
 port is a plain local. `for` binds its loop variable, and any array iterates

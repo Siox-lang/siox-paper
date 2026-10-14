@@ -298,7 +298,10 @@ written in place (`samples[i] = v`, `sx_runtime_array_store`). Assigning the
 array copies it (`sx_runtime_array_copy`), while a `T[]` parameter writes
 through to the caller's array as any parameter does. `samples.push(v)` appends
 (`sx_runtime_array_push`, doubling its allocation); an unset `T[]` is the empty
-array, handle zero. It lives in the runtime's
+array, handle zero. A character enum element (`Logic`, `Bit`) comes from text
+(`sx_runtime_read_symbols`): the runtime stores each symbol's position in the
+enum's symbol list, and the compiler maps positions to the enum's values. It
+lives in the runtime's
 string table, so a `string` and a `T[]` are the same kind of handle.
 
 ## Editor support (`siox-lsp`)
