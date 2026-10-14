@@ -293,9 +293,11 @@ assert!(samples'length > 0, "stimulus present");
 ```
 
 Each element consumes `ceil(T'length / 8)` bytes, little-endian. A trailing
-partial element fails the test, as does an index past `'length`. The array is
-read-only, and passing it to a `T[]` parameter shares it. It lives in the
-runtime's string table, so a `string` and a `T[]` are the same kind of handle.
+partial element fails the test, as does an index past `'length`. Elements are
+written in place (`samples[i] = v`, `sx_runtime_array_store`). Assigning the
+array copies it (`sx_runtime_array_copy`), while a `T[]` parameter writes
+through to the caller's array as any parameter does. It lives in the runtime's
+string table, so a `string` and a `T[]` are the same kind of handle.
 
 ## Editor support (`siox-lsp`)
 
