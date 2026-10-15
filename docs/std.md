@@ -126,6 +126,10 @@ Radix bit-string literals `x"AB"` / `o"17"` are sized `unsigned` constants,
 declared by `impl Prefix<"x", _> for unsigned` in `std::bits` (spec 3.24); a plain string
 `"0101"` covers the binary case with no prefix. A file that never imports
 `std::bits` falls back to kernel word semantics.
+`unsigned(v)` / `signed(v)` (or `unsigned[N](v)`) of a `Logic[N]` is VHDL's
+`unsigned(slv)`: `impl From<Logic[]> for unsigned` copies the elements in
+order, the leftmost most significant whatever the range direction, and keeps
+metavalues.
 
 **Bit methods**, after Rust's integer methods. They work in hardware and in
 testbenches, at any width:
