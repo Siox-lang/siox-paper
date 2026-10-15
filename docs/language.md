@@ -3596,7 +3596,9 @@ level. A fixed array or string becomes a runtime one where one is expected
 (`xs = [7, 8, 9]`, `names.push("de")`).
 
 Testbench `let`s run in **statement order**; a name not connected to a DUT
-port is a plain local. `for` binds its loop variable, and any array iterates
+port is a plain local. `for` binds its loop variable, read-only: each
+iteration binds it afresh, so assigning it is an error, as for a VHDL loop
+parameter (a body-level `let` of the same name shadows it). Any array iterates
 directly, Python-style — length is the `'length` system attribute. It is an
 elaboration-time fact for declared arrays and a runtime value for an
 unconstrained string returned by `read<string>`. Other scalar values are not
