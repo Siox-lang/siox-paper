@@ -3754,6 +3754,9 @@ Errors:
 - Use of Phase 2-only analogue syntax.
 - Signal driven from multiple independent contexts when its type has no
   `impl Resolve` (E-P014).
+- A `match` expression that does not cover every value of its scrutinee
+  (E-P039): it has no value to produce for the rest. The statement form, which
+  may take no arm, is the warning below.
 
 Warnings:
 
@@ -3762,7 +3765,7 @@ Warnings:
 - Unused parameter.
 - Unused import.
 - Unreachable match arm.
-- Non-exhaustive enum match, if no `_` arm exists.
+- Non-exhaustive `match` statement, if no `_` arm exists (W-P007).
 - Suspicious `Logic` comparison.
 - Reset pattern possibly unintended.
 
