@@ -131,6 +131,15 @@ declared by `impl Prefix<"x", _> for unsigned` in `std::bits` (spec 3.24); a pla
 order, the leftmost most significant whatever the range direction, and keeps
 metavalues.
 
+`signed[N](integer_value)` uses `From<integer> for signed`; widening a signed
+vector uses `From<signed> for signed`, and widening an unsigned vector uses
+`From<unsigned> for signed`. These std bodies retain bits past one kernel
+word instead of round-tripping through `integer`. Signed resizing copies the
+sign element, including individual `X`, `Z` and weak logic values; narrowing
+keeps the low bits. `integer(s)` reads the raw kernel word, while `sext(s)`
+requests its signed interpretation. The conversion's declared width and range
+also apply when its argument is a field of a returned struct.
+
 **Bit methods**, after Rust's integer methods. They work in hardware and in
 testbenches, at any width:
 
