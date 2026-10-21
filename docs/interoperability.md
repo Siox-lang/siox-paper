@@ -8,7 +8,7 @@ I/O, editors, and compiler embedding.
 A design or testbench may call C functions declared `extern "C"`:
 
 ```siox
-extern "C" fn sin(x: real) -> real;
+extern "C" { fn sin(x: real) -> real; }
 ```
 
 Only the `"C"` ABI is supported. Its current contract is deliberately scalar:
