@@ -2093,7 +2093,10 @@ keeps the top).
 `0..3`. A written range keeps its direction: `Logic[7..0]` declares
 elements 7 down to 0 (descending), `Bit[0..3]` ascending. Slices follow the
 written order too: `w[7..4]` extracts MSB-first (the natural bit order),
-while `w[4..7]` extracts the same bits with the order reversed.
+while `w[4..7]` extracts the same bits with the order reversed. A range
+slices at every width: `w[3..3]` is a one-element vector, as `w(3 downto 3)`
+is in VHDL, and `w[3]` is the element. Code generic over a width `W` therefore
+reads `w[W - 1..0]` the same way when `W` is 1.
 
 A runtime scalar index is supported for packed vectors in hardware and native
 testbench code. Reads select one element and writes are read-modify-writes that
