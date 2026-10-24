@@ -45,10 +45,32 @@ chain of function calls that reaches one. Using a void call as a value is a
 type error. The same rule covers the runtime's own testbench-only intrinsics
 (`rand`, `read`), which are not C functions.
 
-Generic declarations, structs, arrays, characters, and packed values wider
+A **struct or fixed array** parameter crosses by pointer, to a copy laid out
+as C lays it out (natural alignment, zeroed padding), so a C function taking
+`int *`, `double *` or `struct timeval *` can be declared directly:
+
+```siox
+use std::ffi::{c_int, c_double};
+struct TimeVal { pub sec: integer, pub usec: integer, }
+extern "C" {
+    fn frexp(x: c_double, exponent: c_int[1]) -> c_double;
+    fn gettimeofday(tv: TimeVal, zone: natural) -> c_int;
+}
+```
+
+Its leaves must be C scalars: `integer`, `natural`, `real` (a `double`),
+ranged integers (the smallest C integer holding the range, so a `c_int` field
+is an `int`), and packed values up to 64 bits. When the argument is a
+process-local variable it receives what C writes through the pointer, as an
+out-parameter: after `frexp(8.0, e)`, `e[0]` is 4. Other arguments are passed
+read-only. Such a function is testbench-only, since hardware holds an
+aggregate as separate signals. An aggregate *result* is rejected (it needs the
+platform's struct-return rules): take a pointer parameter instead.
+
+Generic declarations, characters, `c_float` fields, and packed values wider
 than 64 bits are rejected during type checking because the backends do not yet
 have C layout or multiword-call rules for them. Wrap such an API in a C adapter
-that accepts and returns the scalar types above.
+that accepts and returns the types above.
 
 In the **native binary**, symbols resolve at link time. `std::math` uses no
 foreign symbols — its `real` functions are compiler built-ins — but the math

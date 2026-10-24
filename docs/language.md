@@ -2590,9 +2590,11 @@ The implemented boundary is scalar: a packed numeric must be 1 through 64
 bits, and a function returns `real`, `integer`, one such packed value, or
 nothing. A function with no return type is C `void`: a statement in a
 testbench (or a function one calls), run in order, and an error wherever
-hardware would reach it. Generic declarations, `Char`, structs, and arrays are
-rejected before lowering. Use a scalar C adapter for pointer, aggregate, or
-multiword APIs. Compiler-emitted objects leave
+hardware would reach it. A struct or fixed array of C scalars is passed by
+pointer to a C-laid-out copy, which a process-local variable argument receives
+back after the call (an out-parameter); such a function is testbench-only, and
+an aggregate result is rejected. Generic declarations and `Char` are rejected
+before lowering. Use a C adapter for other pointer or multiword APIs. Compiler-emitted objects leave
 foreign symbols for their consumer to link; generated native test executables
 currently link the system C and math libraries and have no custom `-L`/`-l`
 interface.
