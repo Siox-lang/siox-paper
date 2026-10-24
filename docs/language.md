@@ -2549,6 +2549,13 @@ declared domain. Checks cover both design-internal assignments and external
 testbench stimulus before either is narrowed to the destination storage.
 - `real<left..right>` documents and (later) checks the constraint; storage
   stays f64.
+- **Arithmetic failures** follow VHDL. `integer` is a mathematical value, so
+  an `integer` division or remainder by zero, and a `real` beyond `integer`
+  converted to one, are run-time errors reported at the operation (an
+  unselected `if`-expression arm never fails). Overflow of `+ - *` beyond the
+  64-bit kernel `integer` is not checked yet. `real` is IEEE-754, as VHDL's:
+  `1.0 / 0.0` is infinity and `0.0 / 0.0` is NaN. `unsigned`/`signed` keep
+  their total, modular arithmetic.
 
 `std::numeric` provides the everyday names: `Byte`, `Short`, `Int`,
 `Long`, `Natural`, `Positive`. (`Char` is *not* among them — characters
