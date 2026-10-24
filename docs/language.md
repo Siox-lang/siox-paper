@@ -2552,13 +2552,14 @@ testbench stimulus before either is narrowed to the destination storage.
 - **Arithmetic failures** follow VHDL. `integer` is a mathematical value, so
   an `integer` division or remainder by zero, and a `real` beyond `integer`
   converted to one, are run-time errors reported at the operation (an
-  unselected `if`-expression arm never fails). Overflow of `+ - *` beyond the
-  64-bit kernel `integer` is not checked yet. `real` is IEEE-754, as VHDL's:
+  unselected `if`-expression arm never fails). `natural` arithmetic leaving
+  0..2^64 - 1 is one too. Overflow of `+ - *` beyond the 64-bit kernel
+  `integer` is not checked yet. `real` is IEEE-754, as VHDL's:
   `1.0 / 0.0` is infinity and `0.0 / 0.0` is NaN. `unsigned`/`signed` keep
   their total, modular arithmetic.
 
 `std::numeric` provides the everyday names: `Byte`, `Short`, `Int`,
-`Long`, `Natural`, `Positive`. (`Char` is *not* among them — characters
+`Long`, `Positive` (the unsigned 64-bit number is the kernel `natural`). (`Char` is *not* among them — characters
 are non-numeric symbols; see "The type kernel".)
 
 ---
@@ -3832,10 +3833,15 @@ std::assert
 
 ### The type kernel
 
-The language kernel provides exactly three base types:
+The language kernel provides exactly four base types:
 
-- **`integer`** — unconstrained integer. (Boolean truth is the `Bool` type —
+- **`integer`** — the signed 64-bit integer, a mathematical number: leaving
+  it is an error, never a wrap. (Boolean truth is the `Bool` type —
   `true`/`false` — not `integer`; see 3.16.)
+- **`natural`** — its unsigned counterpart, 0 to 2^64 - 1 (C's `unsigned
+  long`), with the same errors (`n - 1` at 0, `/ 0`). It mixes with `integer`
+  only through `natural(i)` / `integer(n)`, which check the range; a literal
+  takes its type (`n + 1`).
 - **`real`** — unconstrained float (f64 in simulation).
 - **`Char`** — a character *symbol*, deliberately **non-numeric**.
   Characters and strings have no numbers: a numbering exists only relative

@@ -63,7 +63,7 @@ is a documented shim, and the declaration here is canonical.
 | `std::ops`    | (operators are functions in VHDL packages) | re-exports `core::ops` |
 | `std::math`   | ieee.math_complex                | `Complex` over `real`, `+`/`-` impls, the `i` suffix |
 | `std::mem`    | (VHDL procedures with `inout`)     | `swap`, `replace`: move values between a testbench's places |
-| `std::numeric`| natural/positive subtypes        | ranged integers: `Byte`, `Short`, `Int`, `Long`, `Natural`, `Positive` |
+| `std::numeric`| natural/positive subtypes        | ranged integers: `Byte`, `Short`, `Int`, `Long`, `Positive` |
 | `std::text`   | `'pos`/`'val`                    | encoding tables `Unicode`/`Ascii` |
 | `std::sim`    | std.standard `time`              | `time`, `frequency` + unit suffixes; FS..MS constants |
 | `std::sync`   | (vendor CDC macros)              | `Sync2`, `ResetSync`, `EdgeDetect`, `PulseSync` |
@@ -307,7 +307,6 @@ pub type Byte = integer<0..255>;
 pub type Short = integer<-32768..32767>;
 pub type Int = integer<-2147483648..2147483647>;
 pub type Long = integer<-9223372036854775808..9223372036854775807>;
-pub type Natural = integer<0..9223372036854775807>;
 pub type Positive = integer<1..9223372036854775807>;
 ```
 
@@ -334,9 +333,9 @@ pub type c_ushort = integer<0..65535>;
 pub type c_int = integer<-2147483648..2147483647>;
 pub type c_uint = integer<0..4294967295>;
 pub type c_long = integer;       // the host's `long`: 32 bits on Windows
-pub type c_ulong = unsigned[64]; // the host's `unsigned long`
+pub type c_ulong = natural;       // the host's `unsigned long`
 pub type c_longlong = integer;
-pub type c_ulonglong = unsigned[64];
+pub type c_ulonglong = natural;
 pub type c_float = real;         // crosses as a C `float`
 pub type c_double = real;
 ```
