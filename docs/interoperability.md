@@ -18,6 +18,17 @@ Only the `"C"` ABI is supported. Its current contract is deliberately scalar:
   ABI word.
 - A packed numeric type from 1 through 64 bits maps to an unsigned 64-bit ABI
   word; the result is converted to its declared storage width.
+- A `std::ffi` type is passed at its C width: `c_int` as a 32-bit `int`,
+  `c_uchar` as an `unsigned char`, `c_float` as a `float`, `c_long` at the
+  build host's `long` width. Its result is extended back to the 64-bit word,
+  sign-extended for the signed types. Declare a C function with these types
+  whenever its prototype has them, since a narrower result read as a 64-bit
+  word has undefined upper bits:
+
+  ```siox
+  use std::ffi::{c_int, c_double};
+  extern "C" { fn ilogb(x: c_double) -> c_int; }
+  ```
 
 A declaration with a scalar return value is usable in combinational
 expressions, clocked logic, and testbenches. A declaration with no return

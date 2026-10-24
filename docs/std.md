@@ -69,6 +69,7 @@ is a documented shim, and the declaration here is canonical.
 | `std::sync`   | (vendor CDC macros)              | `Sync2`, `ResetSync`, `EdgeDetect`, `PulseSync` |
 | `std::fixed`  | ieee.fixed_pkg                   | `ufixed<W, F>`, `sfixed<W, F>` (W bits, F of them fraction), constructors from `real`/`integer` (`ufixed<8, 4>(2.5)`), `real(x)` |
 | `std::float`  | ieee.float_pkg                   | `float<W, M>` (`float<32, 23>` is binary32), constructors from `real`/`integer` (`float<32, 23>(1.5)`), `real(x)`, `+ - * /`, `std::math::sqrt`, comparisons, fixed-point conversions, `is_nan` … |
+| `std::ffi`    | (foreign interfaces)             | C scalar types for `extern "C"` signatures: `c_int`, `c_uint`, `c_long`, `c_float`, … |
 | `std::fs`     | textio / impure host I/O         | typed `read<T>` construction and `exists` fixture probes |
 | `std::attrs`  | (attributes; VHDL has none)      | base metadata: `keep`, `top`, `clock`, `library`, `name` |
 
@@ -317,6 +318,33 @@ The resize styles of `std::fixed` and `std::float`, after VHDL's
 pub enum Overflow { Saturate, Wrap }
 pub enum Rounding { Nearest, Truncate }
 ```
+
+## `std::ffi`
+
+C scalar types for `extern "C"` signatures, after Rust's `core::ffi`. Each is
+an ordinary type alias whose range is the C type's, so values check as usual;
+in a foreign signature the compiler passes it at the C width and extends a C
+result back to the 64-bit word (sign-extending the signed types).
+
+```siox
+pub type c_schar = integer<-128..127>;
+pub type c_uchar = integer<0..255>;
+pub type c_short = integer<-32768..32767>;
+pub type c_ushort = integer<0..65535>;
+pub type c_int = integer<-2147483648..2147483647>;
+pub type c_uint = integer<0..4294967295>;
+pub type c_long = integer;       // the host's `long`: 32 bits on Windows
+pub type c_ulong = unsigned[64]; // the host's `unsigned long`
+pub type c_longlong = integer;
+pub type c_ulonglong = unsigned[64];
+pub type c_float = real;         // crosses as a C `float`
+pub type c_double = real;
+```
+
+The compiler knows them by lang item (`attr lang for c_int = "c_int";`), so a
+user alias of one (`type Status = c_int;`) keeps its C width. `c_char`, whose
+signedness differs between platforms, is not provided: use `c_schar` or
+`c_uchar`.
 
 ## `std::attrs` and `core::attrs`
 
