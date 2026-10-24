@@ -2576,11 +2576,13 @@ The native binary resolves symbols at link time (the math library is linked by
 default). Only the `"C"` ABI is open to programs; `"intrinsic"` is `core`'s,
 for the compiler's built-in `real` math (`std::math`'s `sqrt`, `sin`, …).
 
-The implemented boundary is value-returning and scalar: a packed numeric must
-be 1 through 64 bits, and every function must return `real`, `integer`, or one
-such packed value. Generic declarations, void calls, `Char`, structs, and
-arrays are rejected before lowering. Use a scalar C adapter for pointer,
-aggregate, side-effect-only, or multiword APIs. Compiler-emitted objects leave
+The implemented boundary is scalar: a packed numeric must be 1 through 64
+bits, and a function returns `real`, `integer`, one such packed value, or
+nothing. A function with no return type is C `void`: a statement in a
+testbench (or a function one calls), run in order, and an error wherever
+hardware would reach it. Generic declarations, `Char`, structs, and arrays are
+rejected before lowering. Use a scalar C adapter for pointer, aggregate, or
+multiword APIs. Compiler-emitted objects leave
 foreign symbols for their consumer to link; generated native test executables
 currently link the system C and math libraries and have no custom `-L`/`-l`
 interface.

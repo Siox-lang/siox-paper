@@ -19,12 +19,25 @@ Only the `"C"` ABI is supported. Its current contract is deliberately scalar:
 - A packed numeric type from 1 through 64 bits maps to an unsigned 64-bit ABI
   word; the result is converted to its declared storage width.
 
-Every declaration must have a scalar return value. Generic declarations,
-statement-only/void calls, structs, arrays, characters, and packed values wider
+A declaration with a scalar return value is usable in combinational
+expressions, clocked logic, and testbenches. A declaration with no return
+type is a C `void` function, called for its effect:
+
+```siox
+extern "C" { fn srand(seed: integer); }
+```
+
+Its call is a statement in a testbench process, or in a function a testbench
+calls, and runs in statement order. Hardware has no place to order an effect,
+so a call from hardware is rejected: directly (`E-P008`), and through any
+chain of function calls that reaches one. Using a void call as a value is a
+type error. The same rule covers the runtime's own testbench-only intrinsics
+(`rand`, `read`), which are not C functions.
+
+Generic declarations, structs, arrays, characters, and packed values wider
 than 64 bits are rejected during type checking because the backends do not yet
 have C layout or multiword-call rules for them. Wrap such an API in a C adapter
-that accepts and returns the scalar types above. Calls are usable in
-combinational expressions, clocked logic, and testbenches.
+that accepts and returns the scalar types above.
 
 In the **native binary**, symbols resolve at link time. `std::math` uses no
 foreign symbols — its `real` functions are compiler built-ins — but the math
