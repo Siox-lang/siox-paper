@@ -2602,8 +2602,8 @@ interface.
 
 > **Status:** This section records the order used to bootstrap the compiler. It
 > is not the active work queue. Implemented items remain useful as acceptance
-> criteria, but current gaps and ownership live in [the layer-based
-> TODO](https://github.com/Siox-lang/sioxc/blob/main/TODO.md), under AST, IR, LLVM, Output, API, and std.
+> criteria, but current gaps and ownership live on [the project
+> board](https://github.com/orgs/Siox-lang/projects/1), by Area (AST, IR, LLVM, Output, API, std, …).
 
 Phase 1 was originally planned in stages, each with a concrete end goal and
 acceptance tests.

@@ -29,7 +29,7 @@ synthesis layer yet (those are Phase 2 and 3 — see
 | [Compiler foundations](https://github.com/Siox-lang/sioxc/blob/main/docs/proposals/compiler-foundations.md) | Remaining internals work: UI diagnostic tests, `--explain`/structured output, one constant evaluator, declaration-ID registries and residual name-based hook cleanup. Core/lang-item registration is implemented. |
 | [Vendor-neutral RTL interchange](https://github.com/Siox-lang/sioxc/blob/main/docs/proposals/rtl-interface.md) | **Phase 3.** Proposed synthesis-facing RTL IR that SystemVerilog, VHDL and other backends serialize, instead of compiling to another HDL. |
 | [Parallel Process runtime](https://github.com/Siox-lang/sioxc/blob/main/docs/proposals/multiprocess.md) | Proposed bounded worker pool over existing CFG/LLVM entries, with effect isolation, deterministic merge and serial fallback. |
-| [../TODO.md](https://github.com/Siox-lang/sioxc/blob/main/TODO.md) | The **outstanding-work list** — post-baseline capability growth by compiler area. |
+| [project board](https://github.com/orgs/Siox-lang/projects/1) | The **outstanding-work list** — post-baseline capability growth by compiler area (it replaces `TODO.md`). |
 | [Phase 1 exit audit](phase1-audit.md) | Requirement-by-requirement pipeline/language/example/CLI evidence, regression fixes and verification identities. |
 
 If you are new: skim this page, then read [language.md](language.md) for the
@@ -127,7 +127,7 @@ orchestration live outside the compiler.
 
 The standard library loads from `std/` as real source ([std.md](std.md)) —
 operator overloading, literal suffixes (`10ns`, `5i`), and nine-value `Logic`
-truth tables defined as library code. See [../TODO.md](https://github.com/Siox-lang/sioxc/blob/main/TODO.md) for what's
+truth tables defined as library code. See [the project board](https://github.com/orgs/Siox-lang/projects/1) for what's
 left and the [CHANGELOG](https://github.com/Siox-lang/sioxc/blob/main/CHANGELOG.md) for what has landed.
 
 ## Build and run

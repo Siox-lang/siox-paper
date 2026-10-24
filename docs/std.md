@@ -549,7 +549,7 @@ a precision applies to the numbers inside.
   companion representation scales beyond one ABI word.
 - **Reusable hardware models remain intentionally small.** Counters,
   synchronizers, memories, FIFOs, and stream adapters are the next library
-  build-out, tracked under the `std` heading in [`TODO.md`](../TODO.md).
+  build-out, tracked on [the project board](https://github.com/orgs/Siox-lang/projects/1) (Area: std).
 
 Examples exercising the library through real imports: `std_test.siox`
 (every module), `logic_test.siox` (X-propagation), `complex_test.siox`

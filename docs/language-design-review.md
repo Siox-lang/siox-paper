@@ -3,7 +3,7 @@
 This document is a candid assessment of the current siox language rather than
 a specification. The authoritative syntax and semantics remain in
 [`language.md`](language.md); implementation gaps remain in
-[`TODO.md`](https://github.com/Siox-lang/sioxc/blob/main/TODO.md). This review asks a different question: **which choices
+[the project board](https://github.com/orgs/Siox-lang/projects/1). This review asks a different question: **which choices
 form a coherent language, and which choices are likely to confuse users or
 constrain later synthesis work?**
 
