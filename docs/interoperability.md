@@ -369,6 +369,17 @@ top selection, invalid codegen IR, or unavailable backend are represented by
 artifact, so a host remains responsible for presentation, caching, process
 execution, and project discovery.
 
+`Compilation::macro_expansions` lists every macro call the compilation
+expanded, in expansion order, for editor views that tell generated code from
+handwritten source. Each `MacroExpansion` names the macro (`demo::twice`), the
+span of the invoked form's declaration, the span of the whole `name!(..)` call,
+and the expansion as source text, before any macro call it contains is itself
+expanded. A call written inside a macro body is expanded too: its `parent` is
+the index of the expansion it came from, and `depth` counts the expansions
+around it (0 for a call in handwritten source), so a view can walk a nested
+expansion back to the call the user wrote. An argument a body substitutes twice
+is expanded once per copy.
+
 `Emit::Metadata`, `Source`, `Tokens`, `Ast`, `Tree`, and `Ir` work in the
 frontend-only build. `Emit::LlvmIr`, `Object`, and `TestExecutable` return a
 backend-unavailable `CompileFailure` unless the `llvm` feature is enabled.
