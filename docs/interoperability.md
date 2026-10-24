@@ -60,24 +60,36 @@ extern "C" {
 
 Its leaves must be C scalars: `integer`, `natural`, `real` (a `double`),
 ranged integers (the smallest C integer holding the range, so a `c_int` field
-is an `int`), and packed values up to 64 bits. When the argument is a
+is an `int`), `c_float` (a `float`), and packed values (up to 64 bits a C
+integer, wider ones little-endian 64-bit words). When the argument is a
 process-local variable it receives what C writes through the pointer, as an
 out-parameter: after `frexp(8.0, e)`, `e[0]` is 4. Other arguments are passed
 read-only. Such a function is testbench-only, since hardware holds an
-aggregate as separate signals. An aggregate *result* is rejected (it needs the
-platform's struct-return rules): take a pointer parameter instead.
+aggregate as separate signals. An aggregate **result** follows the build
+host's struct-return rules: on x86-64 SysV, up to 16 bytes come back in
+registers by eightbyte class (INTEGER or SSE) and larger ones through a hidden
+`sret` buffer; on AArch64, a homogeneous aggregate of up to four doubles or
+floats comes back in vector registers, up to 16 bytes in x0/x1, and larger
+ones through `sret`. Another host reports that it has no rule. An
+`unsigned[128]` result is a C `unsigned __int128`.
 
-Generic declarations, characters, `c_float` fields, and packed values wider
-than 64 bits are rejected during type checking because the backends do not yet
-have C layout or multiword-call rules for them. Wrap such an API in a C adapter
-that accepts and returns the types above.
+Generic declarations and characters are rejected during type checking. Wrap
+such an API in a C adapter that accepts and returns the types above.
 
 In the **native binary**, symbols resolve at link time. `std::math` uses no
 foreign symbols — its `real` functions are compiler built-ins — but the math
 library is linked by default, so a C declaration of `sin`, `labs` and the
-like resolves out of the box. Other symbols may be resolved by a consumer linking a compiler-emitted
-object; the generated native test executable does not yet accept custom library
-search paths or `-l` options.
+like resolves out of the box. A test executable links further objects and
+libraries named with `--link FILE` (repeatable; `CompileRequest::with_link` in
+the API), which is how a testbench reaches its own C models:
+
+```sh
+clang -c model.c -o model.o
+sioxc --test model_test.siox --link model.o -o model-tests
+```
+
+Other symbols may be resolved by a consumer linking a compiler-emitted object.
+Library search paths and `-l` discovery belong to the project tool.
 
 ## Foreign HDLs
 

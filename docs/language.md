@@ -2592,12 +2592,12 @@ nothing. A function with no return type is C `void`: a statement in a
 testbench (or a function one calls), run in order, and an error wherever
 hardware would reach it. A struct or fixed array of C scalars is passed by
 pointer to a C-laid-out copy, which a process-local variable argument receives
-back after the call (an out-parameter); such a function is testbench-only, and
-an aggregate result is rejected. Generic declarations and `Char` are rejected
-before lowering. Use a C adapter for other pointer or multiword APIs. Compiler-emitted objects leave
-foreign symbols for their consumer to link; generated native test executables
-currently link the system C and math libraries and have no custom `-L`/`-l`
-interface.
+back after the call (an out-parameter); such a function is testbench-only. An
+aggregate result follows the build host's struct-return rules (x86-64 SysV,
+AArch64), and a packed value wider than 64 bits crosses as little-endian words.
+Generic declarations and `Char` are rejected before lowering. Compiler-emitted
+objects leave foreign symbols for their consumer to link; generated native test
+executables link the system C and math libraries plus any `--link FILE`.
 
 
 ## 4. Historical Phase 1 implementation plan
