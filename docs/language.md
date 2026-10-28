@@ -31,6 +31,14 @@ precise reference.
   (`let dut: Sub; dut.a = x; y = dut.y;`). A struct literal also supports
   **spread-update** — `{ ..base, .x = v }` takes every field from `base` and
   overrides the listed ones.
+- **Instance arrays.** `let stage: Sub[N];` declares `N` slots,
+  `stage[0]` to `stage[N - 1]`. Either build each slot with the connections
+  it takes, `stage[i] = Sub { .a = x }` or, the element type being known,
+  `stage[i] = { .a = x }`, so that a generate condition can leave a slot out
+  (reading it is `E-P022`); or build none, and the declaration makes every
+  slot unconnected, wired through its ports (`stage[i].a = x; y =
+  stage[i].y;`). In a testbench, a `for` over constant bounds that touches an
+  instance array is a generate loop like a design's.
 - **Generate constructs.** A `for i in a..b { .. }` loop unrolls over a static
   range (instances *and* per-iteration drivers), and a generate-`if`/`else`
   with a compile-time-constant condition selects which branch is built. The two
@@ -2367,6 +2375,11 @@ impl CustomOperator<"xor", Logic, Logic> for Logic {
     fn apply(self, rhs: Logic) -> Logic { … }
 }
 ```
+
+A user operator spelled with several punctuation characters (`++`, `**`) is
+read whole, ahead of the standard operator its first character spells, so
+`a ++ b` is one operator and not `a + (+b)`. `->`, `=>` and `//` (a comment)
+are grammar, never operators.
 
 A standard symbol in `CustomOperator` is an error whose help names its trait.
 `Operator`, the single symbol-parameterized trait these replaced, is gone; a
