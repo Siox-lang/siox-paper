@@ -73,6 +73,20 @@ floats comes back in vector registers, up to 16 bytes in x0/x1, and larger
 ones through `sret`. Another host reports that it has no rule. An
 `unsigned[128]` result is a C `unsigned __int128`.
 
+A C pointer that siox only holds, such as a `FILE *` or a C model's context,
+is a `std::ffi::Handle`. It crosses as the pointer itself, by value; siox can
+store it, pass it back, compare it and test `is_null()`, while C creates and
+frees what it points at:
+
+```siox
+use std::ffi::{c_int, Handle};
+extern "C" {
+    fn tmpfile() -> Handle;
+    fn fputc(c: c_int, file: Handle) -> c_int;
+    fn fclose(file: Handle) -> c_int;
+}
+```
+
 Generic declarations and characters are rejected during type checking. Wrap
 such an API in a C adapter that accepts and returns the types above.
 

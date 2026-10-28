@@ -345,6 +345,10 @@ user alias of one (`type Status = c_int;`) keeps its C width. `c_char`, whose
 signedness differs between platforms, is not provided: use `c_schar` or
 `c_uchar`.
 
+`Handle` is an opaque C pointer (`FILE *`, a C model's context), passed to and
+from C by value. C creates and frees what it points at; siox stores it,
+compares it (`==`), and has `Handle::null()` and `h.is_null()`.
+
 ## `std::attrs` and `core::attrs`
 
 The base metadata (spec 3.5) nearly every flow needs, each with a default so
