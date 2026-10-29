@@ -13,7 +13,7 @@ language, laid out like rustc's `core`. Its sources
 are in the repository's `core/` directory, compiled into `sioxc`, so
 `core::…` never reads `--std`. It holds what the compiler gives meaning to:
 `Bool`, `string` and `integer`'s methods (`core::primitive`), the hook traits
-(`core::ops`), the comparison traits `Eq`/`Ord` and `Ordering` (`core::cmp`), `From` (`core::convert`), `New` (`core::default`),
+(`core::ops`), the comparison traits `Eq`/`Ord` and `Ordering` (`core::cmp`), `From` (`core::convert`), `Default` (`core::default`),
 the built-in macros and `Severity` (`core::macros`), and the attributes the
 compiler reads, `precedence` and `lang` (`core::attrs`). Each declaration
 tells the compiler its role with a lang item, `attr lang for Add =
@@ -47,12 +47,12 @@ is a documented shim, and the declaration here is canonical.
 
 | siox module   | VHDL analogue                    | Contents |
 | ------------- | -------------------------------- | -------- |
-| `core::prelude` | (implicit `std.standard`)        | always loaded, built in: `Bool`, `string`, `Boolean`, `Range`, indexing, `Resolve`, `Eq`, `Ord`, `Ordering`, `New`, `From`, `precedence`, the built-in macros |
+| `core::prelude` | (implicit `std.standard`)        | always loaded, built in: `Bool`, `string`, `Boolean`, `Range`, indexing, `Resolve`, `Eq`, `Ord`, `Ordering`, `Default`, `From`, `precedence`, the built-in macros |
 | `core::primitive` | std.standard `boolean`, `string` | `Bool`, `string = Char[]` |
 | `core::ops`   | (operators are VHDL functions)     | `Add`, `Sub`, `Mul`, `Div`, `Rem`, `Shl`, `Shr`, `And`, `Or`, `Not`, `Neg`, `CustomOperator`, `Prefix`, `Suffix`, `Index`, `IndexAssign`, `Range`, `Boolean`, `Resolve`, `LogicEncoding` |
 | `core::cmp`   |                                    | `Eq`, `Ord` (the comparisons, returning `Bool`), `Ordering` |
 | `core::convert` |                                  | `From` |
-| `core::default` |                                  | `New` |
+| `core::default` |                                  | `Default` |
 | `core::macros` | `assert ... severity`             | `assert!`, `warn!`, `print!`, `write!`, `error!`, `Severity` |
 | `core::fmt`   | `'image`, `to_string`              | `Display`, `Formatter`: how a type prints (re-exported by `std::fmt` and both preludes) |
 | `core::attrs` | (attributes; VHDL has none)        | `precedence`, `lang`: the attributes the compiler reads |
@@ -166,7 +166,7 @@ skips an `'X'`, and `leading_zeros` stops at one. `checked_*` (Rust's
 
 ```siox
 pub trait Boolean { fn as_bool(self) -> Bool; }
-pub trait New { fn new() -> Self; }
+pub trait Default { fn default() -> Self; }
 pub trait From { fn from(value: Self) -> Self; }
 pub trait Resolve { fn resolve(self, rhs: Self) -> Self; }
 ```

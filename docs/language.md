@@ -802,7 +802,7 @@ the names, as rustc's lint registry does:
 | `non_exhaustive_match` | W-P007 | | `unimplemented_attr` | W-P015 |
 | `suspicious_logic_compare` | W-P008 | | `incomplete_struct_literal` | W-P016 |
 | `unknown_lints` | W-P017 | | `overlapping_range_endpoints` | W-P018 |
-| `non_constant_loop_bound` | W-P019 | | | |
+| `non_constant_loop_bound` | W-P019 | | `renamed_default` | W-P020 |
 
 `warnings` names all of them at once.
 
@@ -2713,13 +2713,13 @@ let x: float<32, 23> = float<32, 23>(1.5);   // IEEE binary32 1.5
 ```
 ---
 
-### 3.29 Uninitialized values (`new`)
+### 3.29 Uninitialized values (`default`)
 
 Every signal always holds a value — there is no "no value" state. A declaration
-without an initializer takes its type's **default**, written `T::new()`:
+without an initializer takes its type's **default**, written `T::default()`:
 
 ```siox
-let p: Phase;          // == Phase::new(): the default Phase
+let p: Phase;          // == Phase::default(): the default Phase
 let n: unsigned[8];        // == 0
 ```
 
@@ -2736,21 +2736,24 @@ let lo, hi: integer;           // both the default, 0
 Extracting a tuple will be parenthesized, `let (q, r) = divmod(a, b);` (the
 tuples proposal), so the two forms never share a spelling.
 
-`new` is siox's default constructor — a `New` trait, `fn new() -> Self`. It is
-written either as `T::new()` (the underlying trait method) or, equivalently, as
+`default` is siox's default constructor — the `Default` trait, `fn default() ->
+Self`, as rustc's. It is written either as `T::default()` (the trait method) or,
+equivalently, as
 **`T()`** — the zero-argument member of the same `T(...)` construction family
 whose one-argument form `T(x)` is the conversion of §3.28. `T(...)` reads as
 "construct a `T`", dispatched by its arguments: `T()` builds the default from
-nothing (`New::new()`), `T(x)` transforms an existing value. This is still a
+nothing (`Default::default()`), `T(x)` transforms an existing value. This is still a
 *function* acting to produce data — the type name in call position names the
 constructor, it does not invoke the inert data — consistent with every other
-trait (`From::from`, `Add::add`, `Boolean::as_bool`). A parameterized
-`new(args)` (when a type provides one) is ordinary explicit construction.
+trait (`From::from`, `Add::add`, `Boolean::as_bool`). `new` is an ordinary
+name: `S::new(42)` is a constructor the type declares, the Rust convention.
+`T::new()` on a type that declares no `new` was the default's old spelling; it
+still builds the default, with the warning `renamed_default` (W-P020).
 
 ```siox
 let p: Phase;                        // implicit: the default Phase
 let p2: Phase = Phase();             // explicit: the same default, written out
-let p3: Phase = Phase::new();        // and the trait spelling of it
+let p3: Phase = Phase::default();    // and the trait spelling of it
 let n: unsigned[8] = unsigned[8]();  // == 0
 ```
 
@@ -2765,21 +2768,21 @@ let n: unsigned[8] = unsigned[8]();  // == 0
 
 This is one rule, not two: "`0` for numerics" *falls out* of "first value for
 enums", because a numeric's bits are `Logic` whose first value is `'0'`. A type
-**overrides** the structural default with `impl New for T { fn new() -> T { … } }`
+**overrides** the structural default with `impl Default for T { fn default() -> T { … } }`
 (the body must be a constant). The std library uses this for the IEEE 1076-2019
-defaults: `impl New for Bit` → `'0'`, and `impl New for Logic`/`ULogic` → `'U'`
+defaults: `impl Default for Bit` → `'0'`, and `impl Default for Logic`/`ULogic` → `'U'`
 (uninitialized), so an undriven `Logic` signal powers on to `'U'` rather than a
 plausible `'0'`. Applies to hardware signals and testbench locals alike.
 
 **Uninitialized is not undriven.** The default is what a signal *starts* at;
 whether anything ever drives over it is separate. A signal with no driver simply
-keeps its `new()` value forever — deterministic, never an undefined `'X'` (an
+keeps its `default()` value forever — deterministic, never an undefined `'X'` (an
 undriven signal is a *warning*, §3.15/diagnostics, not an error). `'X'`/`'Z'`
 arise only from genuine unknowns, never from the mere absence of a driver.
 
 A type-level default is a **simulation** power-on value, not a synthesizable
 reset — real hardware powers up indeterminate, and a defined reset value comes
-from reset logic (§3.15). `new()` gives waveforms and testbenches a clean,
+from reset logic (§3.15). `default()` gives waveforms and testbenches a clean,
 valid starting value; it does not substitute for a reset.
 
 ---
