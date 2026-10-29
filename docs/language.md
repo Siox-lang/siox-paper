@@ -1661,9 +1661,34 @@ zero-extension/truncation rule above.
 **Named types convert through the `From` trait** (std::ops): `T(x)` on a
 struct/enum dispatches to `impl From<Source> for T`, selected by the
 argument's type — `Complex(10)`, or the resolved/unresolved crossing
-`Logic(u)` / `ULogic(l)` (both are std source). Conversions never fire
+`Logic(u)` / `ULogic(l)` (both are std source). A `From` never fires
 implicitly — only at a conversion expression or a numeric promotion. Kernel
 numeric conversions stay width-driven builtins.
+
+**`Into` converts implicitly where a value is stored.** `impl Into<T> for S`
+makes an `S` convert wherever it is stored as a `T`: a `let` initializer, an
+assignment, a call argument, a returned value. Its own `into` body is the
+conversion; it may call a `From` but needs none, and unlike Rust's `Into` it
+is not implied by one. An operator's operand is never converted, because `a +
+b` dispatches on the operands' own types, so a mix is an error whose help
+writes the conversion out:
+
+```siox
+let arr: Logic[8] = "00011000";
+let u: unsigned[8] = arr;          // Into<unsigned> for Logic[]: 24
+let f: ufixed<8, 4> = arr;         // Into<ufixed> for Logic[]: 1.5
+let back: Logic[8] = u;            // Into<Logic[]> for unsigned
+let s: unsigned[8] = u + arr;      // error: write `unsigned[8](arr)`
+```
+
+A nominal vector family and a plain array of the same elements (`unsigned[8]`,
+`Logic[8]`) are different types, joined only by an `Into`. std declares one
+both ways between `Logic[]` and each family that is a newtype over it —
+`unsigned`, `signed`, `ufixed`, `sfixed`, `float` — as a copy by position, the
+leftmost element at `'high`, the target's parameters placing any binary point
+(VHDL's `to_slv`, `to_ufixed(slv, l, r)`, `to_float(slv, e, f)`). Conversions
+between families (`ufixed` and `unsigned`, two fixed formats) scale, round or
+saturate, so they stay an explicit `T(x)`.
 
 **Numbers promote in arithmetic.** In `a op b` for an arithmetic or
 comparison operator on two numbers of different types, both promote to the

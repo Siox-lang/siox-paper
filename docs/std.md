@@ -168,6 +168,7 @@ skips an `'X'`, and `leading_zeros` stops at one. `checked_*` (Rust's
 pub trait Boolean { fn as_bool(self) -> Bool; }
 pub trait Default { fn default() -> Self; }
 pub trait From { fn from(value: Self) -> Self; }
+pub trait Into { fn into(self) -> Self; }    // `impl Into<T> for S`, implicit where stored
 pub trait Resolve { fn resolve(self, rhs: Self) -> Self; }
 ```
 
