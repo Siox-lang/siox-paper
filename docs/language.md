@@ -31,14 +31,18 @@ precise reference.
   (`let dut: Sub; dut.a = x; y = dut.y;`). A struct literal also supports
   **spread-update** — `{ ..base, .x = v }` takes every field from `base` and
   overrides the listed ones.
-- **Instance arrays.** `let stage: Sub[N];` declares `N` slots,
-  `stage[0]` to `stage[N - 1]`. Either build each slot with the connections
-  it takes, `stage[i] = Sub { .a = x }` or, the element type being known,
-  `stage[i] = { .a = x }`, so that a generate condition can leave a slot out
-  (reading it is `E-P022`); or build none, and the declaration makes every
-  slot unconnected, wired through its ports (`stage[i].a = x; y =
-  stage[i].y;`). In a testbench, a `for` over constant bounds that touches an
-  instance array is a generate loop like a design's.
+- **Instance arrays.** `let stage: Sub[N];` declares and builds `N`
+  instances, `stage[0]` to `stage[N - 1]`. `stage[i] = Sub { .a = x }`, or
+  name-less `stage[i] = { .a = x }` (the element type being known), is sugar
+  that connects that slot's ports — an `in` port to its value, an `out` port to
+  the signal it drives, an `inout` to its net — as do port writes
+  (`stage[i].a = x; y = stage[i].y;`); `stage[i] = {}` connects nothing. A
+  slot nothing wires still exists and simulates on its default inputs, which
+  is a constant in the waveform: in an array wired element by element that is
+  the warning `unwired_instance` (W-P021), otherwise each unconnected input's
+  `unconnected_input` (W-P012), as VHDL's `open` ports. In a testbench, a `for`
+  over constant bounds that touches an instance array is a generate loop like
+  a design's.
 - **Generate constructs.** A `for i in a..b { .. }` loop unrolls over a static
   range (instances *and* per-iteration drivers), and a generate-`if`/`else`
   with a compile-time-constant condition selects which branch is built. The two
@@ -803,6 +807,7 @@ the names, as rustc's lint registry does:
 | `suspicious_logic_compare` | W-P008 | | `incomplete_struct_literal` | W-P016 |
 | `unknown_lints` | W-P017 | | `overlapping_range_endpoints` | W-P018 |
 | `non_constant_loop_bound` | W-P019 | | `renamed_default` | W-P020 |
+| `unwired_instance` | W-P021 | | | |
 
 `warnings` names all of them at once.
 
