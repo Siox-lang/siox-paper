@@ -766,6 +766,24 @@ a test.
 - `#[inline]`, `#[inline(always)]` and `#[inline(never)]` on a function choose
   how the simulation runs its calls (below). Anywhere but on a `fn` they are
   an error, as is any other mode.
+- `#[derive(Eq, Ord)]` on a struct writes its comparison impls (below).
+
+**`#[derive]` writes the impls a user would.** Before a struct, `#[derive(Eq)]`
+writes `impl Eq<S> for S` comparing field by field, and `#[derive(Ord)]`
+writes `lt`/`le` comparing the fields lexicographically in declared order;
+`ne`, `gt` and `ge` keep the traits' defaults. A generic struct derives for
+every instance (`impl<A, B> Eq<Pair<A, B>> for Pair<A, B>`), and a newtype
+compares its value as its base. The impls belong to the struct's module, so
+coherence is never in question, and an error in one (a field whose type has no
+`==`) is shown in the written code, noted with the derive it came from. Any
+other trait, and a generic newtype for now, is `E-P040`. `Resolve` does not
+derive: a struct with fields has no `Resolve` impl, because a driven struct
+resolves leaf by leaf.
+
+There is no `#[cfg]`. The compile-time target is the value `std::target`,
+folded before reachability and target validation: it selects code within one
+pipeline, type-checks both branches and keeps one IR, where a directive that
+deletes code could let two configurations drift apart.
 
 **Inlining is a simulation choice.** A call means the same whatever the
 compiler does with it. In the native simulation each call is either expanded
