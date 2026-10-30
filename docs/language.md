@@ -1672,7 +1672,8 @@ numeric conversions stay width-driven builtins.
 
 **`Into` converts implicitly where a value is stored.** `impl Into<T> for S`
 makes an `S` convert wherever it is stored as a `T`: a `let` initializer, an
-assignment, a call argument, a returned value. Its own `into` body is the
+assignment, a call argument, a returned value, a struct-literal field. Its own
+`into` body is the
 conversion; it may call a `From` but needs none, and unlike Rust's `Into` it
 is not implied by one. An operator's operand is never converted, because `a +
 b` dispatches on the operands' own types, so a mix is an error whose help
