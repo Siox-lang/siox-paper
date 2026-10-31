@@ -3686,6 +3686,22 @@ elaboration-time fact for declared arrays and a runtime value for an
 unconstrained string returned by `read<string>`. Other scalar values are not
 iterable.
 
+`while cond { … }` repeats while its condition holds, tested before each pass
+and read through `Condition` as an `if` is. Its length is decided at run time,
+so it belongs to testbenches and the functions they call: a `while` in an
+entity body is an error, and so is a hardware call to a function that
+contains one (hardware loops unroll at elaboration; use a `for` with constant
+bounds). There is no `break`, `continue` or `loop`; a condition variable ends
+a loop early.
+
+```siox
+let edges: integer = 0;
+while count != 6 {           // poll the design, counting clock edges
+    await clk.rising();
+    edges = edges + 1;
+}
+```
+
 A numeric range `left..right` in a `for` is **inclusive and directional**, exactly
 like a bit slice or array range (§ Bits and slices): `0..2` visits `0, 1, 2`
 and `2..0` visits `2, 1, 0` — reversing the endpoints reverses the traversal

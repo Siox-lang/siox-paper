@@ -189,6 +189,9 @@ unit suffixes (`10ns`, `2us`), and `frequency` a nominal real (`100MHz`).
 - `await 10ns;` advances time, `await clk.rising();` waits for an edge, and
   `await cond;` waits until a condition holds; `await cond for 8us;` waits
   at most 8 µs, as VHDL's `wait until … for …`. `await` is for testbenches.
+- `while cond { … }` repeats while a condition holds. Its length is decided
+  at run time, so like `await` it is for testbenches and the functions they
+  call; hardware loops are `for` loops with constant bounds.
 - `x = v after 5ns;` schedules a delayed write with VHDL's inertial
   semantics. It is testbench stimulus, not hardware; in a design it is an
   error.
