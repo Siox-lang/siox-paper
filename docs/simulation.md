@@ -78,6 +78,7 @@ earliest pending event and advances to it:
   await 10ns;          // advance simulation time
   await clk.rising();  // wait for an edge   (also .falling(), 'event)
   await count == 7;    // wait until a condition holds
+  await done == '1' for 8us;   // ... or until 8 µs have passed
   ```
 
   Each yields to the scheduler until its trigger fires, and may appear inside
@@ -87,7 +88,12 @@ earliest pending event and advances to it:
   condition is checked immediately, while an edge always suspends before its
   first check. False triggers wake and re-evaluate after committed state changes;
   a true trigger waits for reactive delta cycles to settle before the following
-  statement runs. A future external-simulator adapter may own time through the
+  statement runs. An edge or condition may take a timeout, `for <time>`:
+  the first suspension also arms a timer (a resume event at the timeout
+  block); the settle after a met trigger disarms it, so a timer never
+  resumes a process that has moved on. A timer that comes due in the same
+  time step as a waking change (only a zero timeout can) ends the wait as
+  timed out. A future external-simulator adapter may own time through the
   same scheduler ABI.
 
 Native time is an unsigned 64-bit femtosecond count. A literal whose unit

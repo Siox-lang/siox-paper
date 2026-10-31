@@ -187,7 +187,8 @@ Simulation time is a value: `time` is a nominal integer of femtoseconds, with
 unit suffixes (`10ns`, `2us`), and `frequency` a nominal real (`100MHz`).
 
 - `await 10ns;` advances time, `await clk.rising();` waits for an edge, and
-  `await cond;` waits until a condition holds. `await` is for testbenches.
+  `await cond;` waits until a condition holds; `await cond for 8us;` waits
+  at most 8 µs, as VHDL's `wait until … for …`. `await` is for testbenches.
 - `x = v after 5ns;` schedules a delayed write with VHDL's inertial
   semantics. It is testbench stimulus, not hardware; in a design it is an
   error.

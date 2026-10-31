@@ -3707,10 +3707,17 @@ on the scheduler those clocks run on:
 await 10ns;                 // advance simulation time
 await clk.rising();          // wait for the next rising edge (also clk.falling(), 'event)
 await count == 7;           // wait until a condition holds
+await done == '1' for 8us;  // the condition, or 8 µs, whichever comes first
 ```
 
 `await`'s three forms are: a **duration** (advance time), an **edge**
-(`clk.rising()`/`clk.falling()`/`'event`), and a **condition** (any boolean). Edge
+(`clk.rising()`/`clk.falling()`/`'event`), and a **condition** (any boolean).
+An edge or condition may take a timeout, `for <time>`, as VHDL's
+`wait until … for …`: the wait ends when the trigger fires or the time has
+passed, whichever is first, and the statements after it re-read the condition
+to tell which (`assert!(done == '1', "no response within 8 µs");`). The
+timeout must be a time, and a plain delay is not given one (`await 5ns for
+10ns` is an error). Edge
 and condition forms are driven by the background clocks — the scheduler steps
 the clocks until the trigger fires. The scheduler is compiled into the native
 test binary. (`wait`/`tick` remain for straight-line, self-clocked stimulus.)
