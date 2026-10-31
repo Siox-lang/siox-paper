@@ -75,7 +75,7 @@
   [Standard-library build-out (subnormals, rounding modes, linear algebra)], [#status("partial")],
   [Compiler foundations (UI tests, JSON, one constant evaluator, resolved tree)], [#status("partial")],
   [Pipelined functions], [#status("proposal")],
-  [Implicit receivers, `static fn`, `static let`], [#status("proposal")],
+  [Implicit receivers, `static fn`, `static let`], [#status("accepted")],
   [Scoped blocks], [#status("proposal")],
   [Binary and unary custom operators], [#status("proposal")],
   [Parallel simulation], [#status("proposal")],

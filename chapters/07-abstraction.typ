@@ -24,6 +24,11 @@ impl<T> Source<T> for Stream<T> Source {
 }
 ```
 
+The `self` parameters in these examples are today's syntax, and they are on
+their way out: the owner has accepted implicit receivers (@receivers), so `fn`
+will take its receiver implicitly and `static fn` will mark a function without
+one, in traits and implementations alike.
+
 Generic implementations are written with Rust's binder,
 `impl<W: integer> Counter<W>`. Bounds restrict generic code to types that
 provide what it uses, and a blanket implementation over arrays lifts an

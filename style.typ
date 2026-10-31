@@ -66,6 +66,8 @@
     ("partly implemented", rgb("#b7791f"))
   } else if kind == "proposal" {
     ("proposal", rgb("#6b46c1"))
+  } else if kind == "accepted" {
+    ("accepted, not implemented", rgb("#2c7a7b"))
   } else if kind == "phase2" {
     ("Phase 2", rgb("#2b6cb0"))
   } else if kind == "phase3" {
@@ -309,8 +311,9 @@
     exists today. Part III describes where it is going: the language features
     already designed, analogue and mixed-signal modelling, and the design and
     synthesis layer that turns models into hardware. Each feature is marked with
-    where it stands: #status("done"), #status("partial"), #status("proposal"),
-    #status("phase2") or #status("phase3").
+    where it stands: #status("done"), #status("partial"), #status("accepted"),
+    #status("proposal"), #status("on hold"), #status("phase2") or
+    #status("phase3").
   ]
   pagebreak()
 }

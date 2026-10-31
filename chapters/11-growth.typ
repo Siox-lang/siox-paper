@@ -259,8 +259,8 @@ parameter on an entity method would look unlike everything else in that body.
 The implicit-receiver proposal below answers that objection; whether the two
 land together is the proposal's open question.
 
-== Implicit receivers and `static`
-#status("proposal")
+== Implicit receivers and `static` <receivers>
+#status("accepted")
 
 Today a `self` parameter is what tells a method from an associated function.
 The proposal makes that distinction a keyword instead, the same for structs,
@@ -290,6 +290,9 @@ static (`static fn default() -> Self`, `static fn from(value: S) -> Self`).
 The migration has to be loud: a receiver-free `fn` in an implementation means
 an associated function today and would gain a receiver, so old code must fail
 with a message rather than change meaning.
+
+The owner accepted the model on 31 October 2026: every `self` parameter goes,
+in trait declarations as well as implementations. It is not implemented yet.
 
 The proposal also adds `static let`, state that outlives one activation of a
 process. Its rules are being decided (October 2026):
