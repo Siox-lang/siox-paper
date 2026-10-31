@@ -14,6 +14,7 @@ going after an error so a single run reports as much as it can.
   table.header([*Stage*], [*What it does*]),
   table.hline(stroke: 0.5pt),
   [parse], [Tokens and a syntax tree for every module the program imports, transitively.],
+  [expand], [User macros expanded where they are called, and `#[derive]` impls written into their struct's module.],
   [attributes], [Attach `attr` bindings to their targets and fold attribute reads into values; collect lint levels.],
   [resolve], [Every name to the declaration it means: modules, imports, visibility, paths.],
   [type-check], [Types, widths, directions, trait bounds, operator dispatch, conversions.],
@@ -27,6 +28,7 @@ tree; hardware and testbench processes alike become Process IR; the native
 code links with a runtime that is the same for every design.])[
   #flow(
     step(colour: c-front)[parse],
+    step(colour: c-front)[expand],
     step(colour: c-front)[attributes],
     step(colour: c-front)[resolve],
     step(colour: c-front)[type-check],
@@ -78,19 +80,25 @@ decide something soundly, it stays silent.
 == C functions <extern-c>
 #status("done")
 
-C libraries connect through extern blocks, the way the standard library
-reaches the C math library:
+C libraries connect through extern blocks, as in Rust:
 
 ```siox
 extern "C" {
-    pub fn sqrt(x: real) -> real;
+    pub fn cbrt(x: real) -> real;      // from the C math library
     pub fn labs(v: integer) -> integer;
 }
 ```
 
-`real` crosses as `double`, `integer` as a 64-bit signed word, and packed
-numeric values up to 64 bits as an unsigned word. Calls work in hardware
-expressions, clocked updates and testbenches.
+`real` crosses as `double`, `integer` as a 64-bit signed word, packed numeric
+values up to 64 bits as an unsigned word, and `std::ffi`'s `c_int`, `c_short`,
+`c_float` and the others at their C widths. A function without a return type
+is C `void`, a statement a testbench runs in order. A struct or fixed array of
+C scalars is passed by pointer to a C-laid-out copy, which the caller receives
+back (an out-parameter); wider values cross as little-endian words. Calls work
+in hardware expressions, clocked updates and testbenches, and a test
+executable links any object given with `--link`. The standard library does not
+use C: its `real` math (`sqrt`, `sin`, …) is compiler intrinsics, so a design
+never depends on a host library it did not ask for.
 
 == Embedding and editors
 #status("done")
@@ -99,10 +107,11 @@ The compiler is a library first. `siox::compiler` takes a request (a file or
 an unsaved editor buffer, and the artifact wanted) and returns every product
 it produced: modules, resolution, types, the instance tree, the IR, and the
 diagnostics. The command-line driver is a thin adapter over it, and the
-`siox-lsp` language server uses the same library for live diagnostics,
-go-to-definition, hover, completion and rename, so editor and compiler never
-disagree.
+`siox-lsp` language server, in its own repository, uses the same library for
+live diagnostics, go-to-definition, hover, completion and rename, so editor
+and compiler never disagree.
 
 Inspection outputs show each stage: `--emit tokens`, `ast`, `source` (the
-canonical printed form, also the migration tool), `tree` (the instance
-hierarchy), `ir` and `llvm-ir`.
+canonical printed form, also the migration tool), `expanded` (after macros
+and derives), `tree` (the instance hierarchy), `metadata`, `ir` and
+`llvm-ir`. `-g` adds DWARF so GDB steps the siox source (see Verification).

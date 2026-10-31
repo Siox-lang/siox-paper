@@ -9,7 +9,9 @@ siox is strict where hardware is strict.
 - Every declaration states its type. `let x = e;` without a type is an error.
 - Assignment and connection widths must match exactly, and arithmetic does not
   widen silently: `unsigned[8] + unsigned[8]` wraps at eight bits. Widening and
-  narrowing are written as conversions.
+  narrowing are written as conversions. Two numbers of different types meet in
+  a format that holds both exactly, and a conversion happens implicitly only
+  where a library declared it with `Into`, never to make an operator fit.
 - A signal has one driver unless its type says how parallel drivers combine.
   Two drivers of an unresolved signal are an error that points at both.
 - The logic type is the full IEEE 1076-2019 nine-value `std_ulogic` set

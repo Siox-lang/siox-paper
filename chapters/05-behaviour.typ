@@ -58,6 +58,15 @@ There is no `?:` operator; `if` is an expression, as in Rust. Source order
 never gives priority *between* processes or wires: two independent drivers of
 one signal are either folded by the signal type's resolution, or an error.
 
+The left side of an assignment can be part of a signal. A slice (`y[3..0] = a;`)
+or one element, even at a runtime position (`status[i] = err;`), is a
+read-modify-write that keeps the other bits; a concatenation splits one value
+across several places (`{carry, sum} = a + b;`); a tuple destructures
+(`(q, r) = divmod(x, 7);`, which also swaps `(a, b) = (b, a);` in a process).
+A runtime index outside the declared range is a simulation failure that
+reports the value, the range and the source location; it never quietly reads
+zero or writes nothing.
+
 == Events, clocks and reset
 #status("done")
 
@@ -98,17 +107,49 @@ A condition must be a type that says how to be true: it implements the
 == Pattern matching
 #status("done")
 
-`match` works on enums, characters, numbers, ranges and bit patterns, with or
-patterns and a wildcard, as a statement or as an expression. A match that
-does not cover every value, or has an arm that can never be reached, is a
-lint.
+`match` works on enums, characters, numbers, ranges, bit patterns and tuples,
+with or-patterns and a wildcard, as a statement or as an expression. The first
+arm that matches wins, as in an `if` chain.
 
 ```siox
 match state {
     State::Idle => { if start { state = State::Busy; } }
     State::Busy | State::Wait => { if done { state = State::Idle; } }
 }
+
+match opcode {
+    "00------" => op = Op::Alu,      // '-' matches any element
+    x"A?"      => op = Op::Ext,      // '?' masks a whole nibble
+    _          => op = Op::Nop,
+}
+
+match (state, start, count) {        // several values at once
+    (State::Idle, '1', _)   => next = State::Run,
+    (State::Run,  _, 0..14) => next = State::Run,
+    _                       => next = State::Idle,
+}
+
+match n {
+    ..-1         => sign = Sign::Negative,   // an open range
+    0..DEPTH - 1 => slot = n,
+    DEPTH..      => overflow = true,
+}
 ```
+
+- *Bit patterns* match element by element through the element type's `Match`
+  trait, VHDL-2008's matching equality: for `Logic` that is `std_match`, so
+  `'H'` reads as `'1'` and a metavalue matches nothing but `-`.
+- *Ranges* match through the type's `Ord`, so `time` (`0ns..9ns`) and the
+  fixed-point formats work too; either end may be open, and a range is a set
+  (`9..3` is `3..9`).
+- *Tuples* match when every position does, so they combine all of the above.
+- *Coverage* is checked: a match that misses values is `non_exhaustive_match`,
+  an arm the earlier ones already cover is `unreachable_match_arm`, and two
+  ranges sharing exactly one endpoint (`0..10` then `10..20`) is
+  `overlapping_range_endpoints`, usually an off-by-one. A match that names every
+  enum variant, every combination of a tuple of enums, or every value of a
+  number needs no `_`. The same proof tells the latch lint that a signal every
+  arm assigns is not a latch.
 
 == Multiple drivers and resolution
 #status("done")

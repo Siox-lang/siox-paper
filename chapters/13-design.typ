@@ -37,7 +37,8 @@ against their declarations, and exported to each tool in its own format.
 == Synthesis through a vendor-neutral RTL
 #status("proposal")
 
-siox compiles to hardware before it compiles to another HDL. The design is
+siox compiles to hardware before it compiles to another HDL (the compiler's
+`rtl-interface` proposal, summarized here). The design is
 lowered into a vendor-neutral, synthesis-facing RTL representation that
 describes elaborated hardware directly:
 

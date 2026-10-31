@@ -34,6 +34,10 @@ impl Top {
 }
 ```
 
+An implementation can also declare an attribute that every value of its type
+answers, such as the fixed-point formats' `x'integers` and `x'fractions`
+(type attributes, in the previous chapter).
+
 Because every attribute has a default, a read always has a value. Bindings
 are compile-time constants, so a read costs nothing in the circuit. Binding
 an attribute twice on one declaration is an error; a binding never silently
@@ -56,9 +60,15 @@ metadata, bound with `attr test for X = …;`, and never makes a test.
   a hint to expand. Without one, small functions are expanded and larger ones
   shared. It is a choice about the simulation only: a function means the same
   in hardware either way.
+- `#[derive(Eq, Ord)]` on a struct writes its comparison impls.
 - `#[latched]` and `#[latch]` will make a function a pipeline and mark its
   stages (@pipelines)
   #status("proposal").
+
+There is deliberately no `#[cfg]`. The compile-time target is a value,
+`std::target`, folded before reachability: both branches of a choice are
+type-checked and there is one IR, where a directive that deletes code would let
+two configurations drift apart.
 
 Metadata written as `#[...]` is an error whose help gives the `attr` binding
 that replaces it.

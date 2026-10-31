@@ -13,6 +13,7 @@
   [Contextual], [`await` `after` `where` `self` `true` `false` `not` `_`],
   [Word operators], [`and` `or` `not`, and the standard library's `xor` `nand` `nor` `xnor`],
   [Removed], [`using` (now `use`/`type`), `wait` (now `await`); both are errors that name the replacement],
+  [Proposed], [`static` (`static fn`, `static let`) #status("proposal")],
 )
 
 == System attributes
@@ -28,6 +29,7 @@
   [`x'ascending`], [whether the declared range counts up],
   [`x'range`], [the declared range, for iteration: `for i in x'range`],
   [`x'name`], [a declared attribute: the bound value, or the default],
+  [`x'integers` …], [a type attribute its implementation declares, such as the fixed formats' `'integers` and `'fractions`],
 )
 
 `'ddt` is reserved for Phase 2 and is an error today.
@@ -46,6 +48,7 @@
   [`#[inline(always)]`], [expand this function's calls in the simulation],
   [`#[inline(never)]`], [call one shared copy of this function in the simulation],
   [`#[inline]`], [a hint to expand],
+  [`#[derive(Eq, Ord)]`], [write a struct's comparison impls, field by field],
   [`#[latched(N)]`], [a pipelined function of depth `N` #status("proposal")],
   [`#[latch]`], [one pipeline stage: a block, or the statement that follows #status("proposal")],
 )
@@ -71,6 +74,10 @@
   [`unimplemented_attr`], [W-P015], [an attribute no tool reads yet],
   [`incomplete_struct_literal`], [W-P016], [a struct literal that leaves fields at their defaults],
   [`unknown_lints`], [W-P017], [a lint name that does not exist],
+  [`overlapping_range_endpoints`], [W-P018], [two `match` ranges sharing exactly one value, usually an off-by-one],
+  [`non_constant_loop_bound`], [W-P019], [a loop that simulates but cannot unroll into hardware],
+  [`renamed_default`], [W-P020], [`T::new()` on a type with no `new`: write `T::default()`],
+  [`unwired_instance`], [W-P021], [an instance-array slot nothing connects],
   [`warnings`], [—], [every lint at once],
 )
 
@@ -88,8 +95,12 @@
   or `'Z'`.
 / Process: A block of ordered statements that runs concurrently with
   everything else.
+/ Promotion: Two numbers of different types meeting, in arithmetic, at the
+  higher rung of one ladder in a format that holds both exactly.
 / Resolution: Folding the values of several drivers of one signal into one,
   defined by the signal type's `Resolve` implementation.
+/ Tuple: An anonymous struct whose fields are its positions: `(A, B)`, read
+  `t.0`, `t.1`.
 / View: A directional role over a struct, giving each field a direction, so
   one struct serves both ends of a bus.
 

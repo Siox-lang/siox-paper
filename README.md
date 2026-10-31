@@ -9,10 +9,12 @@ hardware description language is for and what it will do. Read it as
 - **Part II · The digital language** — what siox does today: program
   structure, behaviour, types, abstraction, metadata and directives,
   verification, and the compiler.
-- **Part III · Where siox is going** — the designed features (pipelined
-  functions, macros, `core`/`std`, entity methods, the standard library, the
-  compiler foundations), Phase 2 analogue and mixed signal, Phase 3 design and
-  synthesis, and the tools around the compiler.
+- **Part III · Where siox is going** — every proposal and where it stands
+  (pipelined functions, macros, `core`/`std`, the standard library, entity
+  methods, implicit receivers and `static`, scoped blocks, payload enums,
+  binary and unary operators, the last `Into` site, the compiler foundations,
+  parallel simulation, co-simulation over VPI/VHPI), Phase 2 analogue and mixed
+  signal, Phase 3 design and synthesis, and the tools around the compiler.
 - **Appendix** — keywords, system attributes, directives, lints, glossary.
 
 Every feature carries its status: implemented, partly implemented, proposal,

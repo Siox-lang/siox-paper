@@ -96,9 +96,40 @@ dut.clk = clk;          // drive an input
 count = dut.count;      // read an output
 ```
 
+A connection may be any value of the port's type: a signal, a slice of an
+array (`.inp = taps[1..2]`, whose positions connect in order), or a literal,
+however deeply nested (`.m = [[1, 2], [3, 4]]`, `.b = Bundle { .arr = [1, 2] }`).
+
 A missing required connection, or a connection to a port the entity does not
 have, is an error naming the port; an output connected to two producers is
 the conflicting-driver error, pointing at both connection sites.
+
+== Instance arrays
+#status("done")
+
+`let stage: Cell[4];` declares four instances, `stage[0]` to `stage[3]`, and
+builds every one of them. Arrays nest outer index first (`Cell[2][3]` is
+three rows of two, read `grid[row][col]`). Writing a slot is connection sugar,
+not construction:
+
+```siox
+impl Chain {
+    let stage: Cell[4];
+    for i in 0..3 {
+        stage[i] = { .din = taps[i] };    // connects slot i's ports
+        outs[i] = stage[i].dout;          // reads a slot's output
+    }
+}
+```
+
+`stage[i] = Cell { .din = x }`, the name-less `stage[i] = { .din = x }`, and
+port writes through the slot (`stage[i].din = x`) all connect; `stage[i] = {}`
+connects nothing. A slot nothing wires still exists and simulates on its
+default inputs, which shows as a flat line in the waveform. That is the warning
+`unwired_instance` when the array is wired element by element, as VHDL's
+`open` ports are allowed but visible. A loop over constant bounds that touches
+an instance array is a generate loop, in a testbench as in a design, and a
+runtime index selects a slot through the same multiplexing as any array.
 
 == Buses and views
 #status("done")
@@ -166,3 +197,8 @@ An entity may only be instantiated where structure is built: at the top of an
 implementation or inside a structural `for`/`if`. Instantiating inside a
 process, a `match` arm or a function is an error, because control flow that
 runs while simulating cannot create hardware.
+
+A loop whose bounds are not constants cannot be unrolled into structure. Inside
+a process it still simulates, as a loop, with the warning
+`non_constant_loop_bound`: siox never refuses to simulate something because it
+has no hardware form, but it says so.

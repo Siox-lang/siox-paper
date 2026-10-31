@@ -116,10 +116,10 @@ it. The executable:
   full, however wide. Placeholders take Rust's specs: `{:.3}` rounds to three
   decimals, `{:.2e}` is scientific, `{:#x}` hexadecimal, `{:>8}` pads and
   aligns.
-- Structs print as `Packet { kind: Data, len: 12 }`, arrays as `[1, 2, 3]`
-  and logic vectors as `10XZ`. A type prints its own way by implementing
-  `Display`, whose `fmt` body uses `write!`; `float`, the fixed-point formats
-  and `Complex` do.
+- Structs print as `Packet { kind: Data, len: 12 }`, tuples as `('1', 9)`,
+  arrays as `[1, 2, 3]` and logic vectors as `10XZ`; `{:?}` gives Rust's
+  debug form. A type prints its own way by implementing `Display`, whose `fmt`
+  body uses `write!`; `float`, the fixed-point formats and `Complex` do.
 - `stop()` ends the test as passed so far; `finish()` ends the simulation.
 - A value that leaves a ranged type, or a file read that fails, is reported
   with the signal's path or the source location.
@@ -136,9 +136,12 @@ four are declared in `core` (@macros).
   `seed(n)` come from one generator with a fixed default seed, so a run always
   reproduces.
 - *Files*: `read<string>(path)` decodes UTF-8 text, `read<integer>(path)` and
-  `read<unsigned[16]>(path)` read binary fixtures, and `exists(path)` probes
-  for one. In hardware an initializer read happens at compile time, baking a
-  ROM image; in a testbench it happens when the test runs.
+  `read<unsigned[16]>(path)` read binary fixtures, `read<integer[]>(path)`
+  sizes a run-time array to the file, and `exists(path)` probes for one. In
+  hardware an initializer read happens at compile time, baking a ROM image; in
+  a testbench it happens when the test runs.
+- *Run-time arrays*: a testbench `T[]` grows with `xs.push(v)` and nests
+  (`integer[][]`), for scoreboards and expected-value queues.
 
 == Waveforms and debugging
 #status("done")
@@ -147,3 +150,12 @@ Waveforms record every signal with its hierarchy path: instances and labelled
 generate scopes nest (`top.stages[0].s.o`), enums appear by name, `Logic`
 appears with `x` and `z`, and structs and arrays flatten to one trace per
 field or element. The files open in GTKWave or Surfer.
+
+A failure names its source without a debugger: a failing assertion, a value
+leaving its range or a failed file read prints `--> file:line:col` with the
+source line and a caret. For stepping, `sioxc --test -g` emits DWARF for the
+siox source with optimization off, so GDB sets breakpoints on siox lines,
+steps with `next`, and prints state by its elaborated path
+(`FifoTest::d::count`), wide vectors, structs and directed arrays included. A
+debug build simulates exactly as an ordinary one; the waveforms are
+byte-identical.

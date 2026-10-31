@@ -10,7 +10,9 @@ written down as proposals, in roughly the order it is expected to land. Each
 proposal lives in the compiler repository under `docs/proposals/` until it is
 built; its substance then moves into the reference documents beside this
 paper (`docs/`, starting with the language specification) and the proposal is
-deleted.
+deleted. The sections below give every proposal as it stands at the end of
+October 2026, including the ones the owner has paused and the open questions
+still to be decided.
 
 == Pipelined functions <pipelines>
 #status("proposal")
@@ -144,8 +146,9 @@ written this?*
   table.hline(stroke: 0.5pt),
   [`core`], [What only the compiler can provide, reached through the language:
     the kernel types (`integer`, `real`, `Char`, `Bool`, `string`, `Range`);
-    the hook traits the compiler calls (`Add` and the other operators, `CustomOperator`, `Eq`, `Ord`, `Prefix`,
-    `Suffix`, `Index`, `Boolean`, `Resolve`, `New`, `From`, `LogicEncoding`);
+    the hook traits the compiler calls (`Add`, `Rem` and the other operators, `CustomOperator`, `Eq`, `Ord`, `Match`,
+    `Prefix`, `Suffix`, `Index`, `Boolean`, `Resolve`, `Default`, `From`, `Into`, `Display`, `LogicEncoding`);
+    the intrinsics behind `real` math;
     the macros, including a new fatal `error!`; and the
     simulator services (`await`, `stop`, `finish`, files, randomness).
     Compiled into `sioxc`, so it always matches the compiler.],
@@ -157,8 +160,8 @@ written this?*
 
 Implemented: `core` is compiled into `sioxc` and laid out like rustc's:
 `core::primitive` (`Bool`, `string`, and `integer`'s methods), `core::ops`,
-`core::cmp` (`Eq`, `Ord`, `Ordering`), `core::convert` (`From`), `core::default` (`New`) and
-`core::macros`; `std` re-exports each module under the same name. The
+`core::cmp` (`Eq`, `Ord`, `Ordering`, `Match`), `core::convert` (`From`, `Into`),
+`core::default` (`Default`), `core::fmt` (`Display`) and `core::macros`; `std` re-exports each module under the same name. The
 directives are not declared at all: like rustc's, they are built into the
 compiler. Each `core` declaration tells the compiler its role with a lang
 item, as rustc's `#[lang = "add"]` does:
@@ -196,12 +199,16 @@ Each piece comes with documentation and a runnable example:
   format, `ufixed<12, 6>(x)`, rounding and saturating.
 + *Floating point* #status("partial"): `std::float`, after VHDL's
   `float_pkg`: `float<32, 23>` is IEEE-754 binary32 (32 bits, 23 of them
-  mantissa), with addition,
-  subtraction, multiplication, IEEE comparison (a NaN is unordered) and the
-  constructor `float<32, 23>(1.5)`, rounding to nearest even, in processes
-  and in hardware entities alike. Still to come: division, square root,
-  subnormals, other rounding modes, and conversion to and from fixed point.
-+ *Linear algebra*: vectors and matrices over any numeric element.
+  mantissa), with addition, subtraction, multiplication, division, square
+  root, IEEE comparison (a NaN is unordered), conversions to and from the
+  fixed formats, and the constructor `float<32, 23>(1.5)`, rounding to nearest
+  even, in processes and in hardware entities alike. Still to come:
+  subnormals (flushed to zero today) and the other rounding modes.
++ *Complex numbers* #status("done"): `std::math::Complex`, after
+  `ieee.math_complex`, with `+`, `-` and the `i` suffix (`3.0 + 4.0i`).
++ *Linear algebra* (optional): `Vector<T, N>` and `Matrix<T, R, C>` over any
+  element with the needed operator traits, as ordinary array-backed library
+  types, once a design needs them.
 
 #diagram(caption: [`std::sync::Sync2` in simulation: an input that changes
 between clock edges (13 ns) is taken by the first flop on the next edge and
@@ -240,16 +247,167 @@ impl Producer {
 
 A call materialises an enable port, one port per argument and one for the
 result; nothing is hidden, and the generated ports cost exactly what
-hand-written ones do. Associated functions without `self` are implemented;
-pure accessors and action methods with arguments come next.
+hand-written ones do. The first version allows one call site per method per
+instance, so no arbitration is needed. A call through an instance array works
+the same way: `stage[sel].write(v)` gives every element its own enable, gated by
+`sel`, so each still has one caller.
 
-== `derive` and the rest of the type system
+Associated functions without a receiver are implemented. Accessors and action
+methods are #status("on hold"): the owner paused them in October 2026, because
+an entity's body names its ports and state without a receiver, and a `self`
+parameter on an entity method would look unlike everything else in that body.
+The implicit-receiver proposal below answers that objection; whether the two
+land together is the proposal's open question.
+
+== Implicit receivers and `static`
 #status("proposal")
 
-- `#[derive(Ord)]` and `#[derive(Resolve)]` generating the routine
-  implementations, once a second real use exists.
-- Compile-time selection stays a *value*, `std::target`, never `#[cfg]`: both
-  branches are always type-checked, and there is one IR.
+Today a `self` parameter is what tells a method from an associated function.
+The proposal makes that distinction a keyword instead, the same for structs,
+enums, entities and views:
+
+#table(
+  columns: (auto, auto),
+  table.header([*Declared in an implementation*], [*Receiver*]),
+  table.hline(stroke: 0.5pt),
+  [`fn f(...)`, `pub fn f(...)`], [implicit `self`],
+  [`static fn f(...)`, `pub static fn f(...)`], [none: called as `Type::f(...)`],
+)
+
+```siox
+impl Counter {
+    pub fn increment() { value = value + 1; }         // fields by name
+    pub fn set(value: integer) { self.value = value; } // `self.` when shadowed
+    pub static fn from_count(value: integer) -> Counter {
+        return Counter { .value = value };
+    }
+}
+```
+
+`self` stays as an expression and `Self` as the implementing type; `pub`
+controls only visibility. Constructors and conversions become explicitly
+static (`static fn default() -> Self`, `static fn from(value: S) -> Self`).
+The migration has to be loud: a receiver-free `fn` in an implementation means
+an associated function today and would gain a receiver, so old code must fail
+with a message rather than change meaning.
+
+The proposal also adds `static let`, state that outlives one activation of a
+process. Its rules are being decided (October 2026):
+
+- It is allowed in processes and functions, and an error in an entity body,
+  where every `let` is already a signal declared once.
+- The proposed semantics are a *signal scoped to its process*: it updates like
+  every siox signal (a write takes effect at the end of the step), its
+  initializer is its power-on value, and it is named by the process label for
+  waveforms and debugging. That keeps the variable/signal split of VHDL and
+  the blocking/non-blocking split of Verilog out of the language: nothing is
+  inferred, the `static` is written.
+- In a function, the proposal is one copy per call site, as hardware inlines
+  each call (two calls of a stateful `debounce` are two debouncers), and an
+  error in a recursive function.
+
+It overlaps scoped blocks (below): `static let` is the lighter form for state
+one process owns, a block for state several processes share.
+
+== Scoped blocks
+#status("proposal")
+
+A large implementation collects all its state in one namespace. A `{ … }` block
+at implementation scope groups members under their own scope, with an
+optional label:
+
+```siox
+impl Cpu {
+    counter: {
+        let n: unsigned[8] = 0;          // private to the block
+        pub let wrapped: Bit = '0';      // visible to the whole implementation
+        step: process {
+            if clk.rising() {
+                n = n + 1;
+                wrapped = if n == 255 { '1' } else { '0' };
+            }
+        }
+    }
+    overflow = counter.wrapped;          // a pub member, through the label
+}
+```
+
+Names follow Rust's block scoping; a private member from outside is an error
+naming the block. `pub` exports one level and never past the entity, whose
+interface stays its ports. A labelled block is a scope in the hierarchy, as a
+generate label is (`counter.n` in the tree, waveforms and debugger); an
+unlabelled one adds no level. Blocks add no semantics: elaboration flattens
+them, and no register is ever inferred from a local.
+
+== Payload enums
+#status("on hold")
+
+Variants that carry data, as in Rust, for optional and fallible results,
+protocol messages and state machines with per-state data:
+
+```siox
+pub enum Option<T> { None, Some(T) }
+enum Command {
+    Idle,
+    Read(unsigned[16]),
+    Write { addr: unsigned[16], data: unsigned[32] },
+}
+
+match c {
+    Command::Idle => ready = '1',
+    Command::Read(addr) => q = memory[addr],      // binds `addr`
+    Command::Write { addr, data } => memory[addr] = data,
+}
+```
+
+A payload enum is a tag plus a payload region as wide as its largest variant,
+the variants overlaid as in a SystemVerilog tagged union; a field is in scope
+only inside its variant's arm, so another variant's bits are never read.
+Patterns that bind (`Some(x)`) are the first of their kind and the largest
+piece of work; the match coverage proofs that exist already extend to
+variants. std would gain `Option`, `Result` and `checked_add`.
+
+The rule agreed in October 2026 keeps it apart from the logic system. An enum
+is either a *value enum*, today's kind, whose variants may be characters or
+carry explicit discriminants (`'U' = 4`, `Add = 0`), or a *sum type*, whose
+variants may carry data and whose tag the compiler chooses. A character or
+numbered variant has no payload, as in Rust a variant with an explicit
+discriminant has none, so `Bit`, `ULogic`, `Logic` and every character enum
+keep their representation. A character literal inside a payload takes its type
+from context (`let b: Option<Bit> = Some('1');`). The owner has paused the
+proposal; the open questions are what unused payload bits hold (`'0'` or
+`'-'`), a checked accessor, and dropping the tag for a niche, as Rust's
+`Option<&T>` does.
+
+== Binary and unary custom operators
+#status("proposal")
+
+`CustomOperator` is binary only. The proposal splits it into two contracts
+with explicit arity, so prefix operators can be declared too:
+
+```siox
+impl BinaryOperator<"clip", unsigned, unsigned[3]> for unsigned {
+    attr precedence = 35;
+    fn apply(rhs: unsigned) -> unsigned[3] { return unsigned[3](self + rhs); }
+}
+impl UnaryOperator<"flip", Logic> for Logic {
+    fn apply() -> Logic { … }                      // `flip a`
+}
+```
+
+The declared result keeps its width, range and alias identity through a chain,
+which `CustomOperator` already does. The standard operator traits (`Add`,
+`Not`, `Neg`, …) and the comparisons are unchanged, and an old declaration
+fails with a migration message instead of being reinterpreted.
+
+== The last implicit conversion site
+#status("partial")
+
+`Into` converts at a `let`, an assignment, an argument, a returned value and a
+struct-literal field. A port connection is the remaining site: connecting an
+`unsigned[8]` signal to a `Logic[8]` port should convert as storing it does.
+It waits for the checker to type a connection against its port, which is in
+progress.
 
 == Compiler foundations
 #status("partial")
@@ -263,11 +421,16 @@ into, and the compiler finds them by role. The rest remain:
 + *Diagnostics for tools*: `--explain E-P014`, JSON output, and fix
   suggestions that a `--fix` mode can apply, making every future syntax
   migration one command.
-+ *One constant evaluator* shared by every stage, replacing several that grew
-  separately.
-+ *No name lookups after resolution*: later stages work only with resolved
-  declaration identities, never with spellings, including the last few hooks
-  still found by name.
++ *One constant evaluator* shared by every stage, replacing more than a dozen
+  that grew separately, several of them added by bug fixes that each needed
+  constants in one more place.
++ *A resolved tree* between type checking and elaboration, so later stages
+  work with declaration identities and registries rather than re-reading the
+  syntax.
++ *No name lookups after resolution*: the last few hooks still found by
+  spelling move to lang items and resolved identities.
+
+None of the five has landed yet (October 2026); each lands on its own.
 
 == Parallel simulation <parallel>
 #status("proposal")
@@ -354,10 +517,27 @@ performs.])[
   ))
 ] <fig-dispatch>
 
-== The simulator interface
-#status("planned")
+== Co-simulation and the simulator interfaces
+#status("proposal")
 
-A stable scheduler interface, shaped like the VPI that existing tools speak,
-opens the native simulator to external drivers. The first target is cocotb,
-so Python testbenches can drive siox designs; the same interface serves
-co-simulation and, later, the mixed-signal coordination of Phase 2.
+Today a siox design runs only in its own executable. Two things a hardware team
+needs go through the same two IEEE interfaces in opposite directions: VPI
+(Verilog and SystemVerilog) and VHPI (VHDL).
+
+- *siox as a client:* `sioxc` builds a siox top as a shared library plus a
+  wrapper module or entity in Verilog and VHDL. A host simulator instantiates
+  the wrapper like any other block, and the library, loaded as its VPI or VHPI
+  plugin, steps the siox runtime from the host's callbacks. VHDL first, on
+  nvc; Verilog second, on Icarus.
+- *siox as a server:* the siox executable implements VPI, then VHPI, so
+  external tools attach to it. cocotb is the first client, for Python
+  testbenches.
+
+Both rest on one refactor: the test runner's loop split into steps an outside
+scheduler can drive (start, apply inputs, settle, advance time, read outputs),
+with the `--test` executable as one driver of it. Values crossing follow the
+interoperability rules: logic is exact through VHPI and normalized to
+`X01Z` for four-state VPI. No language change is needed. The cocotb work was
+deferred in October 2026, when the API work closed; the proposal stays the
+design for when it resumes, and the same steppable runtime will serve the
+mixed-signal coordination of Phase 2.

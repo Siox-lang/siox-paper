@@ -10,8 +10,11 @@
 - *A project tool* #status("planned"), in the role Cargo plays for Rust, will
   own projects, packages, dependencies and builds, calling `sioxc` underneath.
   It lives in its own repository.
-- *`siox-lsp`* #status("done") gives editors live diagnostics, navigation,
-  completion and rename, using the compiler as a library.
+- *`siox-lsp`* #status("done"), in its own repository, gives editors live
+  diagnostics, navigation, completion and rename, using the compiler as a
+  library.
+- *GDB* #status("done") steps siox source in a test executable built with
+  `-g`, with state named by its elaborated path.
 - *The test corpus* #status("done") is a separate repository of runnable siox
   programs that every compiler change must pass, in both of the compiler's
   build configurations.
@@ -52,23 +55,32 @@
   table.header([*Area*], [*Status*]),
   table.hline(stroke: 0.5pt),
   [Modules, `use`/`type` with Rust's import forms, visibility], [#status("done")],
-  [Entities, implementations, instances, views, generics], [#status("done")],
+  [Entities, implementations, instances, instance arrays, views, generics], [#status("done")],
   [Structural generation with labelled scopes], [#status("done")],
   [Processes, wires, delta cycles, events, clocks, time], [#status("done")],
-  [Nine-value logic, metavalues, numeric vectors, ranged integers], [#status("done")],
-  [Traits, operator traits, custom operators, literal affixes], [#status("done")],
+  [Nine-value logic, metavalues, numeric vectors, ranged integers, `natural`], [#status("done")],
+  [Tuples, arrays with runtime indices and slices, run-time testbench arrays], [#status("done")],
+  [Pattern matching: bit patterns, ranges, tuples, coverage proofs], [#status("done")],
+  [Traits, operator traits, custom operators, literal affixes, type attributes], [#status("done")],
+  [`From`, implicit `Into`, numeric promotion, `Default`], [#status("done")],
+  [`#[derive(Eq, Ord)]`], [#status("done")],
   [Declared attributes, directives, lint levels], [#status("done")],
-  [Testbenches, test executables, VCD/FST waveforms], [#status("done")],
+  [Testbenches, test executables, VCD/FST waveforms, GDB source debugging], [#status("done")],
   [`extern "C"`, compiler API, language server], [#status("done")],
   [User macros], [#status("done")],
-  [`core`/`std` split, lang items], [#status("done")],
-  [Fixed point; floating-point add, subtract, multiply, compare], [#status("done")],
-  [Entity methods], [#status("partial")],
-  [Standard-library build-out], [#status("partial")],
-  [Compiler foundations (UI tests, JSON, one constant evaluator)], [#status("partial")],
-  [Pipelined functions, `derive`], [#status("proposal")],
+  [`core`/`std` split, lang items, intrinsics], [#status("done")],
+  [Fixed point; floating point with division, square root, fixed conversions], [#status("done")],
+  [`Into` at port connections], [#status("partial")],
+  [Entity methods (associated functions; receiver methods paused)], [#status("partial")],
+  [Standard-library build-out (subnormals, rounding modes, linear algebra)], [#status("partial")],
+  [Compiler foundations (UI tests, JSON, one constant evaluator, resolved tree)], [#status("partial")],
+  [Pipelined functions], [#status("proposal")],
+  [Implicit receivers, `static fn`, `static let`], [#status("proposal")],
+  [Scoped blocks], [#status("proposal")],
+  [Binary and unary custom operators], [#status("proposal")],
   [Parallel simulation], [#status("proposal")],
-  [Simulator interface and cocotb], [#status("planned")],
+  [Co-simulation, VPI/VHPI and cocotb], [#status("proposal")],
+  [Payload enums], [#status("on hold")],
   [Analogue and mixed signal], [#status("phase2")],
   [Projects, foreign HDL, constraints, vendor-neutral RTL, synthesis], [#status("phase3")],
 )
