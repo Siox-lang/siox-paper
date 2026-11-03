@@ -305,9 +305,12 @@ process. Its rules are being decided (October 2026):
   waveforms and debugging. That keeps the variable/signal split of VHDL and
   the blocking/non-blocking split of Verilog out of the language: nothing is
   inferred, the `static` is written.
-- In a function, the proposal is one copy per call site, as hardware inlines
-  each call (two calls of a stateful `debounce` are two debouncers), and an
-  error in a recursive function.
+- In a function there is one copy per function, as with C's `static`
+  (decided November 2026); a generic function has one per specialization. A
+  testbench's calls share it in order. In hardware it is one register: several
+  calls in one process chain, as a VHDL function reused in a process does,
+  while updates from separate processes (including two instances of the same
+  entity) are a conflicting driver.
 
 It overlaps scoped blocks (below): `static let` is the lighter form for state
 one process owns, a block for state several processes share.
