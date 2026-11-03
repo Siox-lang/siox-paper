@@ -165,11 +165,11 @@ skips an `'X'`, and `leading_zeros` stops at one. `checked_*` (Rust's
 ## `core::ops` (re-exported by `std::ops`)
 
 ```siox
-pub trait Boolean { fn as_bool(self) -> Bool; }
-pub trait Default { fn default() -> Self; }
-pub trait From { fn from(value: Self) -> Self; }
-pub trait Into { fn into(self) -> Self; }    // `impl Into<T> for S`, implicit where stored
-pub trait Resolve { fn resolve(self, rhs: Self) -> Self; }
+pub trait Boolean { fn as_bool() -> Bool; }
+pub trait Default { static fn default() -> Self; }
+pub trait From { static fn from(value: Self) -> Self; }
+pub trait Into { fn into() -> Self; }    // `impl Into<T> for S`, implicit where stored
+pub trait Resolve { fn resolve(rhs: Self) -> Self; }
 ```
 
 **Comparisons** are `core::cmp`'s `Eq<Rhs>` (`eq`, and `ne` by default) and
@@ -232,7 +232,7 @@ emitted as LLVM's own intrinsics, as nvc builds in `ieee.math_real`:
 `abs` of a `float` is `-x` below zero, so `abs(-0.0)` stays `-0.0` (equal to
 `+0.0`) and a NaN keeps its sign.
 
-`sqrt` dispatches through the trait `Sqrt` (`fn sqrt(self) -> Self`), which
+`sqrt` dispatches through the trait `Sqrt` (`fn sqrt() -> Self`), which
 each number type implements beside its declaration, as it implements its
 operators: `real` built in, `float` as IEEE `squareRoot`,
 `ufixed`/`sfixed` to the nearest step. `x.sqrt()` is the same call.
@@ -524,7 +524,7 @@ pub enum Severity { Note, Warning, Error, Failure }
 ## `core::fmt` (re-exported by `std::fmt`)
 
 `Display` says how a type prints; `write!(f, "fmt", args)` appends to its
-output inside `fn fmt(self, f: Formatter)`. Format strings take Rust's specs
+output inside `fn fmt(f: Formatter)`. Format strings take Rust's specs
 (`{:.3}`, `{:e}`, `{:#x}`, `{:>8}`; language §3 "Format strings"), and `{:?}`
 prints the built-in form below even for a type with a `Display` impl. Types
 without an impl print in a built-in form: structs and views as

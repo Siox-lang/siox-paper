@@ -235,7 +235,7 @@ ports, following Bluespec's method-to-port mapping:
 
 ```siox
 impl Fifo {
-    pub fn write(self, value: unsigned[8]) -> Bool { … }
+    pub fn write(value: unsigned[8]) -> Bool { … }
 }
 
 impl Producer {
@@ -260,11 +260,10 @@ The implicit-receiver proposal below answers that objection; whether the two
 land together is the proposal's open question.
 
 == Implicit receivers and `static` <receivers>
-#status("accepted")
+#status("partial")
 
-Today a `self` parameter is what tells a method from an associated function.
-The proposal makes that distinction a keyword instead, the same for structs,
-enums, entities and views:
+A keyword, not a `self` parameter, tells a method from an associated
+function, the same for structs, enums, entities and views:
 
 #table(
   columns: (auto, auto),
@@ -287,14 +286,15 @@ impl Counter {
 `self` stays as an expression and `Self` as the implementing type; `pub`
 controls only visibility. Constructors and conversions become explicitly
 static (`static fn default() -> Self`, `static fn from(value: S) -> Self`).
-The migration has to be loud: a receiver-free `fn` in an implementation means
-an associated function today and would gain a receiver, so old code must fail
-with a message rather than change meaning.
+The migration is loud: a receiver-free `fn` in an implementation used to be
+an associated function and now has a receiver, so every path call to it, and
+an impl of a trait's `static` member, fails with a message saying to write
+`static fn`, rather than changing meaning. A written `self` parameter, the old
+spelling, still compiles with a warning to remove it.
 
-The owner accepted the model on 31 October 2026: every `self` parameter goes,
-in trait declarations as well as implementations. The `static fn` marker has
-landed (November 2026) for today's receiver-free members; the receiver
-migration and entity methods follow.
+The owner accepted the model on 31 October 2026, and it landed in November
+2026 across core, std and the corpus. Two parts follow: bare field names
+(`value` for `self.value`, shown above) and public entity methods.
 
 The proposal also adds `static let`, state that outlives one activation of a
 process or one call of a function. Its rules:

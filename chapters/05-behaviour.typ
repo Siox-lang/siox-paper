@@ -76,9 +76,9 @@ from them, in the standard library, as ordinary trait methods:
 
 ```siox
 pub trait ClockLike {
-    fn rising(self) -> Bool;
-    fn falling(self) -> Bool;
-    fn edge(self) -> Bool;
+    fn rising() -> Bool;
+    fn falling() -> Bool;
+    fn edge() -> Bool;
 }
 ```
 

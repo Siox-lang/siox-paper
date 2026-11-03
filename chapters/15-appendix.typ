@@ -13,7 +13,7 @@
   [Contextual], [`await` `after` `where` `self` `true` `false` `not` `_`],
   [Word operators], [`and` `or` `not`, and the standard library's `xor` `nand` `nor` `xnor`],
   [Removed], [`using` (now `use`/`type`), `wait` (now `await`); both are errors that name the replacement],
-  [Partial], [`static` (`static fn`; testbench `static let`) #status("partial")],
+  [Partial], [Implicit receivers, `static fn`, `static let` (bare field names and entity methods to come) #status("partial")],
 )
 
 == System attributes

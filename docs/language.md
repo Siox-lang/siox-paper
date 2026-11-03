@@ -126,7 +126,7 @@ precise reference.
 - **One operator trait** — `impl Add<In, Out> for T`; comparisons
   are the `Eq`/`Ord` traits, whose methods return `Bool`.
 - **Methods** — `recv.method(args)` on a value's inherent or trait impl
-  (`impl T { fn m(self, ..) }`); value-returning methods inline into an
+  (`impl T { fn m(..) }`); value-returning methods inline into an
   expression, statement methods (`s.send(v)`) inline as drivers on the
   receiver's fields.
 - **Container-relative visibility** — module items, struct fields, and
@@ -362,8 +362,8 @@ pub struct Counter {
 }
 
 impl Counter {
-    fn reset(self) { self.value = 0; }          // private to Counter impls
-    pub fn limit(self) -> unsigned[32] {        // exported type API
+    fn reset() { self.value = 0; }          // private to Counter impls
+    pub fn limit() -> unsigned[32] {        // exported type API
         return self.maximum;
     }
 }
@@ -387,20 +387,22 @@ port is rejected as redundant. Its `in`, `out`, or `inout` suffix controls
 direction, not visibility. State, constants, mode fields, and helper functions
 declared in the entity's `impl` remain private. Access such as
 `instance.hidden_state` is rejected even from the entity's module; only ports
-form the structural instance interface. Public entity functions with a `self`
+form the structural instance interface. Public entity functions with a
 receiver are currently rejected because a call across an instance boundary has
 no implemented connectivity or synthesis semantics yet; behavior must be
-exposed through ports. An entity may expose a public **associated function**
-with no `self` parameter, called as `Entity::function(...)`. It has no instance
-scope, cannot access ports or implementation state, and lowers like any other
+exposed through ports. An entity may expose a public **associated function**,
+`pub static fn`, called as `Entity::function(...)`. It has no instance scope,
+cannot access ports or implementation state, and lowers like any other
 namespaced function in hardware and testbench expressions.
 
-Such a member may be written `static fn` (`pub static fn at(v: integer) ->
-Counter`), the marker the implicit-receivers proposal makes required: a
-`static fn` has no receiver, so a `self` parameter under it is an error, and
-`static` on a module-level function is an error because a module function
-never has one. Until the receiver migration lands, an unmarked receiver-free
-member keeps its current meaning.
+**Receivers are implicit.** A member of an implementation or trait has a
+receiver, as C++'s `this`, named `self` in its body; `static fn` marks one
+without (`pub static fn at(v: integer) -> Counter`). A `self` parameter under
+`static fn`, and `static` on a module-level function, are errors. The old
+written `self` parameter still means the receiver and warns to remove it. A
+member that used to be receiver-free and is not marked `static` now has a
+receiver, so a path call to it, or an impl of a trait's `static` member,
+fails with a message naming `static fn`.
 
 Trait methods similarly inherit the trait's visibility. An implementation
 therefore writes `fn`, never `pub fn`; a private trait and its methods remain
@@ -713,7 +715,7 @@ signal assignment.
 ```siox
 impl CustomOperator<"nand", Logic, Logic> for Logic {
     attr precedence = 40;              // the enclosing implementation
-    fn apply(self, rhs: Logic) -> Logic { ... }
+    fn apply(rhs: Logic) -> Logic { ... }
 }
 
 impl Top {
@@ -885,7 +887,7 @@ Array behavior is reusable without making nominal vectors interchangeable:
 
 ```siox
 impl<T: Resolve> Resolve for T[] {
-    fn resolve(self, rhs: T[]) -> T[] {
+    fn resolve(rhs: T[]) -> T[] {
         let result: T[] = self;
         for i in self'range { result[i] = self[i].resolve(rhs[i]); }
         return result;
@@ -893,7 +895,7 @@ impl<T: Resolve> Resolve for T[] {
 }
 
 impl<T: And<T, T>> And<T, T> for T[] {
-    fn and(self, rhs: T[]) -> T[] {
+    fn and(rhs: T[]) -> T[] {
         let result: T[] = self;
         for i in self'range { result[i] = self[i] and rhs[i]; }
         return result;
@@ -1254,21 +1256,21 @@ Definition (`std/logic.siox`):
 
 ```siox
 trait ClockLike {
-    fn rising(self) -> Bool;
-    fn falling(self) -> Bool;
-    fn edge(self) -> Bool;
+    fn rising() -> Bool;
+    fn falling() -> Bool;
+    fn edge() -> Bool;
 }
 
 impl ClockLike for Logic {
-    fn rising(self) -> Bool {
+    fn rising() -> Bool {
         return self'event and self'old == '0' and self == '1';
     }
 
-    fn falling(self) -> Bool {
+    fn falling() -> Bool {
         return self'event and self'old == '1' and self == '0';
     }
 
-    fn edge(self) -> Bool {
+    fn edge() -> Bool {
         return self'event;
     }
 }
@@ -1586,7 +1588,7 @@ is the system `Bool` type: `true`/`false`, not an integer code.
 
 ```siox
 trait Boolean {
-    fn as_bool(self) -> Bool;
+    fn as_bool() -> Bool;
 }
 ```
 
@@ -1623,7 +1625,7 @@ A user type becomes usable as a condition by implementing `Boolean`:
 
 ```siox
 impl Boolean for State {
-    fn as_bool(self) -> Bool {
+    fn as_bool() -> Bool {
         match self {
             State::Idle => return false,
             _ => return true,
@@ -1873,13 +1875,13 @@ The same spelling is used for ports, inherent impls, and trait impls:
 
 ```siox
 impl Stream<T> StreamSource {
-    fn can_send(self) -> Bit {
+    fn can_send() -> Bit {
         return self.ready;
     }
 }
 
 impl Source<T> for Stream<T> StreamSource {
-    fn send(self, value: T) {
+    fn send(value: T) {
         self.valid = '1';
         self.data = value;
     }
@@ -1953,8 +1955,8 @@ Example:
 
 ```siox
 trait Source<T> {
-    fn send(self, value: T);
-    fn can_send(self) -> Bit;
+    fn send(value: T);
+    fn can_send() -> Bit;
 }
 ```
 
@@ -1962,12 +1964,12 @@ Implementation:
 
 ```siox
 impl Source<T> for Stream<T> StreamSource {
-    fn send(self, value: T) {
+    fn send(value: T) {
         self.valid = '1';
         self.data = value;
     }
 
-    fn can_send(self) -> Bit {
+    fn can_send() -> Bit {
         return self.ready;
     }
 }
@@ -1980,11 +1982,11 @@ arrays use intrinsic lowering; other types fall back to these traits:
 
 ```siox
 trait Index<I, Output> {
-    fn index(self, index: I) -> Output;
+    fn index(index: I) -> Output;
 }
 
 trait IndexAssign<I, Value> {
-    fn index_assign(self, index: I, value: Value);
+    fn index_assign(index: I, value: Value);
 }
 ```
 
@@ -2077,8 +2079,8 @@ metavalue. An element type without `Match` compares its value bits.
 
 ```siox
 pub trait Match<Pattern> {
-    fn matches(self, pattern: Pattern) -> Bool;  // one element, one pattern character
-    fn unknown(self) -> Bool;                    // a value no pattern matches
+    fn matches(pattern: Pattern) -> Bool;  // one element, one pattern character
+    fn unknown() -> Bool;                    // a value no pattern matches
 }
 ```
 
@@ -2343,7 +2345,7 @@ value and is inlined at lowering, so the scale lives in std source:
 
 ```siox
 impl Suffix<"ns", integer> for time {
-    fn suffix(v: integer) -> time { return time(v * 1000000); }
+    static fn suffix(v: integer) -> time { return time(v * 1000000); }
 }
 ```
 
@@ -2407,7 +2409,7 @@ a method named after it, found by lang item; `Rhs` is the right operand's type
 
 ```siox
 impl Add<Complex, Complex> for Complex {
-    fn add(self, rhs: Complex) -> Complex {
+    fn add(rhs: Complex) -> Complex {
         return Complex { .re = self.re + rhs.re, .im = self.im + rhs.im };
     }
 }
@@ -2428,7 +2430,7 @@ precedence inside its impl:
 ```siox
 impl CustomOperator<"xor", Logic, Logic> for Logic {
     attr precedence = 35;
-    fn apply(self, rhs: Logic) -> Logic { … }
+    fn apply(rhs: Logic) -> Logic { … }
 }
 ```
 
@@ -2474,15 +2476,15 @@ method of a `core::cmp` trait (in the prelude), returning `Bool`:
 
 ```siox
 pub trait Eq<Rhs> {
-    fn eq(self, rhs: Rhs) -> Bool;                                  // ==
-    fn ne(self, rhs: Rhs) -> Bool { return not (self == rhs); }     // !=
+    fn eq(rhs: Rhs) -> Bool;                                  // ==
+    fn ne(rhs: Rhs) -> Bool { return not (self == rhs); }     // !=
 }
 
 pub trait Ord<Rhs> {
-    fn lt(self, rhs: Rhs) -> Bool;                                  // <
-    fn le(self, rhs: Rhs) -> Bool;                                  // <=
-    fn gt(self, rhs: Rhs) -> Bool { return rhs < self; }            // >
-    fn ge(self, rhs: Rhs) -> Bool { return rhs <= self; }           // >=
+    fn lt(rhs: Rhs) -> Bool;                                  // <
+    fn le(rhs: Rhs) -> Bool;                                  // <=
+    fn gt(rhs: Rhs) -> Bool { return rhs < self; }            // >
+    fn ge(rhs: Rhs) -> Bool { return rhs <= self; }           // >=
 }
 ```
 
@@ -2498,16 +2500,16 @@ total order, so the partial/total split would be names without behaviour.
 
 ```siox
 impl Eq<Version> for Version {
-    fn eq(self, rhs: Version) -> Bool {
+    fn eq(rhs: Version) -> Bool {
         return self.major == rhs.major and self.minor == rhs.minor;
     }
 }
 
 impl Ord<Version> for Version {
-    fn lt(self, rhs: Version) -> Bool {
+    fn lt(rhs: Version) -> Bool {
         return self.major < rhs.major or (self.major == rhs.major and self.minor < rhs.minor);
     }
-    fn le(self, rhs: Version) -> Bool { return not rhs.lt(self); }
+    fn le(rhs: Version) -> Bool { return not rhs.lt(self); }
 }
 // v1 < v2, v1 >= v2, v1 == v2, ... all work.
 ```
@@ -2570,15 +2572,15 @@ impls on `integer` catch literal left operands:
 
 ```siox
 impl Add<Complex, Complex> for Complex {
-    fn add(self, rhs: Complex) -> Complex { ... }
+    fn add(rhs: Complex) -> Complex { ... }
 }
 
 impl Add<integer, Complex> for Complex {
-    fn add(self, rhs: integer) -> Complex { ... }   // z + 3
+    fn add(rhs: integer) -> Complex { ... }   // z + 3
 }
 
 impl Add<Complex, Complex> for integer {
-    fn add(self, rhs: Complex) -> Complex { ... }   // 10 + 5i
+    fn add(rhs: Complex) -> Complex { ... }   // 10 + 5i
 }
 ```
 
@@ -2762,7 +2764,7 @@ function:
 
 ```siox
 impl From<real> for float {
-    fn from(value: real) -> float { return float_word(value, Self'high, 0 - Self'low); }
+    static fn from(value: real) -> float { return float_word(value, Self'high, 0 - Self'low); }
 }
 
 let x: float<32, 23> = float<32, 23>(1.5);   // IEEE binary32 1.5
@@ -2824,7 +2826,7 @@ let n: unsigned[8] = unsigned[8]();  // == 0
 
 This is one rule, not two: "`0` for numerics" *falls out* of "first value for
 enums", because a numeric's bits are `Logic` whose first value is `'0'`. A type
-**overrides** the structural default with `impl Default for T { fn default() -> T { … } }`
+**overrides** the structural default with `impl Default for T { static fn default() -> T { … } }`
 (the body must be a constant). The std library uses this for the IEEE 1076-2019
 defaults: `impl Default for Bit` → `'0'`, and `impl Default for Logic`/`ULogic` → `'U'`
 (uninitialized), so an undriven `Logic` signal powers on to `'U'` rather than a
@@ -3549,7 +3551,7 @@ prelude, with `Formatter` and `write!`):
 
 ```siox
 impl Display for Complex {
-    fn fmt(self, f: Formatter) {
+    fn fmt(f: Formatter) {
         write!(f, "{} + {}i", self.re, self.im);
     }
 }

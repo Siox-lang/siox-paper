@@ -11,23 +11,22 @@ design is elaborated.
 
 ```siox
 trait Source<T> {
-    fn send(self, value: T);
-    fn can_send(self) -> Bit;
+    fn send(value: T);
+    fn can_send() -> Bit;
 }
 
 impl<T> Source<T> for Stream<T> Source {
-    fn send(self, value: T) {
+    fn send(value: T) {
         self.valid = '1';
         self.data = value;
     }
-    fn can_send(self) -> Bit { return self.ready; }
+    fn can_send() -> Bit { return self.ready; }
 }
 ```
 
-The `self` parameters in these examples are today's syntax, and they are on
-their way out: the owner has accepted implicit receivers (@receivers), so `fn`
-will take its receiver implicitly and `static fn` will mark a function without
-one, in traits and implementations alike.
+A member's receiver is implicit, as C++'s `this`: `fn send(value: T)` has one,
+named `self` in its body, and `static fn` marks a member without one, in
+traits and implementations alike (@receivers).
 
 Generic implementations are written with Rust's binder,
 `impl<W: integer> Counter<W>`. Bounds restrict generic code to types that
@@ -36,7 +35,7 @@ element's behaviour to every array of it:
 
 ```siox
 impl<T: Resolve> Resolve for T[] {
-    fn resolve(self, rhs: T[]) -> T[] {
+    fn resolve(rhs: T[]) -> T[] {
         let result: T[] = self;
         for i in self'range { result[i] = self[i].resolve(rhs[i]); }
         return result;
@@ -55,7 +54,7 @@ can also be called directly, `a.add(b)`:
 
 ```siox
 impl Add<Complex, Complex> for Complex {
-    fn add(self, rhs: Complex) -> Complex {
+    fn add(rhs: Complex) -> Complex {
         return Complex { .re = self.re + rhs.re, .im = self.im + rhs.im };
     }
 }
@@ -71,16 +70,16 @@ an order may leave values unordered, as IEEE floating point does for NaN:
 
 ```siox
 impl Eq<Version> for Version {
-    fn eq(self, rhs: Version) -> Bool {
+    fn eq(rhs: Version) -> Bool {
         return self.major == rhs.major and self.minor == rhs.minor;
     }
 }
 
 impl Ord<Version> for Version {
-    fn lt(self, rhs: Version) -> Bool {
+    fn lt(rhs: Version) -> Bool {
         return self.major < rhs.major or (self.major == rhs.major and self.minor < rhs.minor);
     }
-    fn le(self, rhs: Version) -> Bool { return not rhs.lt(self); }
+    fn le(rhs: Version) -> Bool { return not rhs.lt(self); }
 }
 ```
 
@@ -97,7 +96,7 @@ binding powers are the grammar's and cannot change:
 ```siox
 impl CustomOperator<"xor", Logic, Logic> for Logic {
     attr precedence = 35;
-    fn apply(self, rhs: Logic) -> Logic { … }
+    fn apply(rhs: Logic) -> Logic { … }
 }
 ```
 
@@ -198,13 +197,13 @@ parameters from their arguments, including integer ones:
 `unsigned[4]` is instantiated
 with `W = 4`, as rustc monomorphizes.
 
-Methods take `self`, and a type's *associated functions* are called through
-its path (`Unicode::code(c)`, `Entity::helper(x)`, `T<args>::f(x)`). In a
+A member has an implicit receiver and is called on a value (`x.f()`); a
+`static fn` has none and is called through its type's path
+(`Unicode::code(c)`, `Entity::helper(x)`, `T<args>::f(x)`). In a
 testbench a function is an ordinary procedure: it may loop, `await`, return
 early, write its caller's places through its parameters (`std::mem`'s `swap`
 and `replace`), and recurse, each recursive call keeping its own frame.
 `#[inline]` chooses whether the simulation expands calls or shares one native
-copy; it never changes what a call means. A member without a receiver may be marked
-`static fn`, and a function may keep state between calls in a `static let`:
+copy; it never changes what a call means. A function may keep state between calls in a `static let`:
 one copy per function, as C's `static` (@receivers). C functions are available through
 `extern "C"` blocks (@extern-c).
