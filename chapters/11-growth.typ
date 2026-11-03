@@ -292,19 +292,19 @@ an associated function today and would gain a receiver, so old code must fail
 with a message rather than change meaning.
 
 The owner accepted the model on 31 October 2026: every `self` parameter goes,
-in trait declarations as well as implementations. It is not implemented yet.
+in trait declarations as well as implementations. The `static fn` marker has
+landed (November 2026) for today's receiver-free members; the receiver
+migration and entity methods follow.
 
 The proposal also adds `static let`, state that outlives one activation of a
-process. Its rules are being decided (October 2026):
+process or one call of a function. Its rules:
 
-- It is allowed in processes and functions, and an error in an entity body,
-  where every `let` is already a signal declared once.
-- The proposed semantics are a *signal scoped to its process*: it updates like
-  every siox signal (a write takes effect at the end of the step), its
-  initializer is its power-on value, and it is named by the process label for
-  waveforms and debugging. That keeps the variable/signal split of VHDL and
-  the blocking/non-blocking split of Verilog out of the language: nothing is
-  inferred, the `static` is written.
+- It is allowed in processes and functions, directly in the body, and an
+  error in an entity body, where every `let` is already declared once. It
+  cannot hold an entity, and its initializer is a constant, run once.
+- It has *variable* semantics, as a VHDL process variable: a write takes
+  effect at once, so the next statement reads it. That is what lets two
+  calls in one process chain, and a counter function return 1, 2, 3.
 - In a function there is one copy per function, as with C's `static`
   (decided November 2026); a generic function has one per specialization. A
   testbench's calls share it in order. In hardware it is one register: several
@@ -312,8 +312,10 @@ process. Its rules are being decided (October 2026):
   while updates from separate processes (including two instances of the same
   entity) are a conflicting driver.
 
-It overlaps scoped blocks (below): `static let` is the lighter form for state
-one process owns, a block for state several processes share.
+Testbench `static let` is implemented (November 2026); in hardware it is
+reported until its register lowering lands. It overlaps scoped blocks
+(below): `static let` is the lighter form for state one process or function
+owns, a block for state several processes share.
 
 == Scoped blocks
 #status("proposal")

@@ -204,5 +204,7 @@ testbench a function is an ordinary procedure: it may loop, `await`, return
 early, write its caller's places through its parameters (`std::mem`'s `swap`
 and `replace`), and recurse, each recursive call keeping its own frame.
 `#[inline]` chooses whether the simulation expands calls or shares one native
-copy; it never changes what a call means. C functions are available through
+copy; it never changes what a call means. A member without a receiver may be marked
+`static fn`, and a function may keep state between calls in a `static let`:
+one copy per function, as C's `static` (@receivers). C functions are available through
 `extern "C"` blocks (@extern-c).

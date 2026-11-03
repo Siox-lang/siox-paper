@@ -395,6 +395,13 @@ with no `self` parameter, called as `Entity::function(...)`. It has no instance
 scope, cannot access ports or implementation state, and lowers like any other
 namespaced function in hardware and testbench expressions.
 
+Such a member may be written `static fn` (`pub static fn at(v: integer) ->
+Counter`), the marker the implicit-receivers proposal makes required: a
+`static fn` has no receiver, so a `self` parameter under it is an error, and
+`static` on a module-level function is an error because a module function
+never has one. Until the receiver migration lands, an unmarked receiver-free
+member keeps its current meaning.
+
 Trait methods similarly inherit the trait's visibility. An implementation
 therefore writes `fn`, never `pub fn`; a private trait and its methods remain
 usable throughout the trait's module. Inherent struct and view methods are
@@ -3701,6 +3708,29 @@ while count != 6 {           // poll the design, counting clock edges
     edges = edges + 1;
 }
 ```
+
+
+`static let` declares a local that keeps its value between activations and
+calls, with variable semantics: a write takes effect at once. It stands
+directly in a process or function body (not inside an `if`, loop or
+`match`), its initializer is a constant run once, and it cannot hold an
+entity; in an entity body it is an error, since every body `let` is already
+declared once. In a function there is **one copy per function**, as C's
+`static`: every call shares it, from any process, and each test starts from
+the initializer again.
+
+```siox
+fn next_id() -> integer {
+    static let n: integer = 0;
+    n = n + 1;
+    return n;              // 1, then 2, then 3, ...
+}
+```
+
+In a testbench process it acts as an ordinary local, since the body runs
+once. A generic function's `static let`, and `static let` in hardware (one
+register, where updates from separate processes conflict as E-P014), are
+reported as not supported yet.
 
 A numeric range `left..right` in a `for` is **inclusive and directional**, exactly
 like a bit slice or array range (§ Bits and slices): `0..2` visits `0, 1, 2`
