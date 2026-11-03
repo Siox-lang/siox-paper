@@ -397,7 +397,11 @@ namespaced function in hardware and testbench expressions.
 
 **Receivers are implicit.** A member of an implementation or trait has a
 receiver, as C++'s `this`, named `self` in its body; `static fn` marks one
-without (`pub static fn at(v: integer) -> Counter`). A `self` parameter under
+without (`pub static fn at(v: integer) -> Counter`). Inside a member with a
+receiver, a struct's field is also reachable by its bare name (`value` for
+`self.value`, read or written), its newtype base's fields included; a
+parameter or local of the same name shadows it, and a `static fn` sees no
+fields. A `self` parameter under
 `static fn`, and `static` on a module-level function, are errors. The old
 written `self` parameter still means the receiver and warns to remove it. A
 member that used to be receiver-free and is not marked `static` now has a

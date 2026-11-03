@@ -293,8 +293,9 @@ an impl of a trait's `static` member, fails with a message saying to write
 spelling, still compiles with a warning to remove it.
 
 The owner accepted the model on 31 October 2026, and it landed in November
-2026 across core, std and the corpus. Two parts follow: bare field names
-(`value` for `self.value`, shown above) and public entity methods.
+2026 across core, std and the corpus, with bare field names (`value` for
+`self.value`, shown above; parameters and locals shadow a field, and a
+`static fn` sees none). Public entity methods follow.
 
 The proposal also adds `static let`, state that outlives one activation of a
 process or one call of a function. Its rules:
