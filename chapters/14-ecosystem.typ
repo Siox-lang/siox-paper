@@ -71,7 +71,7 @@
   [`core`/`std` split, lang items, intrinsics], [#status("done")],
   [Fixed point; floating point with division, square root, fixed conversions], [#status("done")],
   [`Into` at port connections], [#status("partial")],
-  [Entity methods (associated functions; receiver methods paused)], [#status("partial")],
+  [Entity methods (hardware callers; testbench callers to come)], [#status("partial")],
   [Standard-library build-out (subnormals, rounding modes, linear algebra)], [#status("partial")],
   [Compiler foundations (UI tests, JSON, one constant evaluator, resolved tree)], [#status("partial")],
   [Pipelined functions], [#status("proposal")],

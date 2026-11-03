@@ -387,11 +387,18 @@ port is rejected as redundant. Its `in`, `out`, or `inout` suffix controls
 direction, not visibility. State, constants, mode fields, and helper functions
 declared in the entity's `impl` remain private. Access such as
 `instance.hidden_state` is rejected even from the entity's module; only ports
-form the structural instance interface. Public entity functions with a
-receiver are currently rejected because a call across an instance boundary has
-no implemented connectivity or synthesis semantics yet; behavior must be
-exposed through ports. An entity may expose a public **associated function**,
-`pub static fn`, called as `Entity::function(...)`. It has no instance scope,
+form the structural instance interface, together with **entity methods**.
+A `pub fn` (with its implicit receiver) on an entity is called on a direct
+child instance, `fifo.push(x)` or `y = fifo.pop()`, and elaborates into ports:
+`push#called: Bit in`, one `push#v: T in` per parameter and `pop#ret: R out`
+on the child, with the wiring in the parent. A method's writes are
+combinational strobes, active only while it is called; when it is not called,
+every signal it writes falls back to its default. The result comes back in the
+same cycle. A method has one call site per instance (a call in a loop counts as
+several), is called on a direct child only, and cannot yet be called from a
+testbench; a function cannot return an entity. An entity may also expose a
+public **associated function**, `pub static fn`, called as
+`Entity::function(...)`. It has no instance scope,
 cannot access ports or implementation state, and lowers like any other
 namespaced function in hardware and testbench expressions.
 

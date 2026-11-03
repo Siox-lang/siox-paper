@@ -224,40 +224,50 @@ reaches `q` one edge later, so `q` only ever changes on an edge of `clk`.])[
   )
 ] <fig-sync>
 
-== Entity methods
+== Entity methods <entity-methods>
 #status("partial")
 
 An entity's interface is its ports, and a protocol between two entities (offer
-a value, learn whether it was taken) is today spread over several ports,
-declared twice and wired at every instantiation. Entity methods let a
-component expose that protocol once, as a function whose calls *elaborate into*
-ports, following Bluespec's method-to-port mapping:
+a value, learn whether it was taken) used to be spread over several ports,
+declared twice and wired at every instantiation. An entity method exposes that
+protocol once: a `pub fn` whose calls *elaborate into* ports. Its writes are
+combinational strobes, active only while it is called, as a SystemVerilog
+interface function drives its wires, and the state stays in the child. A
+wrapper around a vendor FIFO is the typical case:
 
 ```siox
-impl Fifo {
-    pub fn write(value: unsigned[8]) -> Bool { … }
+impl<W: integer, DEPTH: integer> Fifo<W, DEPTH> {
+    let wr_en: Logic;  let din: Logic[W];
+    let rd_en: Logic;  let dout: Logic[W];  let full: Logic;
+    let ip: XpmFifoSync<…> = { .wr_en = wr_en, .din = din, .rd_en = rd_en,
+                               .dout = dout, .full = full, … };
+
+    pub fn is_full() -> Logic { return full; }
+    pub fn push(v: Logic[W]) { wr_en = '1'; din = v; }    // a write strobe
+    pub fn pop() -> Logic[W] { rd_en = '1'; return dout; }
 }
 
 impl Producer {
-    if clk.rising() {
-        if f.write(value) { value = value + 11; }
-    }
+    let fifo: Fifo<W = 8, DEPTH = 32> = { .clk = clk, .rst = rst };
+    feed: process { if valid == '1' and fifo.is_full() == '0' { fifo.push(data); } }
+    drain: process { q = fifo.pop(); }
 }
 ```
 
-A call materialises an enable port, one port per argument and one for the
-result; nothing is hidden, and the generated ports cost exactly what
-hand-written ones do. The first version allows one call site per method per
-instance, so no arbitration is needed. A call through an instance array works
-the same way: `stage[sel].write(v)` gives every element its own enable, gated by
-`sel`, so each still has one caller.
+A call materialises an enable, one port per argument and one for the result
+on the child (`push#called`, `push#v`, `pop#ret`), and the wiring in the
+parent. Nothing is hidden from the hardware, and the generated ports cost
+exactly what hand-written ones do. When a method is not called, every signal
+it writes falls back to its default, so no call means no strobe. The rules are
+VHDL's: an effect on the child's state happens in the child, wrong-clock calls
+and protocol misuse show up in simulation, and what has no single meaning is
+an error (one call site per method per instance, a direct child only, and no
+function returning an entity).
 
-Associated functions without a receiver are implemented. Accessors and action
-methods are #status("on hold"): the owner paused them in October 2026, because
-an entity's body names its ports and state without a receiver, and a `self`
-parameter on an entity method would look unlike everything else in that body.
-The implicit-receiver proposal below answers that objection; whether the two
-land together is the proposal's open question.
+Implemented (November 2026) for hardware callers. A testbench caller (when
+does its strobe drop?), a clocked write inside a method body (several methods
+updating one register under one clock), arbitration between callers, and
+calls through an instance-array element are still to come.
 
 == Implicit receivers and `static` <receivers>
 #status("partial")
@@ -295,7 +305,7 @@ spelling, still compiles with a warning to remove it.
 The owner accepted the model on 31 October 2026, and it landed in November
 2026 across core, std and the corpus, with bare field names (`value` for
 `self.value`, shown above; parameters and locals shadow a field, and a
-`static fn` sees none). Public entity methods follow.
+`static fn` sees none), and public entity methods (@entity-methods) follow it.
 
 The proposal also adds `static let`, state that outlives one activation of a
 process or one call of a function. Its rules:
