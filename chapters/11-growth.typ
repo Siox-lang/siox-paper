@@ -329,7 +329,7 @@ reported until its register lowering lands. It overlaps scoped blocks
 owns, a block for state several processes share.
 
 == Scoped blocks
-#status("proposal")
+#status("partial")
 
 A large implementation collects all its state in one namespace. A `{ … }` block
 at implementation scope groups members under their own scope, with an
@@ -355,8 +355,15 @@ Names follow Rust's block scoping; a private member from outside is an error
 naming the block. `pub` exports one level and never past the entity, whose
 interface stays its ports. A labelled block is a scope in the hierarchy, as a
 generate label is (`counter.n` in the tree, waveforms and debugger); an
-unlabelled one adds no level. Blocks add no semantics: elaboration flattens
-them, and no register is ever inferred from a local.
+unlabelled one adds no level. Blocks add no semantics: the compiler flattens
+them right after macro expansion, and no register is ever inferred from a
+local.
+
+Implemented (November 2026) at an implementation's root and nested in other
+blocks: the example runs, a labelled block is a waveform scope (`counter`
+holds `n` and `wrapped`), and shadowing, collisions between unlabelled
+blocks, private access and `pub let` at the root are errors. Blocks inside a
+generate loop wait for a `let` there to become a per-iteration signal.
 
 == Payload enums
 #status("on hold")

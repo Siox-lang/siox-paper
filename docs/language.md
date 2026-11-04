@@ -1389,6 +1389,36 @@ if clk.rising() {
 
 `en` is sampled when the clock event occurs.
 
+#### Scoped blocks
+
+A `{ … }` block at implementation scope groups signals, instances, processes,
+concurrent statements and nested blocks under a scope of its own; a label is
+optional. A member is visible in its block and the blocks nested in it; names
+from enclosing scopes are visible inside, and a member may not repeat one
+(`E-P002`). `pub let` exports a member one level: through the label for a
+labelled block (`counter.wrapped`), by its bare name for an unlabelled one.
+Naming a private member from outside is `E-P001` (bare) or `E-P024` (through
+the label); `pub let` at the implementation root is redundant and an error;
+functions, constants and mode fields stay at the root.
+
+```siox
+impl Cpu {
+    counter: {
+        let n: unsigned[8] = 0;          // a register, private to the block
+        pub let wrapped: Bit = '0';
+        step: process {
+            if clk.rising() { n = n + 1; wrapped = if n == 255 { '1' } else { '0' }; }
+        }
+    }
+    overflow = counter.wrapped;
+}
+```
+
+A labelled block is a hierarchy scope: its members are `counter.n` in the IR,
+waveforms and the debugger, and nested labels compose. An unlabelled block
+adds no level, so two of them declaring the same name collide (`E-P002`).
+Blocks add no semantics; a block inside a generate loop is not supported yet.
+
 ---
 
 ### 3.12 Assignment uses one operator

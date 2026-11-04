@@ -76,7 +76,7 @@
   [Compiler foundations (UI tests, JSON, one constant evaluator, resolved tree)], [#status("partial")],
   [Pipelined functions], [#status("proposal")],
   [Implicit receivers, `static fn`, `static let`], [#status("partial")],
-  [Scoped blocks], [#status("proposal")],
+  [Scoped blocks (outside generate loops)], [#status("partial")],
   [Binary and unary custom operators], [#status("proposal")],
   [Parallel simulation], [#status("proposal")],
   [Co-simulation, VPI/VHPI and cocotb], [#status("proposal")],
