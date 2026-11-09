@@ -2221,17 +2221,26 @@ low bound. For `unsigned[15..8]`, label 8 is storage bit 0 and label 15 is
 storage bit 7; the vector is still eight bits wide. This mapping applies to
 constant and runtime indices and slices.
 
-Ranges are inclusive, including partial ranges. An omitted bound comes from
-the indexed object's declared range:
+Ranges are inclusive, including partial ranges. A partial range follows the
+indexed object left to right and keeps its order: an omitted bound comes from
+the object's `'left` or `'right`, and the slice keeps the object's own order,
+so `v[..]` is `v`. A packed vector keeps its significance — on one declared
+ascending (a width: `unsigned[8]` is `0..7`) the slice runs high to low — and
+an unpacked array keeps its element order:
 
 ```siox
 let down: unsigned[7..0];
 down[..4]   // down'left..4  = 7..4
 down[3..]   // 3..down'right = 3..0
-down[..]    // down'left..down'right = 7..0
+down[..]    // down'left..down'right = 7..0, which is `down`
 
-let up: Bit[0..7];
-up[..4]     // 0..4
+let v: unsigned[8];      // 0..7
+v[..4]      // bits 4 down to 0: the low five bits, in order
+v[4..]      // bits 7 down to 4: the high nibble, in order
+v[..]       // v
+
+let arr: unsigned[8][10..13];
+arr[..12]   // elements 10, 11, 12, in order
 ```
 
 Because `..` is already inclusive, `..=` is invalid. Partial ranges require an
