@@ -224,6 +224,7 @@ emitted as LLVM's own intrinsics, as nvc builds in `ieee.math_real`:
 | `cmp(a, b)` | an `Ordering`: `Less`, `Equal` or `Greater` (Rust's `Ord::cmp`); unordered values, such as a NaN, compare `Equal` |
 | `sqrt(x)` | the square root of a `real`, `float`, `ufixed` or `sfixed` (trait `Sqrt`) |
 | `sin`, `cos`, `exp`, `log`, `pow`, `floor`, `ceil`, `round` | on `real`, built in |
+| `core::intrinsics::to_bits(x)` | a `real`'s IEEE-754 bit pattern as a `natural` (rustc's `f64::to_bits`); `unsigned[64](x)` converts the number instead |
 | `PI`, `E` | `real` constants |
 
 `abs`, `min`, `max`, `clamp`, `cmp`, `rem` and `mod` are generic over the numeric types —

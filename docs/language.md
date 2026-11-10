@@ -1709,7 +1709,11 @@ r = resize(a, W + 1); // same rule, width as a const-evaluable value
 A conversion is a **raw resize**, zero-extend or truncate, unless the
 target family declares `impl From<S> for T` for the source's type (below).
 Between `integer` and `real` it converts the *number*: `integer(r)`
-truncates toward zero and `real(n)` is exactly n. An `integer` is also
+truncates toward zero and `real(n)` is exactly n. A vector from a `real`
+converts the number too, in hardware and in simulation alike:
+`unsigned[8](100.75)` is 100, through `integer` (#568). A real's IEEE-754
+bit pattern is read explicitly with `core::intrinsics::to_bits(r)`, a
+`natural`, as rustc's `f64::to_bits`. An `integer` is also
 promoted to `real` implicitly, by value, where a `real` is expected
 (`let r: real = n;`, `1.5 + n`). The compiler tracks no signedness (§3.10);
 std's `From<signed> for signed` is what makes `signed[16](s)` copy the sign
